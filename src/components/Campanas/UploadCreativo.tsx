@@ -46,6 +46,39 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
     }
   };
 
+  const comprimirImagen = (file: File, maxWidth: number = 800, quality: number = 0.7): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calcular nuevas dimensiones manteniendo proporción
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        // Dibujar imagen redimensionada
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Convertir a blob con compresión
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const archivoComprimido = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now()
+            });
+            resolve(archivoComprimido);
+          } else {
+            resolve(file); // Fallback al archivo original
+          }
+        }, file.type, quality);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const manejarSubir = async () => {
     if (!archivoSeleccionado) {
       alert('❌ Selecciona un archivo primero');
@@ -55,7 +88,16 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
     setSubiendo(true);
     
     try {
-      const resultado = await onSubirCreativo(campana, archivoSeleccionado);
+      let archivoParaSubir = archivoSeleccionado;
+      
+      // Comprimir imagen si es mayor a 500KB
+      if (archivoSeleccionado.size > 500000 && archivoSeleccionado.type.startsWith('image/')) {
+        console.log('🔄 Comprimiendo imagen...');
+        archivoParaSubir = await comprimirImagen(archivoSeleccionado, 600, 0.6);
+        console.log(`✅ Archivo comprimido: ${formatearTamano(archivoSeleccionado.size)} → ${formatearTamano(archivoParaSubir.size)}`);
+      }
+      
+      const resultado = await onSubirCreativo(campana, archivoParaSubir);
       
       if (resultado.exito) {
         alert(`✅ ${resultado.mensaje}`);

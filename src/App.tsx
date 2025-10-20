@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Login from './components/Auth/Login';
 import Layout from './components/Layout/Layout';
 import Dashboard from './components/Dashboard/Dashboard';
 import ListaCampanas from './components/Campanas/ListaCampanas';
@@ -7,21 +9,41 @@ import FormularioCrearCampana from './components/Campanas/FormularioCrearCampana
 import FormularioMetricasTrafficker from './components/Campanas/FormularioMetricasTrafficker';
 import FormularioMetricasDueno from './components/Campanas/FormularioMetricasDueno';
 import ImportarCampanas from './components/Campanas/ImportarCampanas';
+import HistorialCambios from './components/Audit/HistorialCambios';
 import { useCampanaStore } from './store/useCampanaStore';
 import { Campana } from './types';
 // import { cargarDatosEjemplo } from './utils/datosEjemplo';
 
-type Vista = 'dashboard' | 'campanas' | 'historico';
+type Vista = 'dashboard' | 'campanas' | 'historico' | 'auditoria';
 
-export default function App() {
+function AppContent() {
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const [vistaActiva, setVistaActiva] = useState<Vista>('dashboard');
   const [mostrarFormularioCrear, setMostrarFormularioCrear] = useState(false);
   const [campanaParaTrafficker, setCampanaParaTrafficker] = useState<Campana | null>(null);
   const [campanaParaDueno, setCampanaParaDueno] = useState<Campana | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
   const [mostrarImportacion, setMostrarImportacion] = useState(false);
+  const [mostrarAuditoria, setMostrarAuditoria] = useState(false);
   
   const { obtenerCampanas, obtenerHistorico } = useCampanaStore();
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar login si no está autenticado
+  if (!isAuthenticated) {
+    return <Login />;
+  }
 
   useEffect(() => {
     // No cargar datos de ejemplo automáticamente para empezar limpio
@@ -60,6 +82,8 @@ export default function App() {
             </button>
           </div>
         );
+      case 'auditoria':
+        return <HistorialCambios />;
       default:
         return <Dashboard />;
     }
@@ -106,6 +130,16 @@ export default function App() {
             >
               📈 Histórico
             </button>
+            <button
+              onClick={() => setVistaActiva('auditoria')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                vistaActiva === 'auditoria'
+                  ? 'text-primary-600 border-b-2 border-primary-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📋 Auditoría
+            </button>
           </div>
         </div>
 
@@ -138,6 +172,14 @@ export default function App() {
         <ImportarCampanas onCerrar={() => setMostrarImportacion(false)} />
       )}
     </>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

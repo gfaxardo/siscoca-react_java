@@ -5,6 +5,9 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import FiltrosCampanas from './FiltrosCampanas';
 import UploadCreativo from './UploadCreativo';
+import MenuAccionesCampana from './MenuAccionesCampana';
+import GraficosMetricas from './GraficosMetricas';
+import HistoricoSemanasCampana from './HistoricoSemanasCampana';
 
 interface ListaCampanasProps {
   onCrearNueva: () => void;
@@ -17,62 +20,112 @@ export default function ListaCampanas({
   onEditarMetricasTrafficker,
   onEditarMetricasDueno 
 }: ListaCampanasProps) {
-  const { campanas, cambiarEstadoCampana, eliminarCampana, subirCreativo, descargarCreativo, archivarCampana } = useCampanaStore();
-  const [campanasFiltradas, setCampanasFiltradas] = useState<Campana[]>(campanas);
+  const [error, setError] = useState<string | null>(null);
+  
+  const { 
+    campanas, 
+    historico, 
+    cambiarEstadoCampana, 
+    eliminarCampana, 
+    subirCreativo, 
+    descargarCreativo, 
+    archivarCampana,
+    guardarHistoricoSemanal,
+    obtenerHistoricoSemanalCampana
+  } = useCampanaStore();
+  
+  const [campanasFiltradas, setCampanasFiltradas] = useState<Campana[]>([]);
   const [campanaParaUpload, setCampanaParaUpload] = useState<Campana | null>(null);
+  const [campanaParaHistorico, setCampanaParaHistorico] = useState<Campana | null>(null);
+
+  // Inicializar campañas filtradas y manejar errores
+  useEffect(() => {
+    try {
+      setCampanasFiltradas(campanas.filter(c => c.estado !== 'Archivada'));
+      setError(null);
+    } catch (err) {
+      console.error('Error inicializando campañas:', err);
+      setError(err instanceof Error ? err.message : 'Error cargando campañas');
+    }
+  }, [campanas]);
 
   const campanasActivas = campanasFiltradas.filter(c => c.estado !== 'Archivada');
 
   const manejarFiltros = (nuevasCampanasFiltradas: Campana[]) => {
-    setCampanasFiltradas(nuevasCampanasFiltradas);
+    try {
+      setCampanasFiltradas(nuevasCampanasFiltradas);
+    } catch (err) {
+      console.error('Error aplicando filtros:', err);
+      setError('Error aplicando filtros');
+    }
   };
 
   const manejarActivacion = async (campana: Campana) => {
-    const confirmar = window.confirm(
-      `¿Estás seguro de que quieres ACTIVAR la campaña?\n\n` +
-      `Campaña: ${campana.nombre}\n` +
-      `Una vez activada, podrás subir métricas.`
-    );
-    
-    if (confirmar) {
-      const resultado = await cambiarEstadoCampana(campana.id, 'Activa');
-      if (!resultado.exito) {
-        alert(resultado.mensaje);
+    try {
+      const confirmar = window.confirm(
+        `¿Estás seguro de que quieres ACTIVAR la campaña?\n\n` +
+        `Campaña: ${campana.nombre}\n` +
+        `Una vez activada, podrás subir métricas.`
+      );
+      
+      if (confirmar) {
+        const resultado = await cambiarEstadoCampana(campana.id, 'Activa');
+        if (!resultado.exito) {
+          alert(resultado.mensaje);
+        }
       }
+    } catch (err) {
+      console.error('Error activando campaña:', err);
+      setError('Error activando campaña');
     }
   };
 
   const manejarDescargaCreativo = (campana: Campana) => {
-    const resultado = descargarCreativo(campana);
-    if (!resultado.exito) {
-      alert(resultado.mensaje);
+    try {
+      const resultado = descargarCreativo(campana);
+      if (!resultado.exito) {
+        alert(resultado.mensaje);
+      }
+    } catch (err) {
+      console.error('Error descargando creativo:', err);
+      setError('Error descargando creativo');
     }
   };
 
   const manejarArchivado = async (campana: Campana) => {
-    const confirmar = window.confirm(
-      `¿Estás seguro de que quieres ARCHIVAR esta campaña?\n\n` +
-      `Campaña: ${campana.nombre}\n\n` +
-      `⚠️ IMPORTANTE:\n` +
-      `• Se moverá al histórico semanal\n` +
-      `• Ya no aparecerá en campañas activas\n` +
-      `• Esta acción no se puede deshacer\n\n` +
-      `¿Continuar con el archivado?`
-    );
-    
-    if (confirmar) {
-      const resultado = await archivarCampana(campana);
-      if (resultado.exito) {
-        alert(`✅ ${resultado.mensaje}`);
-      } else {
-        alert(`❌ ${resultado.mensaje}`);
+    try {
+      const confirmar = window.confirm(
+        `¿Estás seguro de que quieres ARCHIVAR esta campaña?\n\n` +
+        `Campaña: ${campana.nombre}\n\n` +
+        `⚠️ IMPORTANTE:\n` +
+        `• Se moverá al histórico semanal\n` +
+        `• Ya no aparecerá en campañas activas\n` +
+        `• Esta acción no se puede deshacer\n\n` +
+        `¿Continuar con el archivado?`
+      );
+      
+      if (confirmar) {
+        const resultado = await archivarCampana(campana);
+        if (resultado.exito) {
+          alert(`✅ ${resultado.mensaje}`);
+        } else {
+          alert(`❌ ${resultado.mensaje}`);
+        }
       }
+    } catch (err) {
+      console.error('Error archivando campaña:', err);
+      setError('Error archivando campaña');
     }
   };
 
   // Actualizar campañas filtradas cuando cambien las originales
   useEffect(() => {
-    setCampanasFiltradas(campanas.filter(c => c.estado !== 'Archivada'));
+    try {
+      setCampanasFiltradas(campanas.filter(c => c.estado !== 'Archivada'));
+    } catch (err) {
+      console.error('Error actualizando campañas filtradas:', err);
+      setError('Error actualizando campañas');
+    }
   }, [campanas]);
 
   const obtenerColorEstado = (estado: Campana['estado']) => {
@@ -90,6 +143,33 @@ export default function ListaCampanas({
     }
   };
 
+
+  // Mostrar error si existe
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="text-red-400 mr-3">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-red-800 font-semibold">Error en Campañas</h3>
+              <p className="text-red-600 mt-1">{error}</p>
+              <button 
+                onClick={() => setError(null)}
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              >
+                Reintentar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
       <div className="space-y-6">
@@ -139,6 +219,7 @@ export default function ListaCampanas({
               className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden"
             >
               <div className="p-6">
+                {/* Header con título y menú de acciones */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-gray-900 mb-2 break-words">
@@ -158,11 +239,37 @@ export default function ListaCampanas({
                       )}
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 ${obtenerColorEstado(campana.estado)}`}>
-                    {campana.estado === 'Creativo Enviado' ? 'Creativo Enviado!' : campana.estado}
-                  </span>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${obtenerColorEstado(campana.estado)}`}>
+                      {campana.estado === 'Creativo Enviado' ? 'Creativo Enviado!' : campana.estado}
+                    </span>
+                    
+                    {/* Menú de acciones */}
+                    <MenuAccionesCampana
+                      campana={campana}
+                      onEnviarCreativo={() => setCampanaParaUpload(campana)}
+                      onActivarCampana={() => manejarActivacion(campana)}
+                      onSubirMetricasTrafficker={() => onEditarMetricasTrafficker(campana)}
+                      onSubirMetricasDueno={() => onEditarMetricasDueno(campana)}
+                      onArchivarCampana={() => manejarArchivado(campana)}
+                      onDescargarCreativo={() => manejarDescargaCreativo(campana)}
+                      onHistoricoSemanas={() => setCampanaParaHistorico(campana)}
+                      onEliminarCampana={() => {
+                        try {
+                          if (confirm(`¿Eliminar campaña ${campana.nombre}?\n\nEsta acción no se puede deshacer.`)) {
+                            eliminarCampana(campana.id);
+                          }
+                        } catch (err) {
+                          console.error('Error eliminando campaña:', err);
+                          setError('Error eliminando campaña');
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
 
+                {/* Información básica */}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <span className="font-semibold mr-2">Segmento:</span>
@@ -173,112 +280,32 @@ export default function ListaCampanas({
                   </div>
                 </div>
 
-                {campana.costoSemanal && (
-                  <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-gray-500 text-xs">Alcance</p>
-                        <p className="font-semibold text-gray-900">
-                          {campana.alcance?.toLocaleString() || '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Leads</p>
-                        <p className="font-semibold text-gray-900">
-                          {campana.leads?.toLocaleString() || '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Costo Semanal</p>
-                        <p className="font-semibold text-gray-900">
-                          S/ {campana.costoSemanal?.toFixed(2) || '-'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs">Conductores</p>
-                        <p className="font-semibold text-gray-900">
-                          {campana.conductoresRegistrados || '-'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="text-xs text-gray-500 mb-4">
-                  Actualizado: {format(campana.ultimaActualizacion, "dd/MM/yyyy HH:mm", { locale: es })}
+                {/* Gráficos de evolución en lugar de métricas estáticas */}
+                <div className="mb-4">
+                  {(() => {
+                    try {
+                      return (
+                        <GraficosMetricas 
+                          campana={campana} 
+                          historico={historico}
+                          historicoSemanas={obtenerHistoricoSemanalCampana(campana.id)}
+                        />
+                      );
+                    } catch (err) {
+                      console.error('Error renderizando gráficos:', err);
+                      return (
+                        <div className="bg-gray-50 rounded-lg p-4 text-center">
+                          <div className="text-2xl mb-2">📊</div>
+                          <p className="text-sm text-gray-500">Error cargando gráficos</p>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
 
-                <div className="space-y-2">
-                  {/* Botones principales por estado */}
-                  <div className="flex flex-wrap gap-2">
-                    {campana.estado === 'Pendiente' && (
-                      <button
-                        onClick={() => setCampanaParaUpload(campana)}
-                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      >
-                        📎 Enviar Creativo
-                      </button>
-                    )}
-                    
-                    {campana.estado === 'Creativo Enviado' && (
-                      <button
-                        onClick={() => manejarActivacion(campana)}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      >
-                        ✅ Activar Campaña
-                      </button>
-                    )}
-                    
-                    {campana.estado === 'Activa' && (
-                      <>
-                        <button
-                          onClick={() => onEditarMetricasTrafficker(campana)}
-                          className="flex-1 bg-primary-500 hover:bg-primary-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                        >
-                          📊 Subir Métricas Trafficker
-                        </button>
-                        <button
-                          onClick={() => onEditarMetricasDueno(campana)}
-                          className="flex-1 bg-warning-500 hover:bg-warning-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                        >
-                          👥 Subir Métricas Dueño Campaña
-                        </button>
-                      </>
-                    )}
-
-                    {campana.estado === 'Activa' && campana.alcance && campana.conductoresRegistrados !== undefined && (
-                      <button
-                        onClick={() => manejarArchivado(campana)}
-                        className="flex-1 bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                      >
-                        📁 Archivar Campaña
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Botones secundarios */}
-                  <div className="flex flex-wrap gap-2">
-                    {campana.estado === 'Creativo Enviado' && campana.archivoCreativo && (
-                      <button
-                        onClick={() => manejarDescargaCreativo(campana)}
-                        className="bg-purple-50 hover:bg-purple-100 text-purple-600 px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center space-x-1"
-                      >
-                        <span>⬇️</span>
-                        <span>Descargar Creativo</span>
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => {
-                        if (confirm(`¿Eliminar campaña ${campana.nombre}?\n\nEsta acción no se puede deshacer.`)) {
-                          eliminarCampana(campana.id);
-                        }
-                      }}
-                      className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                    >
-                      🗑️ Eliminar
-                    </button>
-                  </div>
+                {/* Información de actualización */}
+                <div className="text-xs text-gray-500">
+                  Actualizado: {format(campana.ultimaActualizacion, "dd/MM/yyyy HH:mm", { locale: es })}
                 </div>
               </div>
             </div>
@@ -292,6 +319,16 @@ export default function ListaCampanas({
           campana={campanaParaUpload}
           onCerrar={() => setCampanaParaUpload(null)}
           onSubirCreativo={subirCreativo}
+        />
+      )}
+
+      {/* Modal de Histórico de Semanas */}
+      {campanaParaHistorico && (
+        <HistoricoSemanasCampana
+          campana={campanaParaHistorico}
+          onCerrar={() => setCampanaParaHistorico(null)}
+          onGuardarHistorico={guardarHistoricoSemanal}
+          historicoExistente={obtenerHistoricoSemanalCampana(campanaParaHistorico.id)}
         />
       )}
 

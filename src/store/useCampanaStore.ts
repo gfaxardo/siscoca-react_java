@@ -1,9 +1,29 @@
 import { create } from 'zustand';
 import { Campana, MetricasTrafficker, MetricasDueno, FormularioCrearCampana, HistoricoSemanal, Vertical, Segmento } from '../types';
 
+interface HistoricoSemanalCampana {
+  id: string;
+  idCampana: string;
+  semanaISO: number;
+  fechaSemana: Date;
+  // Métricas trafficker
+  alcance?: number;
+  clics?: number;
+  leads?: number;
+  costoSemanal?: number;
+  costoLead?: number;
+  // Métricas dueño
+  conductoresRegistrados?: number;
+  conductoresPrimerViaje?: number;
+  // Metadatos
+  fechaRegistro: Date;
+  registradoPor: string;
+}
+
 interface CampanaStore {
   campanas: Campana[];
   historico: HistoricoSemanal[];
+  historicoSemanasCampanas: HistoricoSemanalCampana[];
   campanaSeleccionada: Campana | null;
   
   crearCampana: (datos: FormularioCrearCampana, idPersonalizado?: string) => Promise<{ exito: boolean; mensaje: string }>;
@@ -14,6 +34,9 @@ interface CampanaStore {
   descargarCreativo: (campana: Campana) => { exito: boolean; mensaje: string };
   archivarCampana: (campana: Campana) => Promise<{ exito: boolean; mensaje: string }>;
   importarHistorico: (datosHistorico: any[]) => Promise<{ exito: boolean; mensaje: string }>;
+  guardarHistoricoSemanal: (datos: Omit<HistoricoSemanalCampana, 'id' | 'fechaRegistro' | 'registradoPor'>) => Promise<{ exito: boolean; mensaje: string }>;
+  obtenerHistoricoSemanalCampana: (idCampana: string) => HistoricoSemanalCampana[];
+  eliminarHistoricoSemanal: (id: string) => Promise<{ exito: boolean; mensaje: string }>;
   obtenerCampanas: () => void;
   obtenerHistorico: () => void;
   seleccionarCampana: (campana: Campana | null) => void;
@@ -23,6 +46,7 @@ interface CampanaStore {
 export const useCampanaStore = create<CampanaStore>((set, get) => ({
   campanas: [],
   historico: [],
+  historicoSemanasCampanas: [],
   campanaSeleccionada: null,
 
   crearCampana: async (datos: FormularioCrearCampana, idPersonalizado?: string) => {
@@ -161,6 +185,34 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
 
   subirCreativo: async (campana: Campana, archivo: File) => {
     try {
+      // Verificar espacio disponible en localStorage
+      const verificarEspacioDisponible = () => {
+        try {
+          const testKey = 'test-space-check';
+          const testData = 'x'.repeat(1024); // 1KB de prueba
+          localStorage.setItem(testKey, testData);
+          localStorage.removeItem(testKey);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      };
+
+      // Si no hay espacio, limpiar datos antiguos
+      if (!verificarEspacioDisponible()) {
+        console.warn('⚠️ Espacio insuficiente en localStorage, limpiando datos antiguos...');
+        
+        // Mantener solo las últimas 10 campañas más recientes
+        const campanas = get().campanas;
+        const campanasOrdenadas = campanas.sort((a, b) => 
+          new Date(b.ultimaActualizacion).getTime() - new Date(a.ultimaActualizacion).getTime()
+        );
+        const campanasParaMantener = campanasOrdenadas.slice(0, 10);
+        
+        set({ campanas: campanasParaMantener });
+        localStorage.setItem('campanas', JSON.stringify(campanasParaMantener));
+      }
+
       // Convertir archivo a base64 para almacenamiento simple
       const reader = new FileReader();
       const promesa = new Promise<string>((resolve, reject) => {
@@ -374,6 +426,17 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
       });
       set({ historico });
     }
+    
+    // Cargar histórico semanal de campañas
+    const historicoSemanasGuardado = localStorage.getItem('historicoSemanasCampanas');
+    if (historicoSemanasGuardado) {
+      const historicoSemanasCampanas = JSON.parse(historicoSemanasGuardado);
+      historicoSemanasCampanas.forEach((h: HistoricoSemanalCampana) => {
+        h.fechaSemana = new Date(h.fechaSemana);
+        h.fechaRegistro = new Date(h.fechaRegistro);
+      });
+      set({ historicoSemanasCampanas });
+    }
   },
 
   seleccionarCampana: (campana: Campana | null) => {
@@ -384,6 +447,67 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
     const campanas = get().campanas.filter(c => c.id !== idCampana);
     set({ campanas });
     localStorage.setItem('campanas', JSON.stringify(campanas));
+  },
+
+  guardarHistoricoSemanal: async (datos) => {
+    try {
+      const historicoSemanasCampanas = get().historicoSemanasCampanas;
+      const ahora = new Date();
+      
+      // Generar ID único
+      const id = `${datos.idCampana}-${datos.semanaISO}-${ahora.getTime()}`;
+      
+      // Verificar si ya existe un registro para esta campaña y semana
+      const indiceExistente = historicoSemanasCampanas.findIndex(
+        h => h.idCampana === datos.idCampana && h.semanaISO === datos.semanaISO
+      );
+      
+      const nuevoRegistro: HistoricoSemanalCampana = {
+        id,
+        ...datos,
+        fechaRegistro: ahora,
+        registradoPor: 'Usuario' // En una app real, obtendrías esto del contexto de usuario
+      };
+      
+      let historicoActualizado;
+      if (indiceExistente >= 0) {
+        // Actualizar registro existente
+        historicoActualizado = [...historicoSemanasCampanas];
+        historicoActualizado[indiceExistente] = nuevoRegistro;
+      } else {
+        // Agregar nuevo registro
+        historicoActualizado = [...historicoSemanasCampanas, nuevoRegistro];
+      }
+      
+      set({ historicoSemanasCampanas: historicoActualizado });
+      localStorage.setItem('historicoSemanasCampanas', JSON.stringify(historicoActualizado));
+      
+      return { 
+        exito: true, 
+        mensaje: `Métricas de la semana ${datos.semanaISO} guardadas exitosamente` 
+      };
+    } catch (error) {
+      return { exito: false, mensaje: `Error: ${error}` };
+    }
+  },
+
+  obtenerHistoricoSemanalCampana: (idCampana: string) => {
+    const historicoSemanasCampanas = get().historicoSemanasCampanas;
+    return historicoSemanasCampanas.filter(h => h.idCampana === idCampana);
+  },
+
+  eliminarHistoricoSemanal: async (id: string) => {
+    try {
+      const historicoSemanasCampanas = get().historicoSemanasCampanas;
+      const historicoActualizado = historicoSemanasCampanas.filter(h => h.id !== id);
+      
+      set({ historicoSemanasCampanas: historicoActualizado });
+      localStorage.setItem('historicoSemanasCampanas', JSON.stringify(historicoActualizado));
+      
+      return { exito: true, mensaje: 'Registro histórico eliminado exitosamente' };
+    } catch (error) {
+      return { exito: false, mensaje: `Error: ${error}` };
+    }
   }
 }));
 

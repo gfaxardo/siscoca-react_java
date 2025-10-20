@@ -277,6 +277,22 @@ export default function Dashboard() {
                   <span>📊</span>
                   <span>Limpiar Histórico</span>
                 </button>
+
+                {/* Botón de emergencia para limpiar localStorage */}
+                <button
+                  onClick={() => {
+                    if (confirm('⚠️ ¿Limpiar completamente el localStorage?\n\nEsto eliminará TODOS los datos guardados en el navegador.\n\n¿Continuar?')) {
+                      localStorage.clear();
+                      alert('✅ localStorage limpiado. Recargando página...');
+                      window.location.reload();
+                    }
+                  }}
+                  className="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
+                  title="⚠️ Limpia completamente el localStorage (solución de emergencia)"
+                >
+                  <span>🚨</span>
+                  <span>Limpiar Storage</span>
+                </button>
               </div>
             </div>
         
