@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:12
+    container_name: siscoca-postgres
+    environment:
+      POSTGRES_DB: siscoca_db
+      POSTGRES_USER: siscoca_user
+      POSTGRES_PASSWORD: siscoca_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - siscoca-network
+
+  backend:
+    build: ./backend
+    container_name: siscoca-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/siscoca_db
+      SPRING_DATASOURCE_USERNAME: siscoca_user
+      SPRING_DATASOURCE_PASSWORD: siscoca_password
+    depends_on:
+      - postgres
+    networks:
+      - siscoca-network
+
+  frontend:
+    build: ./frontend
+    container_name: siscoca-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+    depends_on:
+      - backend
+    networks:
+      - siscoca-network
+
+volumes:
+  postgres_data:
+
+networks:
+  siscoca-network:
+    driver: bridge

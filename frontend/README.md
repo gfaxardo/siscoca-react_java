@@ -1,47 +1,31 @@
-# 🎯 SISCOCA 2.0 - Sistema de Gestión de Campañas
+# 🎯 SISCOCA 2.0 - Frontend (React)
 
 ![React](https://img.shields.io/badge/React-18.3-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)
-![Java](https://img.shields.io/badge/Java-18-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-12-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8)
+![Vite](https://img.shields.io/badge/Vite-6.0-646cff)
 
-Sistema moderno de gestión de campañas publicitarias con arquitectura separada: Frontend en React y Backend en Java.
+Frontend del Sistema de Gestión de Campañas desarrollado con React, TypeScript y Tailwind CSS.
 
-## 📁 Estructura del Proyecto
+## 📋 Características
 
-```
-siscoca-2.0/
-├── frontend/                 # Aplicación React (Frontend)
-│   ├── src/                 # Código fuente React
-│   ├── public/              # Archivos públicos
-│   ├── package.json         # Dependencias del frontend
-│   └── README.md            # Documentación del frontend
-├── backend/                 # Aplicación Java (Backend)
-│   └── siscoca-backend/     # Proyecto Spring Boot
-│       ├── src/             # Código fuente Java
-│       ├── pom.xml          # Dependencias Maven
-│       └── README.md        # Documentación del backend
-└── README.md               # Este archivo
-```
+### ✅ Funcionalidades Principales
 
-## 🏗️ Arquitectura
+- **Gestión de Campañas**: Crear, editar y eliminar campañas
+- **Métricas de Trafficker**: Alcance, clics, leads, costos
+- **Métricas del Dueño**: Conductores registrados y primer viaje
+- **Dashboard Interactivo**: Visualización de estadísticas en tiempo real
+- **Histórico Semanal**: Archivo automático de datos
+- **Cálculos Automáticos**: Costos por lead y conductor
+- **Estados de Campaña**: Pendiente, Creativo Enviado, Activa, Archivada
 
-### Frontend (React + TypeScript)
-- **Gestión de Campañas**: Crear, editar y gestionar campañas publicitarias
-- **Métricas**: Seguimiento de métricas de trafficker y dueño
-- **Histórico**: Visualización de datos históricos por semana
-- **Auditoría**: Registro de cambios y actividades
-- **Roles**: Sistema de roles (Admin, Trafficker, Dueño)
-- **Autenticación**: Sistema de login seguro
+### 🎨 Diseño y UX
 
-### Backend (Java 18 + Spring Boot)
-- **API REST**: Endpoints para todas las operaciones
-- **Base de datos**: PostgreSQL
-- **Autenticación**: JWT (JSON Web Tokens)
-- **Seguridad**: Spring Security
-- **CORS**: Configurado para frontend React
-- **Moneda**: Todas las cantidades monetarias en USD (Dólares)
+- **Interfaz Moderna**: UI/UX optimizada con Tailwind CSS v3
+- **Responsive Design**: Adaptado a todos los dispositivos
+- **Componentes Reutilizables**: Arquitectura modular
+- **Validación de Formularios**: Con React Hook Form + Zod
+- **Gestión de Estado**: Zustand con persistencia en localStorage
 
 ## 🚀 Tecnologías
 
@@ -67,7 +51,7 @@ siscoca-2.0/
 ### 1. Backend (Java)
 
 ```bash
-cd backend/siscoca-backend
+cd siscoca-backend
 
 # Configurar base de datos PostgreSQL
 # Crear base de datos: siscoca_db
@@ -83,12 +67,8 @@ start-backend.bat   # Windows
 ### 2. Frontend (React)
 
 ```bash
-cd frontend
-
-# Instalar dependencias
+# En el directorio raíz del proyecto
 npm install
-
-# Ejecutar en modo desarrollo
 npm run dev
 ```
 
@@ -126,6 +106,31 @@ npm run dev
 - `GET /api/campanas/estado/{estado}` - Obtener campañas por estado
 - `GET /api/campanas/dueno/{nombreDueno}` - Obtener campañas por dueño
 
+## 🏗️ Estructura del Proyecto
+
+```
+siscoca-react/
+├── src/                    # Frontend React
+│   ├── components/         # Componentes React
+│   │   ├── Layout/        # Layout principal
+│   │   ├── Campanas/      # Gestión de campañas
+│   │   ├── Dashboard/     # Panel principal
+│   │   └── Historico/     # Vista histórica
+│   ├── services/          # Servicios de API
+│   ├── store/             # Estado global (Zustand)
+│   └── types/             # Tipos TypeScript
+└── siscoca-backend/       # Backend Java
+    ├── src/main/java/     # Código Java
+    │   ├── config/        # Configuraciones
+    │   ├── controller/    # Controladores REST
+    │   ├── dto/           # Data Transfer Objects
+    │   ├── model/         # Entidades JPA
+    │   ├── repository/    # Repositorios de datos
+    │   └── service/       # Lógica de negocio
+    ├── src/main/resources/ # Configuración
+    └── pom.xml           # Dependencias Maven
+```
+
 ## 📖 Uso del Sistema
 
 ### Crear Nueva Campaña
@@ -162,7 +167,6 @@ npm run dev
 
 ### Frontend
 ```bash
-cd frontend
 npm run dev      # Modo desarrollo
 npm run build    # Build para producción
 npm run preview  # Preview del build
@@ -171,7 +175,6 @@ npm run lint     # Linting
 
 ### Backend
 ```bash
-cd backend/siscoca-backend
 mvn spring-boot:run  # Ejecutar en modo desarrollo
 mvn clean package    # Compilar para producción
 mvn test            # Ejecutar tests
@@ -181,14 +184,12 @@ mvn test            # Ejecutar tests
 
 ### Frontend
 ```bash
-cd frontend
 npm run build
 # Los archivos se generan en /dist
 ```
 
 ### Backend
 ```bash
-cd backend/siscoca-backend
 mvn clean package
 # El JAR se genera en /target
 java -jar target/siscoca-backend-2.0.0.jar
@@ -197,14 +198,14 @@ java -jar target/siscoca-backend-2.0.0.jar
 ## 🔧 Variables de Entorno
 
 ### Frontend
-Crear archivo `frontend/.env`:
+Crear archivo `.env`:
 ```env
 VITE_API_URL=http://localhost:8080/api
 VITE_APP_TITLE=SISCOCA 2.0
 ```
 
 ### Backend
-Editar `backend/siscoca-backend/src/main/resources/application.yml`:
+Editar `src/main/resources/application.yml`:
 ```yaml
 spring:
   datasource:
