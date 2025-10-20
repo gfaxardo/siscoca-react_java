@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Campana } from '../../types';
 import { subWeeks, startOfWeek, format, getYear } from 'date-fns';
 import { es } from 'date-fns/locale';

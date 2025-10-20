@@ -10,7 +10,7 @@ interface HistorialCambiosProps {
 }
 
 export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambiosProps) {
-  const { getLogs, getLogsByEntity, getStats, exportLogs, clearLogs } = useLogging();
+  const { getLogs, getLogsByEntity, exportLogs, clearLogs } = useLogging();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filtros, setFiltros] = useState<LogFilter>({});
   const [mostrarFiltros, setMostrarFiltros] = useState(false);

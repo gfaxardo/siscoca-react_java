@@ -17,14 +17,13 @@ import { Campana } from './types';
 type Vista = 'dashboard' | 'campanas' | 'historico' | 'auditoria';
 
 function AppContent() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [vistaActiva, setVistaActiva] = useState<Vista>('dashboard');
   const [mostrarFormularioCrear, setMostrarFormularioCrear] = useState(false);
   const [campanaParaTrafficker, setCampanaParaTrafficker] = useState<Campana | null>(null);
   const [campanaParaDueno, setCampanaParaDueno] = useState<Campana | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
   const [mostrarImportacion, setMostrarImportacion] = useState(false);
-  const [mostrarAuditoria, setMostrarAuditoria] = useState(false);
   
   const { obtenerCampanas, obtenerHistorico } = useCampanaStore();
 
