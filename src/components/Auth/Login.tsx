@@ -13,13 +13,20 @@ export default function Login() {
     setError('');
     setIsLoading(true);
 
+    console.log('Iniciando proceso de login...');
+
     try {
       const result = await login(username, password);
+      console.log('Resultado del login:', result);
       
       if (!result.success) {
+        console.error('Login falló:', result.message);
         setError(result.message || 'Error de autenticación');
+      } else {
+        console.log('Login exitoso, redirigiendo...');
       }
     } catch (error) {
+      console.error('Error inesperado en login:', error);
       setError('Error inesperado');
     } finally {
       setIsLoading(false);

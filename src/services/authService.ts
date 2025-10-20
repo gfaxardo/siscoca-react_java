@@ -34,6 +34,8 @@ class AuthService {
 
   async login(credentials: LoginRequest): Promise<{ success: boolean; user?: Usuario; message?: string }> {
     try {
+      console.log('Intentando login con:', credentials);
+      
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -42,28 +44,59 @@ class AuthService {
         body: JSON.stringify(credentials),
       });
 
-      const data: LoginResponse = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
         return {
           success: false,
-          message: data.message || 'Error de autenticación'
+          message: data.message || data.error || 'Error de autenticación'
         };
       }
 
-      if (data.success && data.token && data.user) {
+      // Manejar diferentes estructuras de respuesta
+      let token, user, success;
+      
+      if (data.token && data.user) {
+        // Estructura: { token, user, success }
+        token = data.token;
+        user = data.user;
+        success = data.success !== false; // true si no está definido
+      } else if (data.access_token && data.user) {
+        // Estructura alternativa: { access_token, user }
+        token = data.access_token;
+        user = data.user;
+        success = true;
+      } else if (data.data && data.data.token) {
+        // Estructura anidada: { data: { token, user } }
+        token = data.data.token;
+        user = data.data.user;
+        success = data.success !== false;
+      } else {
+        console.error('Estructura de respuesta no reconocida:', data);
+        return {
+          success: false,
+          message: 'Estructura de respuesta no válida del servidor'
+        };
+      }
+
+      if (token && user) {
         const usuario: Usuario = {
-          id: data.user.id,
-          username: data.user.username,
-          nombre: data.user.nombre,
-          rol: data.user.rol as 'Admin' | 'Trafficker' | 'Dueño',
-          token: data.token,
+          id: user.id || user.userId || '1',
+          username: user.username || user.email || credentials.username,
+          nombre: user.nombre || user.name || user.username || credentials.username,
+          rol: (user.rol || user.role || 'Trafficker') as 'Admin' | 'Trafficker' | 'Dueño',
+          token: token,
           expiracion: new Date(Date.now() + (data.expiresIn || 3600) * 1000)
         };
 
         // Guardar en localStorage
         this.saveUser(usuario);
         
+        console.log('Login exitoso:', usuario);
         return {
           success: true,
           user: usuario
@@ -72,7 +105,7 @@ class AuthService {
 
       return {
         success: false,
-        message: 'Respuesta inválida del servidor'
+        message: 'Token o datos de usuario no encontrados en la respuesta'
       };
     } catch (error) {
       console.error('Error en login:', error);
