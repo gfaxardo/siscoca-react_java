@@ -19,8 +19,7 @@ public class Campana {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String nombre;
     
     @NotNull
@@ -111,8 +110,7 @@ public class Campana {
     @OneToMany(mappedBy = "campana", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<HistoricoSemanal> historicoSemanas;
     
-    @OneToMany(mappedBy = "campana", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<LogEntry> logs;
+    // Relación con logs removida - LogEntry ahora es independiente
     
     // Constructors
     public Campana() {}
@@ -358,11 +356,4 @@ public class Campana {
         this.historicoSemanas = historicoSemanas;
     }
     
-    public List<LogEntry> getLogs() {
-        return logs;
-    }
-    
-    public void setLogs(List<LogEntry> logs) {
-        this.logs = logs;
-    }
 }

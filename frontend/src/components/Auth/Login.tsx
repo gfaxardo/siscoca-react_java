@@ -23,7 +23,8 @@ export default function Login() {
         console.error('Login falló:', result.message);
         setError(result.message || 'Error de autenticación');
       } else {
-        console.log('Login exitoso, redirigiendo...');
+        console.log('Login exitoso, el AuthContext manejará la redirección automáticamente');
+        // No necesitamos redirección manual, React manejará el estado automáticamente
       }
     } catch (error) {
       console.error('Error inesperado en login:', error);
@@ -133,14 +134,57 @@ export default function Login() {
             <button
               type="button"
               onClick={() => {
-                console.log('=== DEBUG LOGIN ===');
+                console.log('=== DEBUG LOGIN DETALLADO ===');
                 console.log('Usuario:', username);
                 console.log('Password:', password);
-                console.log('Intentando login...');
+                console.log('API URL: https://api-int.yego.pro/api/auth/login');
+                
+                // Probar la API directamente con JSON simple
+                const jsonString = `{"username":"${username}","password":"${password}"}`;
+                
+                console.log('JSON simple enviado:', jsonString);
+                console.log('Solo username y password:', { username, password });
+                
+                fetch('https://api-int.yego.pro/api/auth/login', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                  mode: 'cors',
+                  credentials: 'omit',
+                  body: jsonString,
+                })
+                .then(response => {
+                  console.log('=== RESPUESTA COMPLETA ===');
+                  console.log('Status:', response.status);
+                  console.log('Status Text:', response.statusText);
+                  console.log('Headers:', Object.fromEntries(response.headers.entries()));
+                  console.log('OK:', response.ok);
+                  
+                  return response.json();
+                })
+                .then(data => {
+                  console.log('=== DATOS DE RESPUESTA ===');
+                  console.log('Data completa:', data);
+                  console.log('Tipo de data:', typeof data);
+                  console.log('Claves disponibles:', Object.keys(data || {}));
+                  
+                  if (data?.message) console.log('Mensaje:', data.message);
+                  if (data?.error) console.log('Error:', data.error);
+                  if (data?.detail) console.log('Detalle:', data.detail);
+                  if (data?.code) console.log('Código:', data.code);
+                })
+                .catch(error => {
+                  console.error('=== ERROR EN PETICIÓN ===');
+                  console.error('Error completo:', error);
+                  console.error('Tipo de error:', typeof error);
+                  console.error('Mensaje de error:', error.message);
+                });
               }}
               className="mt-2 text-xs text-gray-400 hover:text-gray-600 underline"
             >
-              🔍 Debug Login (Ver consola)
+              🔍 Debug Completo API Yego
             </button>
           </div>
         </form>

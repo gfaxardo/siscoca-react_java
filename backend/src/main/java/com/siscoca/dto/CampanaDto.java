@@ -3,6 +3,7 @@ package com.siscoca.dto;
 import com.siscoca.model.*;
 import java.time.LocalDateTime;
 
+
 public class CampanaDto {
     
     private Long id;

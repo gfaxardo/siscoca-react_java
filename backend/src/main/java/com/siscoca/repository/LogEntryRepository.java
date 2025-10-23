@@ -8,30 +8,47 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
     
-    List<LogEntry> findByUsuarioId(Long usuarioId);
+    List<LogEntry> findByUsuario(String usuario);
     
-    List<LogEntry> findByCampanaId(Long campanaId);
+    List<LogEntry> findByEntidadId(String entidadId);
     
     List<LogEntry> findByEntidad(String entidad);
     
     List<LogEntry> findByAccion(String accion);
     
-    @Query("SELECT l FROM LogEntry l WHERE l.fechaCreacion BETWEEN :fechaInicio AND :fechaFin ORDER BY l.fechaCreacion DESC")
-    List<LogEntry> findByFechaCreacionBetween(@Param("fechaInicio") LocalDateTime fechaInicio, @Param("fechaFin") LocalDateTime fechaFin);
+    @Query("SELECT l FROM LogEntry l WHERE l.timestamp BETWEEN :fechaInicio AND :fechaFin ORDER BY l.timestamp DESC")
+    List<LogEntry> findByTimestampBetween(@Param("fechaInicio") LocalDateTime fechaInicio, @Param("fechaFin") LocalDateTime fechaFin);
     
-    @Query("SELECT l FROM LogEntry l WHERE l.usuario.id = :usuarioId AND l.fechaCreacion BETWEEN :fechaInicio AND :fechaFin ORDER BY l.fechaCreacion DESC")
-    List<LogEntry> findByUsuarioIdAndFechaCreacionBetween(@Param("usuarioId") Long usuarioId, @Param("fechaInicio") LocalDateTime fechaInicio, @Param("fechaFin") LocalDateTime fechaFin);
+    @Query("SELECT l FROM LogEntry l WHERE l.usuario = :usuario AND l.timestamp BETWEEN :fechaInicio AND :fechaFin ORDER BY l.timestamp DESC")
+    List<LogEntry> findByUsuarioAndTimestampBetween(@Param("usuario") String usuario, @Param("fechaInicio") LocalDateTime fechaInicio, @Param("fechaFin") LocalDateTime fechaFin);
     
-    @Query("SELECT COUNT(l) FROM LogEntry l WHERE l.usuario.id = :usuarioId")
-    Long countByUsuarioId(@Param("usuarioId") Long usuarioId);
+    @Query("SELECT l FROM LogEntry l ORDER BY l.timestamp DESC LIMIT :limite")
+    List<LogEntry> findTopNByOrderByTimestampDesc(@Param("limite") int limite);
+    
+    @Query("SELECT l.usuario, COUNT(l) FROM LogEntry l GROUP BY l.usuario")
+    Map<String, Long> countByUsuario();
     
     @Query("SELECT l.accion, COUNT(l) FROM LogEntry l GROUP BY l.accion")
-    List<Object[]> countByAccion();
+    Map<String, Long> countByAccion();
     
     @Query("SELECT l.entidad, COUNT(l) FROM LogEntry l GROUP BY l.entidad")
-    List<Object[]> countByEntidad();
+    Map<String, Long> countByEntidad();
+    
+    @Query("SELECT l FROM LogEntry l WHERE " +
+           "(:usuario IS NULL OR l.usuario LIKE %:usuario%) AND " +
+           "(:rol IS NULL OR l.rol = :rol) AND " +
+           "(:accion IS NULL OR l.accion LIKE %:accion%) AND " +
+           "(:entidad IS NULL OR l.entidad = :entidad) AND " +
+           "(:entidadId IS NULL OR l.entidadId = :entidadId) " +
+           "ORDER BY l.timestamp DESC")
+    List<LogEntry> findByFilters(@Param("usuario") String usuario, 
+                                @Param("rol") String rol, 
+                                @Param("accion") String accion, 
+                                @Param("entidad") String entidad, 
+                                @Param("entidadId") String entidadId);
 }

@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: siscoca-postgres-prod
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:siscoca_prod}
+      POSTGRES_USER: ${DATABASE_USERNAME:siscoca_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:siscoca_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - siscoca-network
+    restart: unless-stopped
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: siscoca-backend-prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:siscoca_prod}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:siscoca_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:siscoca_password}
+      JWT_SECRET: ${JWT_SECRET:siscoca_jwt_secret_key_2024_very_secure_key_for_production}
+      FRONTEND_URL: ${FRONTEND_URL:https://siscoca.tudominio.com}
+      UPLOAD_DIR: /app/uploads/creativos
+      LOG_FILE: /app/logs/siscoca.log
+    depends_on:
+      - postgres
+    networks:
+      - siscoca-network
+    restart: unless-stopped
+    volumes:
+      - uploads:/app/uploads
+      - logs:/app/logs
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: siscoca-frontend-prod
+    environment:
+      VITE_API_URL: ${VITE_API_URL:https://api.siscoca.tudominio.com/api}
+    depends_on:
+      - backend
+    networks:
+      - siscoca-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads:
+  logs:
+
+networks:
+  siscoca-network:
+    driver: bridge

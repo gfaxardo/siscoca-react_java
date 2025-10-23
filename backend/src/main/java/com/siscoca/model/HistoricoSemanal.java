@@ -171,4 +171,9 @@ public class HistoricoSemanal {
     public void setRegistradoPor(String registradoPor) {
         this.registradoPor = registradoPor;
     }
+    
+    // Método helper para obtener el ID de la campaña
+    public Long getCampanaId() {
+        return campana != null ? campana.getId() : null;
+    }
 }

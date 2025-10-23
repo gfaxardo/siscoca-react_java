@@ -112,11 +112,31 @@ public class CampanaService {
     
     private Campana convertToEntity(CampanaDto dto) {
         Campana campana = new Campana();
-        campana.setNombre(dto.getNombre());
-        campana.setPais(Pais.valueOf(dto.getPais()));
-        campana.setVertical(Vertical.valueOf(dto.getVertical()));
-        campana.setPlataforma(Plataforma.valueOf(dto.getPlataforma()));
-        campana.setSegmento(Segmento.valueOf(dto.getSegmento()));
+        // Asignar valor por defecto si el nombre está vacío o es null
+        if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) {
+            campana.setNombre("Campaña sin nombre");
+        } else {
+            campana.setNombre(dto.getNombre().trim());
+        }
+        
+        // Validar campos obligatorios
+        if (dto.getPais() == null || dto.getPais().trim().isEmpty()) {
+            throw new IllegalArgumentException("El país es obligatorio");
+        }
+        if (dto.getVertical() == null || dto.getVertical().trim().isEmpty()) {
+            throw new IllegalArgumentException("El vertical es obligatorio");
+        }
+        if (dto.getPlataforma() == null || dto.getPlataforma().trim().isEmpty()) {
+            throw new IllegalArgumentException("La plataforma es obligatoria");
+        }
+        if (dto.getSegmento() == null || dto.getSegmento().trim().isEmpty()) {
+            throw new IllegalArgumentException("El segmento es obligatorio");
+        }
+        
+        campana.setPais(Pais.fromDisplayName(dto.getPais()));
+        campana.setVertical(Vertical.fromDisplayName(dto.getVertical()));
+        campana.setPlataforma(Plataforma.fromDisplayName(dto.getPlataforma()));
+        campana.setSegmento(Segmento.fromDisplayName(dto.getSegmento()));
         campana.setIdPlataformaExterna(dto.getIdPlataformaExterna());
         campana.setNombreDueno(dto.getNombreDueno());
         campana.setInicialesDueno(dto.getInicialesDueno());
@@ -141,10 +161,10 @@ public class CampanaService {
     
     private void updateCampanaFromDto(Campana campana, CampanaDto dto) {
         if (dto.getNombre() != null) campana.setNombre(dto.getNombre());
-        if (dto.getPais() != null) campana.setPais(Pais.valueOf(dto.getPais()));
-        if (dto.getVertical() != null) campana.setVertical(Vertical.valueOf(dto.getVertical()));
-        if (dto.getPlataforma() != null) campana.setPlataforma(Plataforma.valueOf(dto.getPlataforma()));
-        if (dto.getSegmento() != null) campana.setSegmento(Segmento.valueOf(dto.getSegmento()));
+        if (dto.getPais() != null) campana.setPais(Pais.fromDisplayName(dto.getPais()));
+        if (dto.getVertical() != null) campana.setVertical(Vertical.fromDisplayName(dto.getVertical()));
+        if (dto.getPlataforma() != null) campana.setPlataforma(Plataforma.fromDisplayName(dto.getPlataforma()));
+        if (dto.getSegmento() != null) campana.setSegmento(Segmento.fromDisplayName(dto.getSegmento()));
         if (dto.getIdPlataformaExterna() != null) campana.setIdPlataformaExterna(dto.getIdPlataformaExterna());
         if (dto.getNombreDueno() != null) campana.setNombreDueno(dto.getNombreDueno());
         if (dto.getInicialesDueno() != null) campana.setInicialesDueno(dto.getInicialesDueno());

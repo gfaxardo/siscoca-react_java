@@ -1,19 +1,17 @@
-// Servicio de logging y auditoría
+// Servicio de logging y auditoría con API del backend local
+const API_BASE_URL = 'http://localhost:8080/api';
+
 export interface LogEntry {
-  id: string;
-  timestamp: Date;
+  id: number;
+  timestamp: string;
   usuario: string;
-  rol: 'Admin' | 'Trafficker' | 'Dueño';
+  rol: string;
   accion: string;
-  entidad: 'Campaña' | 'Métricas' | 'Creativo' | 'Histórico' | 'Usuario' | 'Sistema';
+  entidad: string;
   entidadId: string;
-  detalles: {
-    antes?: any;
-    despues?: any;
-    cambios?: string[];
-    descripcion?: string;
-  };
-  ip?: string;
+  descripcion?: string;
+  detalles?: string;
+  ipAddress?: string;
   userAgent?: string;
   sessionId?: string;
 }
@@ -29,227 +27,139 @@ export interface LogFilter {
 }
 
 class LoggingService {
-  private readonly STORAGE_KEY = 'siscoca_logs';
-  private logs: LogEntry[] = [];
-
-  constructor() {
-    this.loadLogs();
-  }
-
-  private loadLogs(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        this.logs = JSON.parse(stored).map((log: any) => ({
-          ...log,
-          timestamp: new Date(log.timestamp)
-        }));
+  private getAuthHeaders(): Record<string, string> {
+    // Obtener el token del usuario almacenado
+    const userStr = localStorage.getItem('siscoca_user');
+    let token = null;
+    
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        token = user.token;
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
       }
-    } catch (error) {
-      console.error('Error cargando logs:', error);
-      this.logs = [];
     }
-  }
-
-  private saveLogs(): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.logs));
-    } catch (error) {
-      console.error('Error guardando logs:', error);
-    }
-  }
-
-  private generateId(): string {
-    return `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  private getClientInfo() {
+    
     return {
-      ip: '127.0.0.1', // En producción, obtener IP real
-      userAgent: navigator.userAgent,
-      sessionId: this.getSessionId()
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     };
   }
 
-  private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('siscoca_session');
-    if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('siscoca_session', sessionId);
-    }
-    return sessionId;
-  }
-
-  private calculateChanges(antes: any, despues: any): string[] {
-    if (!antes || !despues) return [];
-
-    const changes: string[] = [];
-    const keys = new Set([...Object.keys(antes || {}), ...Object.keys(despues || {})]);
-
-    for (const key of keys) {
-      const valorAntes = antes?.[key];
-      const valorDespues = despues?.[key];
-
-      if (valorAntes !== valorDespues) {
-        changes.push(`${key}: "${valorAntes}" → "${valorDespues}"`);
-      }
-    }
-
-    return changes;
-  }
-
-  log(
-    usuario: string,
-    rol: 'Admin' | 'Trafficker' | 'Dueño',
-    accion: string,
-    entidad: LogEntry['entidad'],
-    entidadId: string,
-    detalles: {
-      antes?: any;
-      despues?: any;
-      descripcion?: string;
-    }
-  ): void {
+  async obtenerLogs(filter?: LogFilter): Promise<LogEntry[]> {
     try {
-      const clientInfo = this.getClientInfo();
-      const cambios = this.calculateChanges(detalles.antes, detalles.despues);
+      const params = new URLSearchParams();
+      if (filter?.usuario) params.append('usuario', filter.usuario);
+      if (filter?.rol) params.append('rol', filter.rol);
+      if (filter?.accion) params.append('accion', filter.accion);
+      if (filter?.entidad) params.append('entidad', filter.entidad);
+      if (filter?.entidadId) params.append('entidadId', filter.entidadId);
+      if (filter?.fechaDesde) params.append('fechaDesde', filter.fechaDesde.toISOString());
+      if (filter?.fechaHasta) params.append('fechaHasta', filter.fechaHasta.toISOString());
 
-      const logEntry: LogEntry = {
-        id: this.generateId(),
-        timestamp: new Date(),
-        usuario,
-        rol,
-        accion,
-        entidad,
-        entidadId,
-        detalles: {
-          ...detalles,
-          cambios
-        },
-        ...clientInfo
-      };
+      const response = await fetch(`${API_BASE_URL}/logging?${params}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
 
-      this.logs.unshift(logEntry); // Agregar al inicio
-      
-      // Mantener solo los últimos 1000 logs para evitar problemas de memoria
-      if (this.logs.length > 1000) {
-        this.logs = this.logs.slice(0, 1000);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
 
-      this.saveLogs();
+      return await response.json();
     } catch (error) {
-      console.error('Error creando log:', error);
+      console.error('Error obteniendo logs:', error);
+      throw error;
     }
   }
 
-  getLogs(filter?: LogFilter): LogEntry[] {
-    let filteredLogs = [...this.logs];
+  async obtenerLogsPorEntidad(entidadId: string): Promise<LogEntry[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/logging/entidad/${entidadId}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
 
-    if (!filter) return filteredLogs;
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
 
-    if (filter.usuario) {
-      filteredLogs = filteredLogs.filter(log => 
-        log.usuario.toLowerCase().includes(filter.usuario!.toLowerCase())
-      );
+      return await response.json();
+    } catch (error) {
+      console.error('Error obteniendo logs por entidad:', error);
+      throw error;
     }
-
-    if (filter.rol) {
-      filteredLogs = filteredLogs.filter(log => log.rol === filter.rol);
-    }
-
-    if (filter.accion) {
-      filteredLogs = filteredLogs.filter(log => 
-        log.accion.toLowerCase().includes(filter.accion!.toLowerCase())
-      );
-    }
-
-    if (filter.entidad) {
-      filteredLogs = filteredLogs.filter(log => log.entidad === filter.entidad);
-    }
-
-    if (filter.entidadId) {
-      filteredLogs = filteredLogs.filter(log => log.entidadId === filter.entidadId);
-    }
-
-    if (filter.fechaDesde) {
-      filteredLogs = filteredLogs.filter(log => 
-        log.timestamp >= filter.fechaDesde!
-      );
-    }
-
-    if (filter.fechaHasta) {
-      filteredLogs = filteredLogs.filter(log => 
-        log.timestamp <= filter.fechaHasta!
-      );
-    }
-
-    return filteredLogs;
   }
 
-  getLogsByEntity(entidadId: string): LogEntry[] {
-    return this.logs.filter(log => log.entidadId === entidadId);
-  }
+  async obtenerLogsPorUsuario(usuario: string): Promise<LogEntry[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/logging/usuario/${usuario}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
 
-  getLogsByUser(usuario: string): LogEntry[] {
-    return this.logs.filter(log => log.usuario === usuario);
-  }
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
 
-  getRecentLogs(limit: number = 50): LogEntry[] {
-    return this.logs.slice(0, limit);
-  }
-
-  clearLogs(): void {
-    this.logs = [];
-    this.saveLogs();
-  }
-
-  exportLogs(format: 'json' | 'csv' = 'json'): string {
-    if (format === 'csv') {
-      const headers = ['ID', 'Timestamp', 'Usuario', 'Rol', 'Acción', 'Entidad', 'Entidad ID', 'Descripción', 'Cambios'];
-      const rows = this.logs.map(log => [
-        log.id,
-        log.timestamp.toISOString(),
-        log.usuario,
-        log.rol,
-        log.accion,
-        log.entidad,
-        log.entidadId,
-        log.detalles.descripcion || '',
-        log.detalles.cambios?.join('; ') || ''
-      ]);
-
-      return [headers, ...rows].map(row => 
-        row.map(field => `"${field}"`).join(',')
-      ).join('\n');
+      return await response.json();
+    } catch (error) {
+      console.error('Error obteniendo logs por usuario:', error);
+      throw error;
     }
-
-    return JSON.stringify(this.logs, null, 2);
   }
 
-  getStats(): {
-    totalLogs: number;
-    logsByUser: Record<string, number>;
-    logsByAction: Record<string, number>;
-    logsByEntity: Record<string, number>;
-    recentActivity: LogEntry[];
-  } {
-    const logsByUser: Record<string, number> = {};
-    const logsByAction: Record<string, number> = {};
-    const logsByEntity: Record<string, number> = {};
+  async obtenerLogsRecientes(limite: number = 50): Promise<LogEntry[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/logging/recientes?limite=${limite}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
 
-    this.logs.forEach(log => {
-      logsByUser[log.usuario] = (logsByUser[log.usuario] || 0) + 1;
-      logsByAction[log.accion] = (logsByAction[log.accion] || 0) + 1;
-      logsByEntity[log.entidad] = (logsByEntity[log.entidad] || 0) + 1;
-    });
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
 
-    return {
-      totalLogs: this.logs.length,
-      logsByUser,
-      logsByAction,
-      logsByEntity,
-      recentActivity: this.getRecentLogs(10)
-    };
+      return await response.json();
+    } catch (error) {
+      console.error('Error obteniendo logs recientes:', error);
+      throw error;
+    }
+  }
+
+  async obtenerEstadisticas(): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/logging/estadisticas`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error obteniendo estadísticas:', error);
+      throw error;
+    }
+  }
+
+  async limpiarLogs(): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/logging`, {
+        method: 'DELETE',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error limpiando logs:', error);
+      throw error;
+    }
   }
 }
 

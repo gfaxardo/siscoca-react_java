@@ -85,6 +85,10 @@ public class JwtService {
         }
     }
     
+    public Boolean isTokenValid(String token, UserDetails userDetails) {
+        return validateToken(token, userDetails);
+    }
+    
     public Long getExpirationTime() {
         return expiration;
     }

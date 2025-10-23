@@ -1,4 +1,4 @@
-// Servicio de campañas con API del backend Java
+// Servicio de campañas con API del backend local
 const API_BASE_URL = 'http://localhost:8080/api';
 
 export interface CampanaApi {
@@ -51,7 +51,19 @@ export interface MetricasDuenoApi {
 
 class CampanaService {
   private getAuthHeaders(): Record<string, string> {
-    const token = localStorage.getItem('siscoca_token');
+    // Obtener el token del usuario almacenado
+    const userStr = localStorage.getItem('siscoca_user');
+    let token = null;
+    
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        token = user.token;
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+      }
+    }
+    
     return {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'

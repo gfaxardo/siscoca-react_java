@@ -21,4 +21,19 @@ public enum Vertical {
     public String getDisplayName() {
         return displayName;
     }
+    
+    public static Vertical fromDisplayName(String displayName) {
+        // Primero intentar por display name
+        for (Vertical vertical : values()) {
+            if (vertical.displayName.equals(displayName)) {
+                return vertical;
+            }
+        }
+        // Si no encuentra, intentar por nombre del enum (código)
+        try {
+            return Vertical.valueOf(displayName);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("No enum constant for display name or code: " + displayName);
+        }
+    }
 }

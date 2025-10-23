@@ -241,3 +241,5 @@ Desarrollado para modernizar el sistema SISCOCA original de Google Apps Script.
 ---
 
 **¿Preguntas o sugerencias?** Abre un issue en el repositorio.
+
+

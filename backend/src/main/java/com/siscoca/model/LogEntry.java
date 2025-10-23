@@ -2,7 +2,6 @@ package com.siscoca.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -19,6 +18,14 @@ public class LogEntry {
     
     @NotBlank
     @Column(nullable = false)
+    private String usuario;
+    
+    @NotBlank
+    @Column(nullable = false)
+    private String rol;
+    
+    @NotBlank
+    @Column(nullable = false)
     private String accion;
     
     @NotBlank
@@ -31,14 +38,8 @@ public class LogEntry {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
     
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campana_id")
-    private Campana campana;
+    @Column(name = "detalles", columnDefinition = "TEXT")
+    private String detalles;
     
     @Column(name = "ip_address")
     private String ipAddress;
@@ -50,18 +51,19 @@ public class LogEntry {
     private String sessionId;
     
     @CreatedDate
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private LocalDateTime fechaCreacion;
+    @Column(name = "timestamp", nullable = false, updatable = false)
+    private LocalDateTime timestamp;
     
     // Constructors
     public LogEntry() {}
     
-    public LogEntry(String accion, String entidad, String entidadId, String descripcion, Usuario usuario) {
+    public LogEntry(String usuario, String rol, String accion, String entidad, String entidadId, String descripcion) {
+        this.usuario = usuario;
+        this.rol = rol;
         this.accion = accion;
         this.entidad = entidad;
         this.entidadId = entidadId;
         this.descripcion = descripcion;
-        this.usuario = usuario;
     }
     
     // Getters and Setters
@@ -71,6 +73,22 @@ public class LogEntry {
     
     public void setId(Long id) {
         this.id = id;
+    }
+    
+    public String getUsuario() {
+        return usuario;
+    }
+    
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
+    
+    public String getRol() {
+        return rol;
+    }
+    
+    public void setRol(String rol) {
+        this.rol = rol;
     }
     
     public String getAccion() {
@@ -105,20 +123,12 @@ public class LogEntry {
         this.descripcion = descripcion;
     }
     
-    public Usuario getUsuario() {
-        return usuario;
+    public String getDetalles() {
+        return detalles;
     }
     
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-    
-    public Campana getCampana() {
-        return campana;
-    }
-    
-    public void setCampana(Campana campana) {
-        this.campana = campana;
+    public void setDetalles(String detalles) {
+        this.detalles = detalles;
     }
     
     public String getIpAddress() {
@@ -145,11 +155,11 @@ public class LogEntry {
         this.sessionId = sessionId;
     }
     
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
     
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 }

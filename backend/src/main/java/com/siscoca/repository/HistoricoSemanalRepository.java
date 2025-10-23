@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface HistoricoSemanalRepository extends JpaRepository<HistoricoSemanal, Long> {
     
-    List<HistoricoSemanal> findByCampanaId(Long campanaId);
+    List<HistoricoSemanal> findByCampana_Id(Long campanaId);
     
     List<HistoricoSemanal> findBySemanaISO(Integer semanaISO);
     

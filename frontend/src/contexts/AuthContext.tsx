@@ -25,7 +25,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const checkAuth = () => {
       try {
-        const currentUser = authService.getCurrentUser();
+        const currentUser = authService.getUser();
         setUser(currentUser);
       } catch (error) {
         console.error('Error verificando autenticación:', error);
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const handleStorageChange = () => {
       try {
-        const currentUser = authService.getCurrentUser();
+        const currentUser = authService.getUser();
         setUser(currentUser);
       } catch (error) {
         console.error('Error actualizando usuario:', error);
@@ -57,17 +57,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log('AuthContext: Iniciando login...');
       const result = await authService.login({ username, password });
+      console.log('AuthContext: Resultado del authService:', result);
       
       if (result.success && result.user) {
+        console.log('AuthContext: Login exitoso, actualizando estado del usuario');
         // Actualizar el estado del usuario
         setUser(result.user);
+        console.log('AuthContext: Usuario actualizado en el estado');
         return { success: true };
       } else {
+        console.log('AuthContext: Login falló:', result.message);
         return { success: false, message: result.message || 'Error de autenticación' };
       }
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('AuthContext: Error en login:', error);
       return { success: false, message: 'Error de conexión' };
     } finally {
       setIsLoading(false);
@@ -80,11 +85,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const hasRole = (role: string): boolean => {
-    return authService.hasRole(role);
+    return user?.rol === role;
   };
 
   const refreshUser = () => {
-    const currentUser = authService.getCurrentUser();
+    const currentUser = authService.getUser();
     setUser(currentUser);
   };
 
