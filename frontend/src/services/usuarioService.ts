@@ -1,6 +1,6 @@
 import { Usuario } from '../types/campana';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
 
 export interface CreateUsuarioRequest {
   username: string;

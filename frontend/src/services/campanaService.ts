@@ -3,7 +3,7 @@ import { authService } from './authService';
 
 // Servicio de campañas con API del backend local
 // El backend tiene context-path: /api, por lo que la URL debe incluir /api
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
 
 export interface CampanaApi {
   id: number;

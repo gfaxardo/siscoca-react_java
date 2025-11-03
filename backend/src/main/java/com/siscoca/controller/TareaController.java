@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tareas")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "https://siscoca.yego.pro", "https://apisiscoca.yego.pro"})
 public class TareaController {
     
     @Autowired

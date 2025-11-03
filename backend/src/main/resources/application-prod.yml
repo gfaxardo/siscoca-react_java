@@ -35,7 +35,8 @@ jwt:
 # CORS Configuration
 cors:
   allowed-origins: 
-    - ${FRONTEND_URL:https://siscoca.tudominio.com}
+    - ${FRONTEND_URL:https://siscoca.yego.pro}
+    - https://apisiscoca.yego.pro
   allowed-methods: 
     - GET
     - POST
@@ -45,6 +46,10 @@ cors:
   allowed-headers: 
     - "*"
   allow-credentials: true
+
+# Backend Configuration
+backend:
+  domain: ${BACKEND_DOMAIN:https://apisiscoca.yego.pro}
 
 # File Upload Configuration
 file:

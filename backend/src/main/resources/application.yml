@@ -45,6 +45,7 @@ cors:
     - http://localhost:3000
     - http://localhost:5173 
     - https://siscoca.yego.pro
+    - https://apisiscoca.yego.pro
   allowed-methods: 
     - GET
     - POST
@@ -54,6 +55,10 @@ cors:
   allowed-headers: 
     - "*"
   allow-credentials: true
+
+# Backend Configuration
+backend:
+  domain: https://apisiscoca.yego.pro
 
 # File Upload Configuration
 file:

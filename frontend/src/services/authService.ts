@@ -1,6 +1,6 @@
 // Servicio de autenticación con backend local que valida con Yego
 // El backend tiene context-path: /api, por lo que no necesitamos agregar /api aquí
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
 
 export interface Usuario {
   id: string;
