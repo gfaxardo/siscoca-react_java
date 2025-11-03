@@ -19,6 +19,9 @@ export interface CampanaApi {
   objetivo: string;
   beneficio: string;
   descripcion: string;
+  tipoAterrizaje?: string;
+  urlAterrizaje?: string;
+  nombrePlataforma?: string;
   estado: string;
   archivoCreativo?: string;
   nombreArchivoCreativo?: string;
@@ -33,6 +36,7 @@ export interface CampanaApi {
   conductoresPrimerViaje?: number;
   costoConductorRegistrado?: number; // en USD
   costoConductorPrimerViaje?: number; // en USD
+  costoConductor?: number; // en USD
   fechaCreacion: string;
   fechaActualizacion: string;
   semanaISO: number;

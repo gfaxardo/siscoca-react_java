@@ -7,7 +7,6 @@ interface DashboardConfigurableProps {
 
 export default function DashboardConfigurable({ onCerrar }: DashboardConfigurableProps) {
   const [campanas, setCampanas] = useState<Campana[]>([]);
-  const [metricasIdeales, setMetricasIdeales] = useState<MetricaIdeal[]>([]);
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionMetrica[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,27 +43,6 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
     }
   };
 
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case 'EXCELENTE': return 'text-green-600 bg-green-100';
-      case 'BUENO': return 'text-yellow-600 bg-yellow-100';
-      case 'REGULAR': return 'text-orange-600 bg-orange-100';
-      case 'MALO': return 'text-red-600 bg-red-100';
-      case 'CRITICO': return 'text-red-800 bg-red-200';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getEstadoIcono = (estado: string) => {
-    switch (estado) {
-      case 'EXCELENTE': return '🟢';
-      case 'BUENO': return '🟡';
-      case 'REGULAR': return '🟠';
-      case 'MALO': return '🔴';
-      case 'CRITICO': return '⚫';
-      default: return '⚪';
-    }
-  };
 
   const estadisticasResumen = {
     totalCampanas: campanas.length,

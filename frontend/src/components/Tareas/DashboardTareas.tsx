@@ -7,7 +7,7 @@ interface DashboardTareasProps {
   onTareaClick?: (tarea: TareaPendiente) => void;
 }
 
-export default function DashboardTareas({ onTareaClick }: DashboardTareasProps) {
+export default function DashboardTareas({ }: DashboardTareasProps) {
   const { user } = useAuth();
   const [tareas, setTareas] = useState<TareaPendiente[]>([]);
   const [loading, setLoading] = useState(true);

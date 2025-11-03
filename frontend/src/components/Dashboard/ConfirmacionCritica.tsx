@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 
 interface ConfirmacionCriticaProps {
   titulo: string;
@@ -124,5 +123,6 @@ export default function ConfirmacionCritica({
     </div>
   );
 }
+
 
 

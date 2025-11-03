@@ -92,9 +92,6 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
   useEffect(() => {
     // Calcular costo por conductor usando conductoresPrimerViaje (no registros)
     if (costoSemanal && conductoresPrimerViaje && conductoresPrimerViaje > 0) {
-      const costoConductorCalculado = costoSemanal / conductoresPrimerViaje;
-      const costoConductorRedondeado = Math.round(costoConductorCalculado * 100) / 100;
-      
       // Actualizar el store para que el cálculo se refleje
       // Nota: El store calculará esto automáticamente al guardar, pero mostramos el cálculo aquí
     } else if (costoSemanal === 0 || conductoresPrimerViaje === 0) {

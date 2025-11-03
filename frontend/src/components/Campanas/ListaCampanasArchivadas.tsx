@@ -7,7 +7,6 @@ import * as XLSX from 'xlsx';
 import FiltrosCampanas from './FiltrosCampanas';
 import UploadCreativo from './UploadCreativo';
 import MenuAccionesCampana from './MenuAccionesCampana';
-import GraficosMetricas from './GraficosMetricas';
 import GraficosBarrasAvanzados from './GraficosBarrasAvanzados';
 import MetricasGlobalesComponent from './MetricasGlobales';
 import HistorialCambios from './HistorialCambios';
@@ -20,12 +19,10 @@ export default function ListaCampanasArchivadas() {
   const { 
     campanas, 
     historico, 
-    cambiarEstadoCampana, 
     eliminarCampana, 
     subirCreativo, 
     descargarCreativo,
     reactivarCampana,
-    guardarHistoricoSemanal,
     obtenerHistoricoSemanalCampana,
     obtenerCampanas
   } = useCampanaStore();

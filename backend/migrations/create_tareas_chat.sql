@@ -54,3 +54,4 @@ COMMENT ON COLUMN mensajes_chat.remitente IS 'Username o nombre del usuario que 
 COMMENT ON COLUMN mensajes_chat.mensaje IS 'Contenido del mensaje';
 
 
+

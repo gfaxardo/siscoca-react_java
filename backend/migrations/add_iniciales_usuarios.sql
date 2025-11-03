@@ -16,3 +16,4 @@ UPDATE usuarios SET iniciales = 'JO' WHERE nombre = 'Jhajaira Ochoa';
 -- Comentarios
 COMMENT ON COLUMN usuarios.iniciales IS 'Iniciales del usuario (ej: GF, AC, RO)';
 
+

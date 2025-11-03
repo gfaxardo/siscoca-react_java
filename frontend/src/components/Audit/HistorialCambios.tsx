@@ -20,12 +20,12 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
     cargarLogs();
   }, [filtros, entidadId]);
 
-  const cargarLogs = () => {
+  const cargarLogs = async () => {
     setCargando(true);
     try {
       const logsData = entidadId 
-        ? getLogsByEntity(entidadId)
-        : getLogs(filtros);
+        ? await getLogsByEntity(entidadId)
+        : await getLogs(filtros);
       setLogs(logsData);
     } catch (error) {
       console.error('Error cargando logs:', error);
@@ -45,9 +45,9 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
     setFiltros({});
   };
 
-  const manejarExportar = (formato: 'json' | 'csv') => {
+  const manejarExportar = async (formato: 'json' | 'csv') => {
     try {
-      const data = exportLogs(formato);
+      const data = await exportLogs(formato);
       const blob = new Blob([data], { 
         type: formato === 'csv' ? 'text/csv' : 'application/json' 
       });
@@ -65,10 +65,10 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
     }
   };
 
-  const manejarLimpiarLogs = () => {
+  const manejarLimpiarLogs = async () => {
     if (confirm('¿Estás seguro de que quieres eliminar todos los logs?\n\nEsta acción no se puede deshacer.')) {
-      clearLogs();
-      cargarLogs();
+      await clearLogs();
+      await cargarLogs();
     }
   };
 
@@ -274,24 +274,27 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div className="max-w-xs">
-                        {log.detalles.descripcion && (
+                        {log.detalles && typeof log.detalles === 'object' && log.detalles !== null && 'descripcion' in log.detalles && (log.detalles as { descripcion?: string }).descripcion && (
                           <div className="mb-2">
                             <span className="font-medium">Descripción:</span>
-                            <p className="text-gray-600">{log.detalles.descripcion}</p>
+                            <p className="text-gray-600">{(log.detalles as { descripcion: string }).descripcion}</p>
                           </div>
                         )}
-                        {log.detalles.cambios && log.detalles.cambios.length > 0 && (
+                        {log.detalles && typeof log.detalles === 'object' && log.detalles !== null && 'cambios' in log.detalles && Array.isArray((log.detalles as { cambios?: string[] }).cambios) && (log.detalles as { cambios: string[] }).cambios.length > 0 && (
                           <div>
                             <span className="font-medium">Cambios:</span>
                             <ul className="text-gray-600 text-xs mt-1">
-                              {log.detalles.cambios.slice(0, 3).map((cambio, index) => (
+                              {(log.detalles as { cambios: string[] }).cambios.slice(0, 3).map((cambio: string, index: number) => (
                                 <li key={index} className="truncate">• {cambio}</li>
                               ))}
-                              {log.detalles.cambios.length > 3 && (
-                                <li className="text-gray-400">... y {log.detalles.cambios.length - 3} más</li>
+                              {(log.detalles as { cambios: string[] }).cambios.length > 3 && (
+                                <li className="text-gray-400">... y {(log.detalles as { cambios: string[] }).cambios.length - 3} más</li>
                               )}
                             </ul>
                           </div>
+                        )}
+                        {log.detalles && typeof log.detalles === 'string' && (
+                          <p className="text-gray-600">{log.detalles}</p>
                         )}
                       </div>
                     </td>

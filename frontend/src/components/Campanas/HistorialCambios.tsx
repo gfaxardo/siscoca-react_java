@@ -112,16 +112,6 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
     return String(valor);
   };
 
-  const obtenerDiferenciaValores = (anterior: any, nuevo: any) => {
-    if (anterior === null || anterior === undefined) return 'Nuevo valor';
-    if (nuevo === null || nuevo === undefined) return 'Valor eliminado';
-    
-    const ant = formatearValor(anterior);
-    const nue = formatearValor(nuevo);
-    
-    return `${ant} → ${nue}`;
-  };
-
   const historialFiltrado = historial.filter(cambio => {
     if (filtros.tipoCambio && cambio.tipoCambio !== filtros.tipoCambio) return false;
     if (filtros.usuario && !cambio.usuario.toLowerCase().includes(filtros.usuario.toLowerCase())) return false;

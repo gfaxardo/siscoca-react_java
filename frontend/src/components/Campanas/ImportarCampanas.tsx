@@ -245,6 +245,7 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
             objetivo: campana.objetivo,
             beneficio: campana.beneficio || 'Beneficio por definir',
             descripcion: campana.descripcion || campana.objetivo,
+            tipoAterrizaje: (campana.tipoAterrizaje as 'FORMS' | 'WHATSAPP' | 'URL' | 'LANDING' | 'APP' | 'CALL_CENTER' | 'EMAIL' | 'OTRO') || 'FORMS',
             nombreDueno: campana.inicialesDueno || 'Dueño Importado'
           };
 

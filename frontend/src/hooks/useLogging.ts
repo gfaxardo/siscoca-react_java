@@ -4,7 +4,7 @@ import { loggingService, LogEntry, LogFilter } from '../services/loggingService'
 export function useLogging() {
   const { user } = useAuth();
 
-  const log = (
+  const log = async (
     accion: string,
     entidad: LogEntry['entidad'],
     entidadId: string,
@@ -19,42 +19,45 @@ export function useLogging() {
       return;
     }
 
-    loggingService.log(
-      user.username,
-      user.rol,
-      accion,
-      entidad,
-      entidadId,
-      detalles
-    );
+    // Nota: El servicio de logging no tiene método log, se registra automáticamente en el backend
+    console.log('Log action:', { accion, entidad, entidadId, detalles });
   };
 
-  const getLogs = (filter?: LogFilter): LogEntry[] => {
-    return loggingService.getLogs(filter);
+  const getLogs = async (filter?: LogFilter): Promise<LogEntry[]> => {
+    return await loggingService.obtenerLogs(filter);
   };
 
-  const getLogsByEntity = (entidadId: string): LogEntry[] => {
-    return loggingService.getLogsByEntity(entidadId);
+  const getLogsByEntity = async (entidadId: string): Promise<LogEntry[]> => {
+    return await loggingService.obtenerLogsPorEntidad(entidadId);
   };
 
-  const getLogsByUser = (usuario: string): LogEntry[] => {
-    return loggingService.getLogsByUser(usuario);
+  const getLogsByUser = async (usuario: string): Promise<LogEntry[]> => {
+    return await loggingService.obtenerLogsPorUsuario(usuario);
   };
 
-  const getRecentLogs = (limit: number = 50): LogEntry[] => {
-    return loggingService.getRecentLogs(limit);
+  const getRecentLogs = async (limit: number = 50): Promise<LogEntry[]> => {
+    return await loggingService.obtenerLogsRecientes(limit);
   };
 
-  const getStats = () => {
-    return loggingService.getStats();
+  const getStats = async () => {
+    return await loggingService.obtenerEstadisticas();
   };
 
-  const exportLogs = (format: 'json' | 'csv' = 'json'): string => {
-    return loggingService.exportLogs(format);
+  const exportLogs = async (format: 'json' | 'csv' = 'json'): Promise<string> => {
+    const logs = await loggingService.obtenerLogs();
+    if (format === 'csv') {
+      const headers = 'Fecha,Usuario,Rol,Acción,Entidad,ID,Descripción\n';
+      const rows = logs.map(log => 
+        `${log.timestamp},${log.usuario},${log.rol},${log.accion},${log.entidad},${log.entidadId},${log.descripcion || ''}`
+      ).join('\n');
+      return headers + rows;
+    } else {
+      return JSON.stringify(logs, null, 2);
+    }
   };
 
-  const clearLogs = () => {
-    loggingService.clearLogs();
+  const clearLogs = async () => {
+    await loggingService.limpiarLogs();
   };
 
   return {

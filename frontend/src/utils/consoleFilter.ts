@@ -55,7 +55,6 @@ export function setupConsoleFilter() {
   };
 
   // También interceptar errores no capturados de promesas
-  const originalUnhandledRejection = window.onunhandledrejection;
   window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
     const error = event.reason;
     const errorString = error?.message || String(error);
@@ -71,12 +70,9 @@ export function setupConsoleFilter() {
       event.preventDefault();
       return;
     }
-
-    // Si no es de extensión, dejarlo pasar normalmente
-    if (originalUnhandledRejection) {
-      originalUnhandledRejection(event);
-    }
+    // Si no es de extensión, el error se manejará normalmente por el navegador
   });
 }
+
 
 

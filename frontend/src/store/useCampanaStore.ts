@@ -117,6 +117,7 @@ interface HistoricoSemanalCampana {
   semanaISO: number;
   fechaSemana: Date;
   // Métricas trafficker
+  urlInforme?: string;
   alcance?: number;
   clics?: number;
   leads?: number;
@@ -142,6 +143,7 @@ interface CampanaStore {
   completarMetricasDueno: (datos: MetricasDueno) => Promise<{ exito: boolean; mensaje: string }>;
   cambiarEstadoCampana: (idCampana: string, nuevoEstado: Campana['estado']) => Promise<{ exito: boolean; mensaje: string }>;
   subirCreativo: (campana: Campana, archivo: File) => Promise<{ exito: boolean; mensaje: string }>;
+  subirCreativoUrl: (campana: Campana, url: string) => Promise<{ exito: boolean; mensaje: string }>;
   descargarCreativo: (campana: Campana) => { exito: boolean; mensaje: string };
   archivarCampana: (campana: Campana) => Promise<{ exito: boolean; mensaje: string }>;
   reactivarCampana: (campana: Campana) => Promise<{ exito: boolean; mensaje: string }>;
@@ -312,8 +314,8 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
         parseInt(campana.id),
         {
           urlCreativoExterno: url.trim(),
-          archivoCreativo: null, // Limpiar archivo si existe
-          nombreArchivoCreativo: null, // Limpiar nombre de archivo
+          archivoCreativo: undefined, // Limpiar archivo si existe
+          nombreArchivoCreativo: undefined, // Limpiar nombre de archivo
           estado: 'Creativo Enviado'
         }
       );
@@ -370,7 +372,7 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
         {
           archivoCreativo: archivoBase64,
           nombreArchivoCreativo: archivo.name,
-          urlCreativoExterno: null, // Limpiar URL externa si existe
+          urlCreativoExterno: undefined, // Limpiar URL externa si existe
           estado: 'Creativo Enviado' // Estado en display name (el backend lo convertirá correctamente)
         }
       );
@@ -775,15 +777,6 @@ useCampanaStore.subscribe((state) => {
   localStorage.setItem('campanas', JSON.stringify(state.campanas));
 });
 
-function verificarMetricasCompletas(campana: Campana): boolean {
-  // Verificar métricas del trafficker
-  const metricasTrafficker = campana.alcance && campana.clics && campana.leads && campana.costoSemanal && campana.costoLead;
-  
-  // Verificar métricas del dueño
-  const metricasDueno = campana.conductoresRegistrados !== undefined && campana.conductoresPrimerViaje !== undefined;
-  
-  return !!(metricasTrafficker && metricasDueno);
-}
 
 function obtenerSemanaISO(fecha: Date): number {
   const d = new Date(fecha);

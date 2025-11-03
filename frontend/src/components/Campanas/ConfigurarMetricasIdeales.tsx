@@ -5,10 +5,10 @@ interface ConfigurarMetricasIdealesProps {
   onCerrar: () => void;
 }
 
-const VERTICALES: Vertical[] = ['MOTO_PERSONA', 'MOTO_TAXI', 'MOTO_DELIVERY'];
-const PAISES: Pais[] = ['PERU', 'COLOMBIA', 'MEXICO', 'CHILE'];
-const PLATAFORMAS: Plataforma[] = ['FACEBOOK', 'TIKTOK', 'GOOGLE', 'INSTAGRAM'];
-const SEGMENTOS: Segmento[] = ['ADQUISICION', 'RETENCION', 'REACTIVACION'];
+const VERTICALES: Vertical[] = ['MOTOPER', 'MOTODEL', 'CARGO', 'AUTOPER', 'B2B', 'PREMIER', 'CONFORT', 'YEGOPRO', 'YEGOMIAUTO', 'YEGOMIMOTO'];
+const PAISES: Pais[] = ['PE', 'CO'];
+const PLATAFORMAS: Plataforma[] = ['FB', 'TT', 'IG', 'GG', 'LI'];
+const SEGMENTOS: Segmento[] = ['Adquisición', 'Retención', 'Retorno'];
 
 const CATEGORIAS = [
   { codigo: 'ALCANCE', nombre: 'Alcance', unidad: 'personas' },
@@ -28,7 +28,6 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
 
   const [metricasIdeales, setMetricasIdeales] = useState<MetricaIdeal[]>([]);
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Cargar métricas ideales al montar el componente
   useEffect(() => {
@@ -52,10 +51,10 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
           valorMaximo: 1500,
           unidad: 'personas',
           categoria: 'ALCANCE',
-          vertical: 'MOTO_PERSONA',
-          pais: 'PERU',
-          plataforma: 'FACEBOOK',
-          segmento: 'ADQUISICION',
+          vertical: 'MOTOPER',
+          pais: 'PE',
+          plataforma: 'FB',
+          segmento: 'Adquisición',
           activa: true,
           fechaCreacion: new Date(),
           fechaActualizacion: new Date()

@@ -14,14 +14,14 @@ export default function Dashboard() {
   const { campanas, historico } = useCampanaStore();
   const { user, login } = useAuth();
   const [filtroActivo, setFiltroActivo] = useState<FiltroDashboard>('todas');
-  const [cargandoHistorico, setCargandoHistorico] = useState(false);
-  const [limpiando, setLimpiando] = useState(false);
   const { setAcciones } = useMenuActions();
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [accionCritica, setAccionCritica] = useState<(() => void) | null>(null);
   const [descripcionCritica, setDescripcionCritica] = useState('');
   const [tituloCritica, setTituloCritica] = useState('');
   const [verificandoPassword, setVerificandoPassword] = useState(false);
+  const [cargandoHistorico, setCargandoHistorico] = useState(false);
+  const [limpiando, setLimpiando] = useState(false);
   
   const esAdmin = user?.rol === 'Admin';
 
