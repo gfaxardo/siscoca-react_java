@@ -1,5 +1,6 @@
 // Servicio de logging y auditoría con API del backend local
-const API_BASE_URL = 'http://localhost:8080/api';
+// El backend tiene context-path: /api, por lo que la URL debe incluir /api
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 export interface LogEntry {
   id: number;
@@ -28,23 +29,44 @@ export interface LogFilter {
 
 class LoggingService {
   private getAuthHeaders(): Record<string, string> {
-    // Obtener el token del usuario almacenado
-    const userStr = localStorage.getItem('siscoca_user');
-    let token = null;
+    let token: string | null = null;
     
+    // 1. Intentar obtener desde 'siscoca_user' (formato principal)
+    const userStr = localStorage.getItem('siscoca_user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        token = user.token;
+        token = user?.token || null;
+        
+        // Verificar que el token no esté vacío
+        if (token && (token === 'null' || token === 'undefined' || token.trim() === '')) {
+          token = null;
+        }
       } catch (error) {
         console.error('Error parsing user from localStorage:', error);
       }
     }
     
-    return {
-      'Authorization': `Bearer ${token}`,
+    // 2. Si no hay token, intentar obtenerlo directamente del localStorage
+    if (!token) {
+      token = localStorage.getItem('token') || localStorage.getItem('siscoca_token');
+      
+      // Verificar que el token no sea inválido
+      if (token && (token === 'null' || token === 'undefined' || token.trim() === '')) {
+        token = null;
+      }
+    }
+    
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     };
+    
+    // Solo agregar Authorization si hay un token válido
+    if (token && token !== 'null' && token !== 'undefined' && token.trim() !== '') {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    return headers;
   }
 
   async obtenerLogs(filter?: LogFilter): Promise<LogEntry[]> {

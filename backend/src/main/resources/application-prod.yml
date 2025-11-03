@@ -8,9 +8,9 @@ spring:
     name: siscoca-backend
   
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/siscoca_prod}
-    username: ${DATABASE_USERNAME:siscoca_user}
-    password: ${DATABASE_PASSWORD:siscoca_password}
+    url: jdbc:postgresql://168.119.226.236:5432/siscoca_dev
+    username: yego_user
+    password: 37>MNA&-35+
     driver-class-name: org.postgresql.Driver
   
   jpa:

@@ -8,9 +8,12 @@ interface MenuAccionesCampanaProps {
   onSubirMetricasTrafficker: () => void;
   onSubirMetricasDueno: () => void;
   onArchivarCampana: () => void;
+  onReactivarCampana?: () => void;
   onDescargarCreativo: () => void;
   onEliminarCampana: () => void;
-  onHistoricoSemanas: () => void;
+  onEditarCampana: () => void;
+  onVerMetricasGlobales: () => void;
+  onVerHistorialCambios: () => void;
 }
 
 export default function MenuAccionesCampana({
@@ -20,9 +23,12 @@ export default function MenuAccionesCampana({
   onSubirMetricasTrafficker,
   onSubirMetricasDueno,
   onArchivarCampana,
+  onReactivarCampana,
   onDescargarCreativo,
   onEliminarCampana,
-  onHistoricoSemanas
+  onEditarCampana,
+  onVerMetricasGlobales,
+  onVerHistorialCambios
 }: MenuAccionesCampanaProps) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -108,15 +114,56 @@ export default function MenuAccionesCampana({
           });
         }
 
-        // Histórico de semanas siempre disponible para campañas activas
-        acciones.push({
-          id: 'historico-semanas',
-          label: '📅 Histórico de Semanas',
-          onClick: onHistoricoSemanas,
-          color: 'text-purple-600 hover:bg-purple-50'
-        });
+        break;
+
+      case 'Archivada':
+        // Opción de reactivar para campañas archivadas
+        if (onReactivarCampana) {
+          acciones.push({
+            id: 'reactivar-campana',
+            label: '♻️ Reactivar Campaña',
+            onClick: onReactivarCampana,
+            color: 'text-green-600 hover:bg-green-50'
+          });
+        }
+        
+        // Descargar creativo si existe
+        if (campana.archivoCreativo) {
+          acciones.push({
+            id: 'descargar-creativo',
+            label: '⬇️ Descargar Creativo',
+            onClick: onDescargarCreativo,
+            color: 'text-purple-600 hover:bg-purple-50'
+          });
+        }
         break;
     }
+
+    // Acción de métricas globales siempre disponible (excepto para archivadas que no tienen todas las métricas)
+    if (campana.estado !== 'Archivada') {
+      acciones.push({
+        id: 'metricas-globales',
+        label: '📊 Métricas Globales',
+        onClick: onVerMetricasGlobales,
+        color: 'text-green-600 hover:bg-green-50'
+      });
+    }
+
+    // Acción de historial de cambios siempre disponible
+    acciones.push({
+      id: 'historial-cambios',
+      label: '📋 Historial de Cambios',
+      onClick: onVerHistorialCambios,
+      color: 'text-indigo-600 hover:bg-indigo-50'
+    });
+
+    // Acción de editar siempre disponible
+    acciones.push({
+      id: 'editar-campana',
+      label: '✏️ Editar Campaña',
+      onClick: onEditarCampana,
+      color: 'text-blue-600 hover:bg-blue-50'
+    });
 
     // Acción de eliminar siempre disponible
     acciones.push({

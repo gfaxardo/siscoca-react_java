@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCampanaStore } from '../../store/useCampanaStore';
-import { FormularioCrearCampana, VERTICALES_LABELS, PLATAFORMAS_LABELS, PAISES_LABELS, DUENOS } from '../../types';
+import { FormularioCrearCampana, VERTICALES_LABELS, PLATAFORMAS_LABELS, PAISES_LABELS, DUENOS, TIPOS_ATERRIZAJE_LABELS } from '../../types';
 import { useState, useEffect } from 'react';
 
 const esquemaFormulario = z.object({
@@ -27,7 +27,12 @@ const esquemaFormulario = z.object({
     .regex(/^[a-zA-Z0-9]+$/, 'Sin espacios ni caracteres especiales'),
   objetivo: z.string().min(10, 'El objetivo debe tener al menos 10 caracteres'),
   beneficio: z.string().min(2, 'El beneficio/programa es requerido'),
-  descripcion: z.string().min(10, 'La descripción debe tener al menos 10 caracteres')
+  descripcion: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
+  tipoAterrizaje: z.enum(['FORMS', 'WHATSAPP', 'URL', 'LANDING', 'APP', 'CALL_CENTER', 'EMAIL', 'OTRO'], {
+    errorMap: () => ({ message: 'Selecciona un tipo de aterrizaje' })
+  }),
+  urlAterrizaje: z.string().optional(),
+  nombrePlataforma: z.string().optional()
 });
 
 interface FormularioCrearCampanaProps {
@@ -43,13 +48,16 @@ const SEGMENTOS_ABREV: Record<string, string> = {
 export default function FormularioCrearCampanaComponent({ onCerrar }: FormularioCrearCampanaProps) {
   const { crearCampana, campanas } = useCampanaStore();
   const [nombreGenerado, setNombreGenerado] = useState<string>('');
+  const [nombreEditando, setNombreEditando] = useState<string>('');
+  const [esEditable, setEsEditable] = useState(false);
   
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormularioCrearCampana>({
     resolver: zodResolver(esquemaFormulario),
     defaultValues: {
       pais: 'PE',
       idPlataformaExterna: '',
-      inicialesDueno: ''
+      inicialesDueno: '',
+      tipoAterrizaje: 'FORMS'
     }
   });
 
@@ -59,6 +67,7 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
   const segmento = watch('segmento');
   const inicialesDueno = watch('inicialesDueno');
   const descripcionCorta = watch('descripcionCorta');
+  const tipoAterrizaje = watch('tipoAterrizaje');
 
   const [inicialesCustomManual, setInicialesCustomManual] = useState(false);
 
@@ -80,13 +89,28 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
       const proximoId = (campanas.length + 1).toString().padStart(3, '0');
       const nombre = `${pais}-${vertical}-${plataforma}-${segmentoAbrev}-${proximoId}-${inicialesDueno.toUpperCase()}-${descripcionCorta}`;
       setNombreGenerado(nombre);
+      // Actualizar el nombre en edición solo si está en modo automático (no editable)
+      if (!esEditable) {
+        setNombreEditando(nombre);
+      }
     } else {
       setNombreGenerado('Completa los campos para generar el nombre...');
+      if (!esEditable) {
+        setNombreEditando('Completa los campos para generar el nombre...');
+      }
     }
-  }, [pais, vertical, plataforma, segmento, inicialesDueno, descripcionCorta, campanas.length]);
+  }, [pais, vertical, plataforma, segmento, inicialesDueno, descripcionCorta, campanas.length, esEditable]);
 
   const onSubmit = async (datos: FormularioCrearCampana) => {
-    const resultado = await crearCampana(datos);
+    // Usar el nombre editado si está en modo manual, sino usar el generado
+    const nombreFinal = esEditable && nombreEditando.trim() ? nombreEditando : nombreGenerado;
+    
+    if (!nombreFinal || nombreFinal === 'Completa los campos para generar el nombre...') {
+      alert('❌ Por favor completa todos los campos requeridos para generar el nombre de la campaña');
+      return;
+    }
+    
+    const resultado = await crearCampana(datos, nombreFinal);
     
     if (resultado.exito) {
       alert(`✅ ${resultado.mensaje}`);
@@ -97,13 +121,15 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-8">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-xl z-10">
-          <h2 className="text-2xl font-bold text-gray-900">🎯 Crear Nueva Campaña</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+        {/* Header fijo sin sticky */}
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-3 lg:px-6 lg:py-4 flex justify-between items-center rounded-t-xl flex-shrink-0">
+          <h2 className="text-lg lg:text-2xl font-bold">🎯 Crear Nueva Campaña</h2>
           <button
             onClick={onCerrar}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-white hover:text-primary-200 transition-colors"
+            aria-label="Cerrar formulario"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -111,24 +137,64 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        {/* Contenedor con scroll interno */}
+        <div className="overflow-y-auto flex-1">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-4 lg:p-6 space-y-4 lg:space-y-6">
           {/* Preview del nombre generado */}
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border-2 border-primary-300 rounded-lg p-4">
-            <label className="block text-sm font-semibold text-primary-700 mb-2">
-              📝 Nombre de Campaña (Generado Automáticamente)
-            </label>
-            <div className="bg-white rounded-lg p-4 font-mono text-lg font-bold text-primary-900 break-all">
-              {nombreGenerado}
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border-2 border-primary-300 rounded-lg p-3">
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs lg:text-sm font-semibold text-primary-700">
+                📝 Nombre de Campaña {esEditable ? '(Personalizado)' : '(Generado Automáticamente)'}
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (esEditable) {
+                    // Volver a modo automático
+                    setEsEditable(false);
+                    setNombreEditando(nombreGenerado);
+                  } else {
+                    // Cambiar a modo manual
+                    setEsEditable(true);
+                    setNombreEditando(nombreGenerado);
+                  }
+                }}
+                className="text-primary-600 hover:text-primary-800 transition-colors p-1"
+                title={esEditable ? 'Restaurar nombre automático' : 'Personalizar nombre'}
+              >
+                {esEditable ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                )}
+              </button>
             </div>
+            {esEditable ? (
+              <input
+                type="text"
+                value={nombreEditando}
+                onChange={(e) => setNombreEditando(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-primary-400 rounded-lg font-mono text-sm lg:text-lg font-bold text-primary-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                placeholder="Ingresa el nombre personalizado..."
+              />
+            ) : (
+              <div className="bg-white rounded-lg p-3 font-mono text-sm lg:text-lg font-bold text-primary-900 break-all">
+                {nombreGenerado}
+              </div>
+            )}
           </div>
 
           {/* Sección 1: Datos de Identificación */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">📋 Datos de Identificación</h3>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <h3 className="text-sm lg:text-lg font-bold text-gray-900 mb-3">📋 Datos de Identificación</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-xs lg:text-sm font-semibold text-gray-700 mb-1">
                   País *
                 </label>
                 <select
@@ -262,6 +328,21 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                   placeholder="123456789"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Nombre en Plataforma (Opcional)
+                </label>
+                <input
+                  {...register('nombrePlataforma')}
+                  type="text"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  placeholder="Ej: Rayo - Bono Bienvenida"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Nombre que aparece en Facebook/TikTok/Google
+                </p>
+              </div>
             </div>
 
             <div className="mt-4">
@@ -334,6 +415,157 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
             </div>
           </div>
 
+          {/* Sección 4: Aterrizaje de la Campaña */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">🎯 Aterrizaje de la Campaña</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Tipo de Aterrizaje *
+                </label>
+                <select
+                  {...register('tipoAterrizaje')}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                >
+                  {Object.entries(TIPOS_ATERRIZAJE_LABELS).map(([codigo, nombre]) => (
+                    <option key={codigo} value={codigo}>{nombre}</option>
+                  ))}
+                </select>
+                {errors.tipoAterrizaje && (
+                  <p className="text-red-500 text-sm mt-1">{errors.tipoAterrizaje.message}</p>
+                )}
+              </div>
+
+              {/* Campo dinámico según tipo de aterrizaje */}
+              <div>
+                {(['FORMS', 'URL', 'LANDING', 'APP'].includes(tipoAterrizaje)) && (
+                  <>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      URL de Aterrizaje *
+                    </label>
+                    <input
+                      {...register('urlAterrizaje', {
+                        required: tipoAterrizaje === 'URL' || tipoAterrizaje === 'LANDING' || tipoAterrizaje === 'APP' ? 'La URL es requerida para este tipo de aterrizaje' : false,
+                        pattern: {
+                          value: /^https?:\/\/.+/,
+                          message: 'Debe ser una URL válida (https://...)'
+                        }
+                      })}
+                      type="url"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      placeholder="https://ejemplo.com/landing"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ingresa la URL completa del formulario, landing page o app
+                    </p>
+                    {errors.urlAterrizaje && (
+                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                    )}
+                  </>
+                )}
+
+                {tipoAterrizaje === 'WHATSAPP' && (
+                  <>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Número de WhatsApp *
+                    </label>
+                    <input
+                      {...register('urlAterrizaje', {
+                        required: 'El número de WhatsApp es requerido',
+                        pattern: {
+                          value: /^\+?[1-9]\d{1,14}$/,
+                          message: 'Debe ser un número de teléfono válido (ej: +51987654321)'
+                        }
+                      })}
+                      type="tel"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      placeholder="+51987654321"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ingresa el número de WhatsApp con código de país (ej: +51987654321)
+                    </p>
+                    {errors.urlAterrizaje && (
+                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                    )}
+                  </>
+                )}
+
+                {tipoAterrizaje === 'EMAIL' && (
+                  <>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Correo Electrónico *
+                    </label>
+                    <input
+                      {...register('urlAterrizaje', {
+                        required: 'El correo electrónico es requerido',
+                        pattern: {
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: 'Debe ser un correo electrónico válido'
+                        }
+                      })}
+                      type="email"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      placeholder="contacto@empresa.com"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ingresa el correo electrónico de contacto
+                    </p>
+                    {errors.urlAterrizaje && (
+                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                    )}
+                  </>
+                )}
+
+                {tipoAterrizaje === 'CALL_CENTER' && (
+                  <>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Número de Teléfono *
+                    </label>
+                    <input
+                      {...register('urlAterrizaje', {
+                        required: 'El número de teléfono es requerido',
+                        pattern: {
+                          value: /^\+?[1-9]\d{1,14}$/,
+                          message: 'Debe ser un número de teléfono válido (ej: +51987654321)'
+                        }
+                      })}
+                      type="tel"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      placeholder="+51987654321"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ingresa el número del call center con código de país
+                    </p>
+                    {errors.urlAterrizaje && (
+                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                    )}
+                  </>
+                )}
+
+                {tipoAterrizaje === 'OTRO' && (
+                  <>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Información de Aterrizaje (Opcional)
+                    </label>
+                    <input
+                      {...register('urlAterrizaje')}
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      placeholder="Describe o ingresa la información del aterrizaje"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ingresa cualquier información adicional sobre el aterrizaje
+                    </p>
+                    {errors.urlAterrizaje && (
+                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
             <button
               type="button"
@@ -350,7 +582,8 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
               {isSubmitting ? 'Creando...' : 'Crear Campaña'}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

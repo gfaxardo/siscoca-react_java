@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,6 +43,7 @@ public class UsuarioService {
                 usuario.getId(),
                 usuario.getUsername(),
                 usuario.getNombre(),
+                usuario.getIniciales(),
                 usuario.getRol().getDisplayName()
             );
             
@@ -63,5 +65,41 @@ public class UsuarioService {
     
     public boolean existsByUsername(String username) {
         return usuarioRepository.existsByUsername(username);
+    }
+    
+    public List<Usuario> findAll() {
+        return usuarioRepository.findAll();
+    }
+    
+    public Optional<Usuario> findById(Long id) {
+        return usuarioRepository.findById(id);
+    }
+    
+    /**
+     * Cambia la contraseña del usuario autenticado
+     * @param username El username del usuario que quiere cambiar su contraseña
+     * @param currentPassword La contraseña actual
+     * @param newPassword La nueva contraseña
+     * @return true si el cambio fue exitoso, false si la contraseña actual es incorrecta
+     */
+    public boolean cambiarContrasena(String username, String currentPassword, String newPassword) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByUsernameAndActivoTrue(username);
+        
+        if (usuarioOpt.isEmpty()) {
+            throw new IllegalArgumentException("Usuario no encontrado o inactivo");
+        }
+        
+        Usuario usuario = usuarioOpt.get();
+        
+        // Verificar que la contraseña actual sea correcta
+        if (!passwordEncoder.matches(currentPassword, usuario.getPassword())) {
+            return false;
+        }
+        
+        // Encriptar y guardar la nueva contraseña
+        usuario.setPassword(passwordEncoder.encode(newPassword));
+        usuarioRepository.save(usuario);
+        
+        return true;
     }
 }

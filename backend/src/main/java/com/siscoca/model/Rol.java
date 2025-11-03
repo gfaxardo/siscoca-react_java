@@ -3,7 +3,8 @@ package com.siscoca.model;
 public enum Rol {
     ADMIN("Admin"),
     TRAFFICKER("Trafficker"),
-    DUEÑO("Dueño");
+    DUEÑO("Dueño"),
+    MKT("Marketing");
     
     private final String displayName;
     

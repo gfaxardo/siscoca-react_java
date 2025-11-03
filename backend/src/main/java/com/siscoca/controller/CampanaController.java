@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/campanas")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
 public class CampanaController {
     
     @Autowired
@@ -38,7 +38,13 @@ public class CampanaController {
         return ResponseEntity.ok(createdCampana);
     }
     
-    @PutMapping("/{id}")
+    @GetMapping("/semana-anterior")
+    public ResponseEntity<Integer> getSemanaAnterior() {
+        int semanaAnterior = campanaService.getPreviousWeekISO();
+        return ResponseEntity.ok(semanaAnterior);
+    }
+    
+    @PutMapping("/update/{id}")
     public ResponseEntity<CampanaDto> updateCampana(@PathVariable Long id, @RequestBody CampanaDto campanaDto) {
         CampanaDto updatedCampana = campanaService.updateCampana(id, campanaDto);
         if (updatedCampana != null) {
@@ -58,6 +64,22 @@ public class CampanaController {
         }
     }
     
+    @PostMapping("/{id}/archivar")
+    public ResponseEntity<?> archivarCampana(@PathVariable Long id) {
+        try {
+            CampanaDto campanaArchivada = campanaService.archivarCampana(id);
+            if (campanaArchivada != null) {
+                return ResponseEntity.ok(campanaArchivada);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error archivando campaña: " + e.getMessage());
+        }
+    }
+    
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<CampanaDto>> getCampanasByEstado(@PathVariable String estado) {
         List<CampanaDto> campanas = campanaService.getCampanasByEstado(estado);
@@ -68,5 +90,21 @@ public class CampanaController {
     public ResponseEntity<List<CampanaDto>> getCampanasByDueno(@PathVariable String nombreDueno) {
         List<CampanaDto> campanas = campanaService.getCampanasByDueno(nombreDueno);
         return ResponseEntity.ok(campanas);
+    }
+    
+    @PostMapping("/{id}/reactivar")
+    public ResponseEntity<?> reactivarCampana(@PathVariable Long id) {
+        try {
+            CampanaDto campanaReactivada = campanaService.reactivarCampana(id);
+            if (campanaReactivada != null) {
+                return ResponseEntity.ok(campanaReactivada);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error reactivando campaña: " + e.getMessage());
+        }
     }
 }

@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
-import { Campana } from '../../types';
+import { Campana, TIPOS_ATERRIZAJE_LABELS, PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS } from '../../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 import FiltrosCampanas from './FiltrosCampanas';
 import UploadCreativo from './UploadCreativo';
 import MenuAccionesCampana from './MenuAccionesCampana';
 import GraficosMetricas from './GraficosMetricas';
-import HistoricoSemanasCampana from './HistoricoSemanasCampana';
+import GraficosBarrasAvanzados from './GraficosBarrasAvanzados';
+import MetricasGlobalesComponent from './MetricasGlobales';
+import HistorialCambios from './HistorialCambios';
+import FormularioEditarCampana from './FormularioEditarCampana';
+import ChatCampana from '../Chat/ChatCampana';
+import { chatService } from '../../services/chatService';
+import { useMenuActions } from '../../store/useMenuActions';
 
 interface ListaCampanasProps {
   onCrearNueva: () => void;
@@ -36,12 +43,130 @@ export default function ListaCampanas({
   
   const [campanasFiltradas, setCampanasFiltradas] = useState<Campana[]>([]);
   const [campanaParaUpload, setCampanaParaUpload] = useState<Campana | null>(null);
-  const [campanaParaHistorico, setCampanaParaHistorico] = useState<Campana | null>(null);
+  const [campanaParaEditar, setCampanaParaEditar] = useState<Campana | null>(null);
+  const [campanaParaMetricas, setCampanaParaMetricas] = useState<Campana | null>(null);
+  const [mostrarMetricasGlobales, setMostrarMetricasGlobales] = useState(false);
+  const [campanaParaHistorial, setCampanaParaHistorial] = useState<Campana | null>(null);
+  const [mostrarHistorialCambios, setMostrarHistorialCambios] = useState(false);
+  const [campanaParaChat, setCampanaParaChat] = useState<Campana | null>(null);
+  const [mostrarChat, setMostrarChat] = useState(false);
+  const [mensajesNoLeidosPorCampana, setMensajesNoLeidosPorCampana] = useState<Map<string, number>>(new Map());
+  const { setAcciones } = useMenuActions();
+
+  // Funciones para manejar métricas globales
+  const handleVerMetricasGlobales = (campana: Campana) => {
+    setCampanaParaMetricas(campana);
+    setMostrarMetricasGlobales(true);
+  };
+
+  const handleCerrarMetricasGlobales = () => {
+    setMostrarMetricasGlobales(false);
+    setCampanaParaMetricas(null);
+  };
+
+  // Funciones para manejar historial de cambios
+  const handleVerHistorialCambios = (campana: Campana) => {
+    setCampanaParaHistorial(campana);
+    setMostrarHistorialCambios(true);
+  };
+
+  const handleCerrarHistorialCambios = () => {
+    setMostrarHistorialCambios(false);
+    setCampanaParaHistorial(null);
+  };
+
+  // Funciones para manejar chat
+  const handleAbrirChat = (campana: Campana) => {
+    setCampanaParaChat(campana);
+    setMostrarChat(true);
+  };
+
+  const handleCerrarChat = () => {
+    setMostrarChat(false);
+    setCampanaParaChat(null);
+  };
+
+  // Función para exportar métricas a Excel
+  const exportarAExcel = () => {
+    try {
+      // Preparar datos para exportación
+      const datosExportacion = campanasActivas.map(campana => ({
+        'ID': campana.id,
+        'Nombre': campana.nombre,
+        'Estado': campana.estado,
+        'País': campana.pais,
+        'Vertical': campana.vertical,
+        'Plataforma': campana.plataforma,
+        'Segmento': campana.segmento,
+        'Alcance': campana.alcance || 0,
+        'Clics': campana.clics || 0,
+        'Leads': campana.leads || 0,
+        'Costo Semanal (USD)': campana.costoSemanal || 0,
+        'Costo por Lead (USD)': campana.costoLead || 0,
+        'Registros': campana.conductoresRegistrados || 0,
+        'Conductores (Primer Viaje)': campana.conductoresPrimerViaje || 0,
+        'Costo por Conductor (USD)': campana.costoConductor || 0,
+        'Fecha Creación': campana.fechaCreacion ? new Date(campana.fechaCreacion).toLocaleDateString('es-ES') : '',
+        'Última Actualización': campana.ultimaActualizacion ? new Date(campana.ultimaActualizacion).toLocaleDateString('es-ES') : ''
+      }));
+
+      // Crear workbook y worksheet
+      const ws = XLSX.utils.json_to_sheet(datosExportacion);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Campañas Activas');
+
+      // Ajustar ancho de columnas
+      const colWidths = [
+        { wch: 10 }, // ID
+        { wch: 40 }, // Nombre
+        { wch: 15 }, // Estado
+        { wch: 8 },  // País
+        { wch: 12 }, // Vertical
+        { wch: 12 }, // Plataforma
+        { wch: 12 }, // Segmento
+        { wch: 12 }, // Alcance
+        { wch: 10 }, // Clics
+        { wch: 10 }, // Leads
+        { wch: 18 }, // Costo Semanal
+        { wch: 18 }, // Costo por Lead
+        { wch: 12 }, // Registros
+        { wch: 22 }, // Conductores
+        { wch: 24 }, // Costo por Conductor
+        { wch: 15 }, // Fecha Creación
+        { wch: 20 }  // Última Actualización
+      ];
+      ws['!cols'] = colWidths;
+
+      // Generar nombre del archivo con fecha
+      const fecha = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `metricas_campanas_${fecha}.xlsx`;
+
+      // Descargar archivo
+      XLSX.writeFile(wb, nombreArchivo);
+      
+      alert(`✅ Métricas exportadas exitosamente: ${nombreArchivo}`);
+    } catch (error) {
+      console.error('Error exportando a Excel:', error);
+      alert('❌ Error al exportar métricas a Excel');
+    }
+  };
+
+  // Las campañas ya vienen ordenadas del useEffect, solo aplicar filtros adicionales si es necesario
+  const campanasActivas = campanasFiltradas;
 
   // Inicializar campañas filtradas y manejar errores
   useEffect(() => {
     try {
-      setCampanasFiltradas(campanas.filter(c => c.estado !== 'Archivada'));
+      // Filtrar y ordenar por fecha de creación descendente (más recientes primero)
+      const campanasOrdenadas = campanas
+        .filter(c => c.estado !== 'Archivada')
+        .sort((a, b) => {
+          // Ordenar por fecha de creación descendente (más recientes primero)
+          const fechaA = new Date(a.fechaCreacion).getTime();
+          const fechaB = new Date(b.fechaCreacion).getTime();
+          return fechaB - fechaA;
+        });
+      setCampanasFiltradas(campanasOrdenadas);
       setError(null);
     } catch (err) {
       console.error('Error inicializando campañas:', err);
@@ -49,7 +174,31 @@ export default function ListaCampanas({
     }
   }, [campanas]);
 
-  const campanasActivas = campanasFiltradas.filter(c => c.estado !== 'Archivada');
+  // Cargar mensajes no leídos por campaña
+  useEffect(() => {
+    const cargarMensajesNoLeidos = async () => {
+      try {
+        const mapa = new Map<string, number>();
+        for (const campana of campanasActivas) {
+          try {
+            const total = await chatService.getMensajesNoLeidosPorCampana(campana.id);
+            if (total > 0) {
+              mapa.set(campana.id, total);
+            }
+          } catch (err) {
+            console.error(`Error cargando mensajes para campaña ${campana.id}:`, err);
+          }
+        }
+        setMensajesNoLeidosPorCampana(mapa);
+      } catch (err) {
+        console.error('Error cargando mensajes no leídos:', err);
+      }
+    };
+
+    cargarMensajesNoLeidos();
+    const interval = setInterval(cargarMensajesNoLeidos, 30000); // Actualizar cada 30 segundos
+    return () => clearInterval(interval);
+  }, [campanasActivas]);
 
   const manejarFiltros = (nuevasCampanasFiltradas: Campana[]) => {
     try {
@@ -107,7 +256,7 @@ export default function ListaCampanas({
       if (confirmar) {
         const resultado = await archivarCampana(campana);
         if (resultado.exito) {
-          alert(`✅ ${resultado.mensaje}`);
+          alert(`✅ ${resultado.mensaje}\n\n📌 La campaña ahora está archivada.\nPuedes verla en el menú "Histórico" → "Ver Histórico"`);
         } else {
           alert(`❌ ${resultado.mensaje}`);
         }
@@ -127,6 +276,28 @@ export default function ListaCampanas({
       setError('Error actualizando campañas');
     }
   }, [campanas]);
+
+  // Configurar acciones del menú contextual
+  useEffect(() => {
+    setAcciones([
+      {
+        id: 'exportar-excel',
+        label: 'Exportar Excel',
+        icono: '📊',
+        onClick: exportarAExcel,
+        color: 'Verde',
+        peligroso: false
+      },
+      {
+        id: 'nueva-campana',
+        label: 'Nueva Campaña',
+        icono: '📝',
+        onClick: onCrearNueva,
+        color: 'Azul',
+        peligroso: false
+      }
+    ]);
+  }, [setAcciones]);
 
   const obtenerColorEstado = (estado: Campana['estado']) => {
     switch (estado) {
@@ -172,21 +343,11 @@ export default function ListaCampanas({
   }
 
   return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Campañas Activas</h2>
-            <p className="text-gray-600 mt-1">
+      <div className="space-y-2 lg:space-y-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <p className="text-gray-600 text-xs lg:text-sm">
               {campanasActivas.length} campaña{campanasActivas.length !== 1 ? 's' : ''} en gestión
             </p>
-          </div>
-          <button
-            onClick={onCrearNueva}
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2 shadow-lg"
-          >
-            <span>📝</span>
-            <span>Nueva Campaña</span>
-          </button>
         </div>
 
         {/* Filtros */}
@@ -212,24 +373,24 @@ export default function ListaCampanas({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {campanasActivas.map((campana) => (
             <div
               key={campana.id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden"
             >
-              <div className="p-6">
+              <div className="p-3 lg:p-4">
                 {/* Header con título y menú de acciones */}
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-gray-900 mb-2 break-words">
+                    <h3 className="text-sm lg:text-base font-bold text-gray-900 mb-1 break-words">
                       {campana.nombre}
                     </h3>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
                         #{campana.id}
                       </span>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
+                      <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
                         👤 {campana.inicialesDueno}
                       </span>
                       {campana.idPlataformaExterna && (
@@ -245,6 +406,32 @@ export default function ListaCampanas({
                       {campana.estado === 'Creativo Enviado' ? 'Creativo Enviado!' : campana.estado}
                     </span>
                     
+                    {/* Botón de chat */}
+                    {mensajesNoLeidosPorCampana.get(campana.id) ? (
+                      <button
+                        onClick={() => handleAbrirChat(campana)}
+                        className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Chat de la campaña"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <span className="absolute top-0 right-0 w-4 h-4 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                          {mensajesNoLeidosPorCampana.get(campana.id)!}
+                        </span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleAbrirChat(campana)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Chat de la campaña"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      </button>
+                    )}
+                    
                     {/* Menú de acciones */}
                     <MenuAccionesCampana
                       campana={campana}
@@ -254,11 +441,16 @@ export default function ListaCampanas({
                       onSubirMetricasDueno={() => onEditarMetricasDueno(campana)}
                       onArchivarCampana={() => manejarArchivado(campana)}
                       onDescargarCreativo={() => manejarDescargaCreativo(campana)}
-                      onHistoricoSemanas={() => setCampanaParaHistorico(campana)}
-                      onEliminarCampana={() => {
+                      onEditarCampana={() => setCampanaParaEditar(campana)}
+                      onVerMetricasGlobales={() => handleVerMetricasGlobales(campana)}
+                      onVerHistorialCambios={() => handleVerHistorialCambios(campana)}
+                      onEliminarCampana={async () => {
                         try {
                           if (confirm(`¿Eliminar campaña ${campana.nombre}?\n\nEsta acción no se puede deshacer.`)) {
-                            eliminarCampana(campana.id);
+                            const resultado = await eliminarCampana(campana.id);
+                            if (!resultado.exito) {
+                              setError(resultado.mensaje);
+                            }
                           }
                         } catch (err) {
                           console.error('Error eliminando campaña:', err);
@@ -269,23 +461,72 @@ export default function ListaCampanas({
                   </div>
                 </div>
 
-                {/* Información básica */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <span className="font-semibold mr-2">Segmento:</span>
-                    <span>{campana.segmento}</span>
+                {/* Información básica de la campaña */}
+                <div className="bg-gray-50 rounded-lg p-2 mb-3">
+                  <h4 className="text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Información Básica</h4>
+                  
+                  <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs">
+                    {/* País */}
+                    <div className="text-gray-700">
+                      <span className="text-gray-600">🌍</span>
+                      <span className="ml-1 text-gray-900 truncate">{PAISES_LABELS[campana.pais] || campana.pais}</span>
+                    </div>
+                    
+                    {/* Segmento */}
+                    <div className="text-gray-700">
+                      <span className="text-gray-600">🎯</span>
+                      <span className="ml-1 text-gray-900 truncate">{campana.segmento}</span>
+                    </div>
+                    
+                    {/* Vertical */}
+                    <div className="text-gray-700">
+                      <span className="text-gray-600">📊</span>
+                      <span className="ml-1 text-gray-900 truncate">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
+                    </div>
+                    
+                    {/* Dueño */}
+                    <div className="text-gray-700">
+                      <span className="text-gray-600">👤</span>
+                      <span className="ml-1 text-gray-900 truncate">{campana.nombreDueno}</span>
+                    </div>
+                    
+                    {/* Plataforma */}
+                    <div className="text-gray-700">
+                      <span className="text-gray-600">📱</span>
+                      <span className="ml-1 text-gray-900 truncate">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
+                    </div>
+                    
+                    {/* Aterrizaje */}
+                    <div className="text-gray-700">
+                      <span className="text-gray-600">🎯</span>
+                      <span className="ml-1 text-gray-900 truncate">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
+                      {campana.urlAterrizaje && (
+                        <a 
+                          href={campana.urlAterrizaje} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                          title="Ver destino de aterrizaje"
+                        >
+                          🔗
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 line-clamp-2">
-                    {campana.objetivo}
+                  
+                  {/* Descripción corta - Ocupa ambas columnas */}
+                  <div className="text-gray-700 pt-1.5 mt-1.5 border-t border-gray-200 col-span-3">
+                    <span className="text-gray-600">📝</span>
+                    <span className="ml-1 text-gray-900 text-xs">{campana.descripcionCorta}</span>
                   </div>
                 </div>
 
                 {/* Gráficos de evolución en lugar de métricas estáticas */}
-                <div className="mb-4">
+                <div className="mb-2">
                   {(() => {
                     try {
                       return (
-                        <GraficosMetricas 
+                        <GraficosBarrasAvanzados 
                           campana={campana} 
                           historico={historico}
                           historicoSemanas={obtenerHistoricoSemanalCampana(campana.id)}
@@ -304,8 +545,8 @@ export default function ListaCampanas({
                 </div>
 
                 {/* Información de actualización */}
-                <div className="text-xs text-gray-500">
-                  Actualizado: {format(campana.ultimaActualizacion, "dd/MM/yyyy HH:mm", { locale: es })}
+                <div className="text-xs text-gray-400">
+                  {format(campana.ultimaActualizacion, "dd/MM/yy HH:mm", { locale: es })}
                 </div>
               </div>
             </div>
@@ -322,14 +563,41 @@ export default function ListaCampanas({
         />
       )}
 
-      {/* Modal de Histórico de Semanas */}
-      {campanaParaHistorico && (
-        <HistoricoSemanasCampana
-          campana={campanaParaHistorico}
-          onCerrar={() => setCampanaParaHistorico(null)}
-          onGuardarHistorico={guardarHistoricoSemanal}
-          historicoExistente={obtenerHistoricoSemanalCampana(campanaParaHistorico.id)}
+      {/* Modal de Edición de Campaña */}
+      {campanaParaEditar && (
+        <FormularioEditarCampana
+          campana={campanaParaEditar}
+          onCerrar={() => setCampanaParaEditar(null)}
         />
+      )}
+
+      {/* Modal de Métricas Globales */}
+      {mostrarMetricasGlobales && campanaParaMetricas && (
+        <MetricasGlobalesComponent
+          campana={campanaParaMetricas}
+          onCerrar={handleCerrarMetricasGlobales}
+        />
+      )}
+
+      {/* Modal de Historial de Cambios */}
+      {mostrarHistorialCambios && campanaParaHistorial && (
+        <HistorialCambios
+          campana={campanaParaHistorial}
+          onCerrar={handleCerrarHistorialCambios}
+        />
+      )}
+
+      {/* Modal de Chat */}
+      {mostrarChat && campanaParaChat && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-4xl h-[80vh]">
+            <ChatCampana
+              campanaId={campanaParaChat.id}
+              campanaNombre={campanaParaChat.nombre}
+              onClose={handleCerrarChat}
+            />
+          </div>
+        </div>
       )}
 
     </div>

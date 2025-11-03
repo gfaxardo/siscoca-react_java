@@ -1,8 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useEffect, useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana, MetricasTrafficker } from '../../types';
+import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const esquemaFormulario = z.object({
   idCampana: z.string(),
@@ -12,7 +15,29 @@ const esquemaFormulario = z.object({
   leads: z.number().min(0, 'Los leads deben ser positivos'),
   costoSemanal: z.number().min(0, 'El costo debe ser positivo').max(999999, 'El costo no puede exceder $999,999 USD'),
   costoLead: z.number().min(0).max(9999, 'El costo por lead no puede exceder $9,999 USD').optional()
+}).refine((data) => data.clics <= data.alcance, {
+  message: '⚠️ Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)',
+  path: ['clics']
+}).refine((data) => data.leads <= data.clics, {
+  message: '⚠️ Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)',
+  path: ['leads']
 });
+
+// Función para calcular semana ISO correctamente usando date-fns
+const obtenerSemanaISO = (fecha: Date): number => {
+  return getISOWeek(fecha);
+};
+
+// Función para obtener rango de fechas de una semana ISO
+const obtenerRangoSemana = (semanaISO: number, año: number): { inicio: Date; fin: Date; rango: string } => {
+  const fechaReferencia = new Date(año, 0, 4);
+  const inicioSemana1 = startOfWeek(fechaReferencia, { weekStartsOn: 1 });
+  const inicioSemana = new Date(inicioSemana1);
+  inicioSemana.setDate(inicioSemana.getDate() + (semanaISO - 1) * 7);
+  const finSemana = endOfWeek(inicioSemana, { weekStartsOn: 1 });
+  const rango = `${format(inicioSemana, 'dd', { locale: es })} ${format(inicioSemana, 'MMM', { locale: es })} - ${format(finSemana, 'dd', { locale: es })} ${format(finSemana, 'MMM', { locale: es })} ${format(finSemana, 'yyyy')}`;
+  return { inicio: inicioSemana, fin: finSemana, rango };
+};
 
 interface FormularioMetricasTraffickerProps {
   campana: Campana;
@@ -20,9 +45,45 @@ interface FormularioMetricasTraffickerProps {
 }
 
 export default function FormularioMetricasTraffickerComponent({ campana, onCerrar }: FormularioMetricasTraffickerProps) {
-  const { subirMetricasTrafficker } = useCampanaStore();
+  const { subirMetricasTrafficker, guardarHistoricoSemanal, obtenerHistoricoSemanalCampana } = useCampanaStore();
   
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<MetricasTrafficker>({
+  // Inicializar con la semana actual por defecto
+  const obtenerSemanaActual = (): number => {
+    const ahora = new Date();
+    const inicioSemana = startOfWeek(ahora, { weekStartsOn: 1 });
+    return obtenerSemanaISO(inicioSemana);
+  };
+  
+  const [semanaSeleccionada, setSemanaSeleccionada] = useState<number>(obtenerSemanaActual());
+  
+  // Generar opciones de semanas (últimas 12 semanas + semana actual)
+  const generarOpcionesSemanas = () => {
+    const ahora = new Date();
+    const opciones = [];
+    
+    for (let i = 0; i < 13; i++) {
+      const semana = subWeeks(ahora, i);
+      const inicioSemana = startOfWeek(semana, { weekStartsOn: 1 });
+      const semanaISO = obtenerSemanaISO(inicioSemana);
+      const año = getYear(inicioSemana);
+      const rangoSemana = obtenerRangoSemana(semanaISO, año);
+      
+      opciones.push({
+        valor: semanaISO,
+        label: `${i === 0 ? '🕒 Semana Actual - ' : ''}Semana ${semanaISO} (${año}) - ${rangoSemana.rango}`,
+        fecha: inicioSemana,
+        rango: rangoSemana.rango
+      });
+    }
+    
+    return opciones;
+  };
+  
+  const opcionesSemanas = generarOpcionesSemanas();
+  const historicoExistente = obtenerHistoricoSemanalCampana(campana.id);
+  const semanaActualSeleccionada = opcionesSemanas.find(o => o.valor === semanaSeleccionada);
+  
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<MetricasTrafficker>({
     resolver: zodResolver(esquemaFormulario),
     defaultValues: {
       idCampana: campana.id,
@@ -35,21 +96,110 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
     }
   });
 
+  // Observar cambios en costoSemanal y leads para calcular automáticamente costoLead
+  const costoSemanal = watch('costoSemanal');
+  const leads = watch('leads');
+
+  useEffect(() => {
+    if (costoSemanal && leads && leads > 0) {
+      const costoLeadCalculado = costoSemanal / leads;
+      // Redondear a 2 decimales
+      const costoLeadRedondeado = Math.round(costoLeadCalculado * 100) / 100;
+      setValue('costoLead', costoLeadRedondeado, { shouldValidate: true });
+    } else if (costoSemanal === 0 || leads === 0) {
+      // Si el costo o leads son 0, el costo por lead debe ser 0
+      setValue('costoLead', 0, { shouldValidate: true });
+    }
+  }, [costoSemanal, leads, setValue]);
+
   const onSubmit = async (datos: MetricasTrafficker) => {
-    const resultado = await subirMetricasTrafficker({
-      ...datos,
-      alcance: Number(datos.alcance),
-      clics: Number(datos.clics),
-      leads: Number(datos.leads),
-      costoSemanal: Number(datos.costoSemanal),
-      costoLead: datos.costoLead ? Number(datos.costoLead) : undefined
-    });
+    // Validar funnel de métricas trafficker
+    const alcance = Number(datos.alcance);
+    const clics = Number(datos.clics);
+    const leads = Number(datos.leads);
     
-    if (resultado.exito) {
-      alert(`✅ ${resultado.mensaje}`);
-      onCerrar();
+    if (clics > alcance) {
+      alert('⚠️ Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)');
+      return;
+    }
+    
+    if (leads > clics) {
+      alert('⚠️ Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)');
+      return;
+    }
+    
+    const esSemanaActual = semanaSeleccionada === obtenerSemanaActual();
+    
+    if (esSemanaActual) {
+      // Guardar como métricas actuales de la campaña
+      // Verificar si ya tiene métricas para advertir sobre sobrescritura
+      if (campana.alcance || campana.clics || campana.leads || campana.costoSemanal) {
+        const confirmar = window.confirm(
+          `⚠️ Esta campaña ya tiene métricas guardadas.\n\n` +
+          `¿Deseas sobrescribir las métricas existentes?\n\n` +
+          `Métricas actuales:\n` +
+          `- Alcance: ${campana.alcance || 0}\n` +
+          `- Clics: ${campana.clics || 0}\n` +
+          `- Leads: ${campana.leads || 0}\n` +
+          `- Costo: $${campana.costoSemanal || 0}\n\n` +
+          `Si continúas, estas métricas serán reemplazadas.`
+        );
+        
+        if (!confirmar) {
+          return;
+        }
+      }
+      
+      const resultado = await subirMetricasTrafficker({
+        ...datos,
+        alcance,
+        clics,
+        leads,
+        costoSemanal: Number(datos.costoSemanal),
+        costoLead: datos.costoLead ? Number(datos.costoLead) : undefined
+      });
+      
+      if (resultado.exito) {
+        alert(`✅ ${resultado.mensaje}`);
+        onCerrar();
+      } else {
+        alert(`❌ ${resultado.mensaje}`);
+      }
     } else {
-      alert(`❌ ${resultado.mensaje}`);
+      // Guardar como histórico semanal
+      const datosExistentes = historicoExistente.find(h => h.semanaISO === semanaSeleccionada);
+      if (datosExistentes) {
+        const confirmar = window.confirm(
+          `⚠️ La semana ${semanaSeleccionada} ya tiene métricas guardadas.\n\n` +
+          `¿Deseas reemplazar las métricas existentes?\n\n` +
+          `Si continúas, las métricas actuales serán sobrescritas.`
+        );
+        
+        if (!confirmar) {
+          return;
+        }
+      }
+      
+      const fechaSemana = semanaActualSeleccionada?.fecha || new Date();
+      const resultadoHistorico = await guardarHistoricoSemanal({
+        idCampana: campana.id,
+        semanaISO: semanaSeleccionada,
+        fechaSemana,
+        alcance,
+        clics,
+        leads,
+        costoSemanal: Number(datos.costoSemanal),
+        costoLead: datos.costoLead ? Number(datos.costoLead) : undefined,
+        urlInforme: datos.urlInforme || undefined
+      });
+      
+      if (resultadoHistorico.exito) {
+        const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
+        alert(`✅ Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
+        onCerrar();
+      } else {
+        alert(`❌ ${resultadoHistorico.mensaje}`);
+      }
     }
   };
 
@@ -73,6 +223,49 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
           <input type="hidden" {...register('idCampana')} />
+
+          {/* Selector de Semana */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              📅 Seleccionar Semana
+            </label>
+            <select
+              value={semanaSeleccionada}
+              onChange={(e) => {
+                setSemanaSeleccionada(parseInt(e.target.value));
+                // Cargar datos de la semana seleccionada si existen
+                const datosSemana = historicoExistente.find(h => h.semanaISO === parseInt(e.target.value));
+                if (datosSemana) {
+                  setValue('alcance', datosSemana.alcance || campana.alcance || 0);
+                  setValue('clics', datosSemana.clics || campana.clics || 0);
+                  setValue('leads', datosSemana.leads || campana.leads || 0);
+                  setValue('costoSemanal', datosSemana.costoSemanal || campana.costoSemanal || 0);
+                  setValue('costoLead', datosSemana.costoLead || campana.costoLead);
+                  setValue('urlInforme', datosSemana.urlInforme || campana.urlInforme || '');
+                } else {
+                  // Si no hay datos, usar datos actuales de la campaña
+                  setValue('alcance', campana.alcance || 0);
+                  setValue('clics', campana.clics || 0);
+                  setValue('leads', campana.leads || 0);
+                  setValue('costoSemanal', campana.costoSemanal || 0);
+                  setValue('costoLead', campana.costoLead);
+                  setValue('urlInforme', campana.urlInforme || '');
+                }
+              }}
+              className="w-full px-4 py-3 border border-blue-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium"
+            >
+              {opcionesSemanas.map((opcion) => (
+                <option key={opcion.valor} value={opcion.valor}>
+                  {opcion.label}
+                </option>
+              ))}
+            </select>
+            {semanaActualSeleccionada && (
+              <p className="text-xs text-blue-600 mt-2">
+                📆 Período: {semanaActualSeleccionada.rango}
+              </p>
+            )}
+          </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -158,15 +351,17 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Costo/Lead (USD) - Opcional
+              Costo/Lead (USD) <span className="text-xs text-gray-500 font-normal">(Calculado automáticamente)</span>
             </label>
             <input
               {...register('costoLead', { valueAsNumber: true })}
               type="number"
+              readOnly
               min="0"
               step="0.01"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed transition-all"
               placeholder="Se calcula automáticamente"
+              title="Este valor se calcula automáticamente basado en el costo semanal y los leads"
             />
             <p className="text-gray-500 text-sm mt-1">
               Si no se especifica, se calculará automáticamente: Costo Semanal (USD) ÷ Leads

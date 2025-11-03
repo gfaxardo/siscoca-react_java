@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana } from '../../types';
 
 interface UploadCreativoProps {
@@ -7,8 +8,13 @@ interface UploadCreativoProps {
   onSubirCreativo: (campana: Campana, archivo: File) => Promise<{ exito: boolean; mensaje: string }>;
 }
 
+type ModoSubida = 'archivo' | 'url';
+
 export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: UploadCreativoProps) {
+  const { descargarCreativo, subirCreativoUrl } = useCampanaStore();
+  const [modoSubida, setModoSubida] = useState<ModoSubida>('archivo');
   const [archivoSeleccionado, setArchivoSeleccionado] = useState<File | null>(null);
+  const [urlExterna, setUrlExterna] = useState<string>(campana.urlCreativoExterno || '');
   const [subiendo, setSubiendo] = useState(false);
   const [vistaPrevia, setVistaPrevia] = useState<string>('');
 
@@ -79,9 +85,78 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
     });
   };
 
+  const manejarSubirUrl = async () => {
+    if (!urlExterna || !urlExterna.trim()) {
+      alert('❌ Ingresa una URL válida');
+      return;
+    }
+
+    // Verificar autenticación
+    const userStr = localStorage.getItem('siscoca_user');
+    const token = localStorage.getItem('token') || localStorage.getItem('siscoca_token');
+    
+    if (!userStr && !token) {
+      const mensaje = '⚠️ No hay sesión activa. Por favor, recarga la página e inicia sesión nuevamente.';
+      alert(mensaje);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      return;
+    }
+
+    setSubiendo(true);
+
+    try {
+      const resultado = await subirCreativoUrl(campana, urlExterna);
+      
+      if (resultado.exito) {
+        alert(`✅ ${resultado.mensaje}`);
+        onCerrar();
+      } else {
+        if (resultado.mensaje.includes('Sesión expirada') || resultado.mensaje.includes('autenticación') || resultado.mensaje.includes('403')) {
+          const mensaje = `${resultado.mensaje}\n\nPor favor, recarga la página e inicia sesión nuevamente.`;
+          alert(`❌ ${mensaje}`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          alert(`❌ ${resultado.mensaje}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error en manejarSubirUrl:', error);
+      const mensajeError = error instanceof Error ? error.message : String(error);
+      alert(`❌ Error: ${mensajeError}`);
+      
+      if (mensajeError.includes('Sesión expirada') || mensajeError.includes('autenticación') || mensajeError.includes('403')) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    } finally {
+      setSubiendo(false);
+    }
+  };
+
   const manejarSubir = async () => {
     if (!archivoSeleccionado) {
       alert('❌ Selecciona un archivo primero');
+      return;
+    }
+
+    // Verificar autenticación antes de intentar subir
+    const userStr = localStorage.getItem('siscoca_user');
+    const token = localStorage.getItem('token') || localStorage.getItem('siscoca_token');
+    
+    if (!userStr && !token) {
+      const mensaje = '⚠️ No hay sesión activa. Por favor, recarga la página e inicia sesión nuevamente.';
+      alert(mensaje);
+      console.error('❌ Intento de subir creativo sin autenticación');
+      console.error('localStorage keys:', Object.keys(localStorage));
+      // Recargar la página para que el usuario pueda iniciar sesión
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
       return;
     }
 
@@ -103,10 +178,28 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
         alert(`✅ ${resultado.mensaje}`);
         onCerrar();
       } else {
-        alert(`❌ ${resultado.mensaje}`);
+        // Si el error menciona sesión expirada o autenticación, sugerir recargar
+        if (resultado.mensaje.includes('Sesión expirada') || resultado.mensaje.includes('autenticación') || resultado.mensaje.includes('403')) {
+          const mensaje = `${resultado.mensaje}\n\nPor favor, recarga la página e inicia sesión nuevamente.`;
+          alert(`❌ ${mensaje}`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          alert(`❌ ${resultado.mensaje}`);
+        }
       }
     } catch (error) {
-      alert(`❌ Error: ${error}`);
+      console.error('Error en manejarSubir:', error);
+      const mensajeError = error instanceof Error ? error.message : String(error);
+      alert(`❌ Error: ${mensajeError}`);
+      
+      // Si es error de autenticación, recargar página
+      if (mensajeError.includes('Sesión expirada') || mensajeError.includes('autenticación') || mensajeError.includes('403')) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
     } finally {
       setSubiendo(false);
     }
@@ -149,6 +242,92 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
               <p><strong>Dueño:</strong> {campana.nombreDueno}</p>
             </div>
           </div>
+
+          {/* Creativo actual si existe */}
+          {(campana.archivoCreativo && campana.nombreArchivoCreativo) || campana.urlCreativoExterno ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-semibold text-green-900 mb-1">✅ Creativo Configurado</h3>
+                  {campana.archivoCreativo && campana.nombreArchivoCreativo ? (
+                    <p className="text-sm text-green-800">
+                      <strong>Archivo:</strong> {campana.nombreArchivoCreativo}
+                    </p>
+                  ) : null}
+                  {campana.urlCreativoExterno ? (
+                    <p className="text-sm text-green-800">
+                      <strong>URL Externa:</strong> <a href={campana.urlCreativoExterno} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{campana.urlCreativoExterno}</a>
+                    </p>
+                  ) : null}
+                </div>
+                {campana.archivoCreativo && campana.nombreArchivoCreativo ? (
+                  <button
+                    onClick={() => {
+                      const resultado = descargarCreativo(campana);
+                      if (resultado.exito) {
+                        alert('✅ Descarga iniciada');
+                      } else {
+                        alert(`❌ ${resultado.mensaje}`);
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center space-x-2"
+                    title="Descargar creativo"
+                  >
+                    <span>⬇️</span>
+                    <span>Descargar</span>
+                  </button>
+                ) : null}
+              </div>
+              {campana.archivoCreativo && campana.archivoCreativo.startsWith('data:image') && (
+                <div className="mt-3 border border-green-300 rounded-lg p-2 bg-white">
+                  <img
+                    src={campana.archivoCreativo}
+                    alt="Creativo actual"
+                    className="max-w-full max-h-32 mx-auto rounded-lg"
+                  />
+                </div>
+              )}
+              <p className="text-xs text-green-700 mt-2">
+                💡 Puedes reemplazar el creativo subiendo un nuevo archivo o URL
+              </p>
+            </div>
+          ) : null}
+
+          {/* Selector de modo de subida */}
+          <div className="flex space-x-2 border-b border-gray-200">
+            <button
+              onClick={() => {
+                setModoSubida('archivo');
+                setArchivoSeleccionado(null);
+                setVistaPrevia('');
+              }}
+              className={`flex-1 px-4 py-2 text-sm font-semibold transition-colors ${
+                modoSubida === 'archivo'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📎 Subir Archivo
+            </button>
+            <button
+              onClick={() => {
+                setModoSubida('url');
+                setArchivoSeleccionado(null);
+                setVistaPrevia('');
+              }}
+              className={`flex-1 px-4 py-2 text-sm font-semibold transition-colors ${
+                modoSubida === 'url'
+                  ? 'border-b-2 border-primary-600 text-primary-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🔗 URL Externa
+            </button>
+          </div>
+
+          {/* Contenido según modo seleccionado */}
+          {modoSubida === 'archivo' ? (
+            <>
 
           {/* Zona de upload */}
           <div>
@@ -211,15 +390,47 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
               </div>
             </div>
           )}
+            </>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  URL del Creativo Externo *
+                </label>
+                <input
+                  type="url"
+                  value={urlExterna}
+                  onChange={(e) => setUrlExterna(e.target.value)}
+                  placeholder="https://ejemplo.com/creativo.mp4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={subiendo}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Ingresa la URL completa donde está alojado el creativo (ej: Google Drive, Dropbox, servidor externo)
+                </p>
+              </div>
+              
+              {urlExterna && urlExterna.trim() && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">Vista previa de URL</h4>
+                  <p className="text-sm text-blue-800 break-all">
+                    <a href={urlExterna} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                      {urlExterna}
+                    </a>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Instrucciones */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h4 className="font-semibold text-yellow-900 mb-2">📋 Instrucciones</h4>
             <ul className="text-sm text-yellow-800 space-y-1">
-              <li>• Sube el material creativo final de la campaña</li>
-              <li>• El archivo será visible para quien active la campaña</li>
-              <li>• Asegúrate de que el archivo sea la versión final</li>
-              <li>• Una vez subido, el estado cambiará a "Creativo Enviado!"</li>
+              <li>• {modoSubida === 'archivo' ? 'Sube el material creativo final de la campaña' : 'Ingresa la URL completa donde está alojado el creativo'}</li>
+              <li>• {modoSubida === 'archivo' ? 'El archivo será visible para quien active la campaña' : 'Usa esta opción si el archivo no carga por problemas técnicos'}</li>
+              <li>• {modoSubida === 'archivo' ? 'Asegúrate de que el archivo sea la versión final' : 'La URL debe ser accesible públicamente o desde un servicio compartido'}</li>
+              <li>• Una vez guardado, el estado cambiará a "Creativo Enviado!"</li>
             </ul>
           </div>
 
@@ -234,11 +445,15 @@ export default function UploadCreativo({ campana, onCerrar, onSubirCreativo }: U
               Cancelar
             </button>
             <button
-              onClick={manejarSubir}
-              disabled={!archivoSeleccionado || subiendo}
+              onClick={modoSubida === 'archivo' ? manejarSubir : manejarSubirUrl}
+              disabled={
+                (modoSubida === 'archivo' && !archivoSeleccionado) ||
+                (modoSubida === 'url' && (!urlExterna || !urlExterna.trim())) ||
+                subiendo
+              }
               className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {subiendo ? 'Subiendo...' : 'Subir Creativo'}
+              {subiendo ? 'Guardando...' : modoSubida === 'archivo' ? 'Subir Creativo' : 'Guardar URL Externa'}
             </button>
           </div>
         </div>

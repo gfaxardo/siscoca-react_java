@@ -1,5 +1,6 @@
 package com.siscoca.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,13 +14,14 @@ import java.util.List;
 @Entity
 @Table(name = "campanas")
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"historicoSemanas", "hibernateLazyInitializer", "handler"})
 public class Campana {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = true)
+    @Column(nullable = true, length = 500)
     private String nombre;
     
     @NotNull
@@ -42,7 +44,7 @@ public class Campana {
     @Column(nullable = false)
     private Segmento segmento;
     
-    @Column(name = "id_plataforma_externa")
+    @Column(name = "id_plataforma_externa", length = 500)
     private String idPlataformaExterna;
     
     @NotBlank
@@ -74,13 +76,16 @@ public class Campana {
     @Column(nullable = false)
     private EstadoCampana estado;
     
-    @Column(name = "archivo_creativo")
+    @Column(name = "archivo_creativo", columnDefinition = "TEXT")
     private String archivoCreativo;
     
-    @Column(name = "nombre_archivo_creativo")
+    @Column(name = "nombre_archivo_creativo", length = 500)
     private String nombreArchivoCreativo;
     
-    @Column(name = "url_informe")
+    @Column(name = "url_creativo_externo", columnDefinition = "TEXT")
+    private String urlCreativoExterno;
+    
+    @Column(name = "url_informe", columnDefinition = "TEXT")
     private String urlInforme;
     
     // Métricas del Trafficker
@@ -242,6 +247,14 @@ public class Campana {
     
     public void setNombreArchivoCreativo(String nombreArchivoCreativo) {
         this.nombreArchivoCreativo = nombreArchivoCreativo;
+    }
+    
+    public String getUrlCreativoExterno() {
+        return urlCreativoExterno;
+    }
+    
+    public void setUrlCreativoExterno(String urlCreativoExterno) {
+        this.urlCreativoExterno = urlCreativoExterno;
     }
     
     public String getUrlInforme() {

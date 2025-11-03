@@ -11,13 +11,16 @@ import java.util.List;
 @Repository
 public interface HistoricoSemanalRepository extends JpaRepository<HistoricoSemanal, Long> {
     
+    @Query("SELECT h FROM HistoricoSemanal h JOIN FETCH h.campana ORDER BY h.semanaISO DESC")
+    List<HistoricoSemanal> findAllWithCampana();
+    
     List<HistoricoSemanal> findByCampana_Id(Long campanaId);
     
     List<HistoricoSemanal> findBySemanaISO(Integer semanaISO);
     
-    @Query("SELECT h FROM HistoricoSemanal h WHERE h.campana.id = :campanaId ORDER BY h.semanaISO DESC")
+    @Query("SELECT h FROM HistoricoSemanal h JOIN FETCH h.campana WHERE h.campana.id = :campanaId ORDER BY h.semanaISO DESC")
     List<HistoricoSemanal> findByCampanaIdOrderBySemanaISODesc(@Param("campanaId") Long campanaId);
     
-    @Query("SELECT h FROM HistoricoSemanal h WHERE h.semanaISO BETWEEN :semanaInicio AND :semanaFin ORDER BY h.semanaISO DESC")
+    @Query("SELECT h FROM HistoricoSemanal h JOIN FETCH h.campana WHERE h.semanaISO BETWEEN :semanaInicio AND :semanaFin ORDER BY h.semanaISO DESC")
     List<HistoricoSemanal> findBySemanaISOBetween(@Param("semanaInicio") Integer semanaInicio, @Param("semanaFin") Integer semanaFin);
 }

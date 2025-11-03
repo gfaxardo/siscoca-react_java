@@ -25,7 +25,14 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 15MB  # Permitir archivos base64 más grandes (el base64 es ~33% más grande que el archivo original)
+  
+  # Configuración para requests JSON grandes (archivos en base64)
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 # JWT Configuration
 jwt:

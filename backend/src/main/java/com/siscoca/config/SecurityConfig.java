@@ -48,9 +48,13 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/test/**").permitAll()
                 .requestMatchers("/campanas/**").authenticated()
+                .requestMatchers("/chat/**").authenticated()
                 .requestMatchers("/files/**").authenticated()
                 .requestMatchers("/historico/**").authenticated()
                 .requestMatchers("/logging/**").authenticated()
+                .requestMatchers("/tareas/**").authenticated()
+                .requestMatchers("/usuarios/**").authenticated()
+                .requestMatchers("/metricas/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -61,7 +65,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "https://siscoca.yego.pro"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

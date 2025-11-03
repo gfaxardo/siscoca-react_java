@@ -5,11 +5,21 @@ public class UserDto {
     private Long id;
     private String username;
     private String nombre;
+    private String iniciales;
     private String rol;
     
     // Constructors
     public UserDto() {}
     
+    public UserDto(Long id, String username, String nombre, String iniciales, String rol) {
+        this.id = id;
+        this.username = username;
+        this.nombre = nombre;
+        this.iniciales = iniciales;
+        this.rol = rol;
+    }
+    
+    // Constructor sin iniciales para compatibilidad
     public UserDto(Long id, String username, String nombre, String rol) {
         this.id = id;
         this.username = username;
@@ -40,6 +50,14 @@ public class UserDto {
     
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+    
+    public String getIniciales() {
+        return iniciales;
+    }
+    
+    public void setIniciales(String iniciales) {
+        this.iniciales = iniciales;
     }
     
     public String getRol() {

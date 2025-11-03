@@ -96,43 +96,33 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            📋 Historial de Cambios
-          </h2>
-          <p className="text-gray-600 mt-1">
-            {entidadId ? `Logs de la entidad ${entidadId}` : 'Registro de todas las actividades del sistema'}
-          </p>
-        </div>
-        <div className="flex space-x-2">
+      <div className="flex space-x-2">
+        <button
+          onClick={() => setMostrarFiltros(!mostrarFiltros)}
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
+        >
+          🔍 Filtros
+        </button>
+        <button
+          onClick={() => manejarExportar('csv')}
+          className="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-semibold transition-colors"
+        >
+          📊 Exportar CSV
+        </button>
+        <button
+          onClick={() => manejarExportar('json')}
+          className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-semibold transition-colors"
+        >
+          📄 Exportar JSON
+        </button>
+        {onCerrar && (
           <button
-            onClick={() => setMostrarFiltros(!mostrarFiltros)}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
+            onClick={onCerrar}
+            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-semibold transition-colors"
           >
-            🔍 Filtros
+            ❌ Cerrar
           </button>
-          <button
-            onClick={() => manejarExportar('csv')}
-            className="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-semibold transition-colors"
-          >
-            📊 Exportar CSV
-          </button>
-          <button
-            onClick={() => manejarExportar('json')}
-            className="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-semibold transition-colors"
-          >
-            📄 Exportar JSON
-          </button>
-          {onCerrar && (
-            <button
-              onClick={onCerrar}
-              className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-semibold transition-colors"
-            >
-              ❌ Cerrar
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Filtros */}

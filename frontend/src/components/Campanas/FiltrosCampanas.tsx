@@ -117,13 +117,13 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
   const duenosUnicos = [...new Set(campanas.map(c => c.nombreDueno))];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+    <div className="bg-white rounded-lg border border-gray-200 p-2 mb-3">
       {/* Barra de búsqueda principal */}
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-2 mb-2">
         <div className="flex-1">
           <input
             type="text"
-            placeholder="🔍 Buscar por nombre, ID, objetivo..."
+            placeholder="🔍 Buscar..."
             value={filtros.busqueda}
             onChange={(e) => {
               setFiltros({ ...filtros, busqueda: e.target.value });
@@ -133,18 +133,18 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
                 aplicarFiltros();
               }, 300);
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
         <button
           onClick={() => setMostrarFiltros(!mostrarFiltros)}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+          className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
         >
-          {mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+          {mostrarFiltros ? 'Ocultar' : 'Filtros'}
         </button>
         <button
           onClick={limpiarFiltros}
-          className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-medium transition-colors"
+          className="px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors"
         >
           Limpiar
         </button>
@@ -152,14 +152,14 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
       {/* Filtros avanzados */}
       {mostrarFiltros && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
           {/* Estado */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Estado</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">Estado</label>
             <select
               value={filtros.estado}
               onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
               <option value="">Todos</option>
               {estadosUnicos.map(estado => (
@@ -170,11 +170,11 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
           {/* Segmento */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Segmento</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">Segmento</label>
             <select
               value={filtros.segmento}
               onChange={(e) => setFiltros({ ...filtros, segmento: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
               <option value="">Todos</option>
               {segmentosUnicos.map(segmento => (
@@ -185,11 +185,11 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
           {/* País */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">País</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">País</label>
             <select
               value={filtros.pais}
               onChange={(e) => setFiltros({ ...filtros, pais: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
               <option value="">Todos</option>
               {paisesUnicos.map(pais => (
@@ -200,11 +200,11 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
           {/* Vertical */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Vertical</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">Vertical</label>
             <select
               value={filtros.vertical}
               onChange={(e) => setFiltros({ ...filtros, vertical: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
               <option value="">Todas</option>
               {verticalesUnicas.map(vertical => (
@@ -215,11 +215,11 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
           {/* Plataforma */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Plataforma</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">Plataforma</label>
             <select
               value={filtros.plataforma}
               onChange={(e) => setFiltros({ ...filtros, plataforma: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
               <option value="">Todas</option>
               {plataformasUnicas.map(plataforma => (
@@ -230,11 +230,11 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
           {/* Dueño */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Dueño</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">Dueño</label>
             <select
               value={filtros.dueno}
               onChange={(e) => setFiltros({ ...filtros, dueno: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
               <option value="">Todos</option>
               {duenosUnicos.map(dueno => (
@@ -245,17 +245,17 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
           {/* Tiempo activa */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Tiempo Activa</label>
+            <label className="block text-xs font-medium text-gray-600 mb-0.5">Tiempo</label>
             <select
               value={filtros.tiempoActiva}
               onChange={(e) => setFiltros({ ...filtros, tiempoActiva: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
             >
-              <option value="">Cualquiera</option>
-              <option value="1">Último día</option>
-              <option value="7">Última semana</option>
-              <option value="30">Último mes</option>
-              <option value="90">Últimos 3 meses</option>
+              <option value="">Todos</option>
+              <option value="1">Día</option>
+              <option value="7">Semana</option>
+              <option value="30">Mes</option>
+              <option value="90">3 meses</option>
             </select>
           </div>
         </div>
@@ -263,12 +263,12 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
       {/* Botón aplicar filtros */}
       {mostrarFiltros && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-2 pt-2 border-t border-gray-200">
           <button
             onClick={aplicarFiltros}
-            className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors"
+            className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs font-medium transition-colors"
           >
-            Aplicar Filtros
+            Aplicar
           </button>
         </div>
       )}

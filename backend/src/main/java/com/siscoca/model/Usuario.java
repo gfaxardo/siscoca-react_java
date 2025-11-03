@@ -8,7 +8,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
@@ -31,6 +30,9 @@ public class Usuario {
     @Column(nullable = false)
     private String nombre;
     
+    @Column(name = "iniciales", length = 10)
+    private String iniciales;
+    
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -47,8 +49,9 @@ public class Usuario {
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
     
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<LogEntry> logs;
+    // Nota: LogEntry no tiene relación JPA con Usuario
+    // Los logs se relacionan por username (String) no por foreign key
+    // Si necesitas obtener los logs de un usuario, usa LogEntryRepository.findByUsuario(username)
     
     // Constructors
     public Usuario() {}
@@ -93,6 +96,14 @@ public class Usuario {
         this.nombre = nombre;
     }
     
+    public String getIniciales() {
+        return iniciales;
+    }
+    
+    public void setIniciales(String iniciales) {
+        this.iniciales = iniciales;
+    }
+    
     public Rol getRol() {
         return rol;
     }
@@ -123,13 +134,5 @@ public class Usuario {
     
     public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
         this.fechaActualizacion = fechaActualizacion;
-    }
-    
-    public List<LogEntry> getLogs() {
-        return logs;
-    }
-    
-    public void setLogs(List<LogEntry> logs) {
-        this.logs = logs;
     }
 }

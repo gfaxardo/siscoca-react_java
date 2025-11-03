@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana } from '../../types';
-import { subWeeks, startOfWeek, format, getYear } from 'date-fns';
+import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface HistoricoSemanalCampana {
@@ -29,13 +30,26 @@ interface HistoricoSemanasCampanaProps {
   historicoExistente: HistoricoSemanalCampana[];
 }
 
-// Función para calcular semana ISO
+// Función para calcular semana ISO correctamente usando date-fns
 const obtenerSemanaISO = (fecha: Date): number => {
-  const d = new Date(fecha);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-  const week1 = new Date(d.getFullYear(), 0, 4);
-  return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 + week1.getDay() + 1) / 7);
+  return getISOWeek(fecha);
+};
+
+// Función para obtener rango de fechas de una semana ISO
+const obtenerRangoSemana = (semanaISO: number, año: number): { inicio: Date; fin: Date; rango: string } => {
+  // Calcular la fecha del primer día de la semana 1 del año
+  const fechaReferencia = new Date(año, 0, 4); // 4 de enero es siempre la semana 1
+  const inicioSemana1 = startOfWeek(fechaReferencia, { weekStartsOn: 1 });
+  
+  // Calcular la fecha de inicio de la semana solicitada
+  const inicioSemana = new Date(inicioSemana1);
+  inicioSemana.setDate(inicioSemana.getDate() + (semanaISO - 1) * 7);
+  
+  const finSemana = endOfWeek(inicioSemana, { weekStartsOn: 1 });
+  
+  const rango = `${format(inicioSemana, 'dd', { locale: es })} ${format(inicioSemana, 'MMM', { locale: es })} - ${format(finSemana, 'dd', { locale: es })} ${format(finSemana, 'MMM', { locale: es })} ${format(finSemana, 'yyyy')}`;
+  
+  return { inicio: inicioSemana, fin: finSemana, rango };
 };
 
 export default function HistoricoSemanasCampana({ 
@@ -44,9 +58,19 @@ export default function HistoricoSemanasCampana({
   onGuardarHistorico,
   historicoExistente 
 }: HistoricoSemanasCampanaProps) {
-  const [semanaSeleccionada, setSemanaSeleccionada] = useState<number>(0);
+  const { eliminarHistoricoSemanal } = useCampanaStore();
+  // Inicializar con la semana anterior por defecto
+  const obtenerSemanaAnterior = (): number => {
+    const ahora = new Date();
+    const semanaAnterior = subWeeks(ahora, 1);
+    const inicioSemanaAnterior = startOfWeek(semanaAnterior, { weekStartsOn: 1 });
+    return obtenerSemanaISO(inicioSemanaAnterior);
+  };
+  
+  const [semanaSeleccionada, setSemanaSeleccionada] = useState<number>(obtenerSemanaAnterior());
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [eliminando, setEliminando] = useState<number | null>(null);
   
   // Estados del formulario
   const [metricasTrafficker, setMetricasTrafficker] = useState({
@@ -67,16 +91,23 @@ export default function HistoricoSemanasCampana({
     const ahora = new Date();
     const opciones = [];
     
+    // La semana 0 es la anterior (semana actual - 1), luego las demás
     for (let i = 0; i < 12; i++) {
-      const semana = subWeeks(ahora, i);
+      // i=0 es la semana anterior, i=1 es la actual, i=2 es hace 2 semanas, etc.
+      const semanasAtras = i === 0 ? 1 : i; // Semana anterior primero
+      const semana = subWeeks(ahora, semanasAtras);
       const inicioSemana = startOfWeek(semana, { weekStartsOn: 1 });
       const semanaISO = obtenerSemanaISO(inicioSemana);
       const año = getYear(inicioSemana);
       
+      // Obtener rango de fechas usando la función mejorada
+      const rangoSemana = obtenerRangoSemana(semanaISO, año);
+      
       opciones.push({
         valor: semanaISO,
-        label: `Semana ${semanaISO} (${año}) - ${format(inicioSemana, 'dd/MM', { locale: es })}`,
-        fecha: inicioSemana
+        label: `${i === 0 ? '🕒 Semana Anterior - ' : ''}Semana ${semanaISO} (${año}) - ${rangoSemana.rango}`,
+        fecha: inicioSemana,
+        rango: rangoSemana.rango
       });
     }
     
@@ -132,7 +163,7 @@ export default function HistoricoSemanasCampana({
     setMostrarFormulario(true);
   };
 
-  const manejarGuardar = async () => {
+  const manejarGuardar = async (forzarReemplazo: boolean = false) => {
     // Validar que al menos haya una métrica
     const tieneMetricasTrafficker = Object.values(metricasTrafficker).some(v => v.trim() !== '');
     const tieneMetricasDueno = Object.values(metricasDueno).some(v => v.trim() !== '');
@@ -140,6 +171,48 @@ export default function HistoricoSemanasCampana({
     if (!tieneMetricasTrafficker && !tieneMetricasDueno) {
       alert('❌ Debes ingresar al menos una métrica (trafficker o dueño)');
       return;
+    }
+
+    // Validar funnel de métricas trafficker si están presentes
+    if (tieneMetricasTrafficker) {
+      const alcance = parseInt(metricasTrafficker.alcance) || 0;
+      const clics = parseInt(metricasTrafficker.clics) || 0;
+      const leads = parseInt(metricasTrafficker.leads) || 0;
+      
+      if (clics > alcance) {
+        alert('⚠️ Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)');
+        return;
+      }
+      
+      if (leads > clics) {
+        alert('⚠️ Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)');
+        return;
+      }
+    }
+
+    // Validar funnel de métricas dueño si están presentes
+    if (tieneMetricasDueno) {
+      const registros = parseInt(metricasDueno.conductoresRegistrados) || 0;
+      const conductores = parseInt(metricasDueno.conductoresPrimerViaje) || 0;
+      
+      if (conductores > registros) {
+        alert('⚠️ Los conductores de primer viaje no pueden ser mayores que los registros (es un funnel: Registros → Conductores)');
+        return;
+      }
+    }
+
+    // Si ya existe y no se fuerza reemplazo, confirmar
+    const datosExistentes = obtenerDatosSemana(semanaSeleccionada);
+    if (datosExistentes && !forzarReemplazo) {
+      const confirmar = window.confirm(
+        `⚠️ La semana ${semanaSeleccionada} ya tiene métricas guardadas.\n\n` +
+        `¿Deseas reemplazar las métricas existentes?\n\n` +
+        `Si continúas, las métricas actuales serán sobrescritas.`
+      );
+      
+      if (!confirmar) {
+        return;
+      }
     }
 
     setGuardando(true);
@@ -163,9 +236,26 @@ export default function HistoricoSemanasCampana({
       const resultado = await onGuardarHistorico(datosParaGuardar);
       
       if (resultado.exito) {
-        alert(`✅ ${resultado.mensaje}`);
+        const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
+        alert(`✅ Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
         setMostrarFormulario(false);
         setSemanaSeleccionada(0);
+        
+        // Limpiar formulario
+        setMetricasTrafficker({
+          alcance: '',
+          clics: '',
+          leads: '',
+          costoSemanal: '',
+          costoLead: ''
+        });
+        setMetricasDueno({
+          conductoresRegistrados: '',
+          conductoresPrimerViaje: ''
+        });
+        
+        // Recargar datos actualizados
+        window.location.reload();
       } else {
         alert(`❌ ${resultado.mensaje}`);
       }
@@ -176,10 +266,58 @@ export default function HistoricoSemanasCampana({
     }
   };
 
-  const manejarEliminarSemana = (semanaISO: number) => {
-    if (confirm(`¿Eliminar datos de la semana ${semanaISO}?\n\nEsta acción no se puede deshacer.`)) {
-      // Aquí implementarías la eliminación
-      alert('Funcionalidad de eliminación pendiente de implementar');
+  const manejarEliminarSemana = async (semanaISO: number) => {
+    const datosExistentes = obtenerDatosSemana(semanaISO);
+    
+    if (!datosExistentes) {
+      alert('❌ No hay datos para eliminar para esta semana');
+      return;
+    }
+    
+    const confirmar = window.confirm(
+      `⚠️ ¿Eliminar métricas de la semana ${semanaISO}?\n\n` +
+      `Esta acción eliminará permanentemente todas las métricas guardadas para esta semana.\n\n` +
+      `Esta acción NO se puede deshacer.`
+    );
+    
+    if (!confirmar) {
+      return;
+    }
+
+    setEliminando(semanaISO);
+    
+    try {
+      const resultado = await eliminarHistoricoSemanal(datosExistentes.id);
+      
+      if (resultado.exito) {
+        alert(`✅ Métricas de la semana ${semanaISO} eliminadas exitosamente`);
+        
+        // Si estaba en el formulario de esta semana, cerrarlo
+        if (semanaSeleccionada === semanaISO) {
+          setMostrarFormulario(false);
+          setSemanaSeleccionada(0);
+          setMetricasTrafficker({
+            alcance: '',
+            clics: '',
+            leads: '',
+            costoSemanal: '',
+            costoLead: ''
+          });
+          setMetricasDueno({
+            conductoresRegistrados: '',
+            conductoresPrimerViaje: ''
+          });
+        }
+        
+        // Recargar datos actualizados
+        window.location.reload();
+      } else {
+        alert(`❌ ${resultado.mensaje}`);
+      }
+    } catch (error) {
+      alert(`❌ Error eliminando métricas: ${error}`);
+    } finally {
+      setEliminando(null);
     }
   };
 
@@ -232,9 +370,13 @@ export default function HistoricoSemanasCampana({
                             e.stopPropagation();
                             manejarEliminarSemana(opcion.valor);
                           }}
-                          className="text-red-500 hover:text-red-700 text-sm"
+                          disabled={eliminando === opcion.valor}
+                          className={`text-red-500 hover:text-red-700 text-sm transition-opacity ${
+                            eliminando === opcion.valor ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          title="Eliminar métricas de esta semana"
                         >
-                          🗑️
+                          {eliminando === opcion.valor ? '⏳' : '🗑️'}
                         </button>
                       </div>
                     )}
@@ -248,17 +390,53 @@ export default function HistoricoSemanasCampana({
           {mostrarFormulario && (
             <div className="border-t border-gray-200 pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Métricas - Semana {semanaSeleccionada}
-                </h3>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  semanaTieneDatos(semanaSeleccionada)
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {semanaTieneDatos(semanaSeleccionada) ? 'Editando' : 'Nueva'}
-                </span>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Métricas - Semana {semanaSeleccionada}
+                  </h3>
+                  {(() => {
+                    const año = getYear(new Date());
+                    const rango = obtenerRangoSemana(semanaSeleccionada, año);
+                    return (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {rango.rango}
+                      </p>
+                    );
+                  })()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    semanaTieneDatos(semanaSeleccionada)
+                      ? 'bg-orange-100 text-orange-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}>
+                    {semanaTieneDatos(semanaSeleccionada) ? '⚠️ Reemplazando' : '✨ Nueva'}
+                  </span>
+                  {semanaTieneDatos(semanaSeleccionada) && (
+                    <button
+                      onClick={() => manejarEliminarSemana(semanaSeleccionada)}
+                      disabled={eliminando === semanaSeleccionada}
+                      className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
+                        eliminando === semanaSeleccionada
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                      title="Eliminar métricas de esta semana"
+                    >
+                      {eliminando === semanaSeleccionada ? '⏳ Eliminando...' : '🗑️ Eliminar'}
+                    </button>
+                  )}
+                </div>
               </div>
+              
+              {semanaTieneDatos(semanaSeleccionada) && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-orange-800">
+                    <span className="font-semibold">⚠️ Advertencia:</span> Esta semana ya tiene métricas guardadas. 
+                    Al guardar, las métricas existentes serán reemplazadas.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Métricas Trafficker */}
@@ -351,18 +529,55 @@ export default function HistoricoSemanasCampana({
               {/* Botones */}
               <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                 <button
-                  onClick={() => setMostrarFormulario(false)}
-                  disabled={guardando}
+                  type="button"
+                  onClick={() => {
+                    setMostrarFormulario(false);
+                    setSemanaSeleccionada(0);
+                    setMetricasTrafficker({
+                      alcance: '',
+                      clics: '',
+                      leads: '',
+                      costoSemanal: '',
+                      costoLead: ''
+                    });
+                    setMetricasDueno({
+                      conductoresRegistrados: '',
+                      conductoresPrimerViaje: ''
+                    });
+                  }}
+                  disabled={guardando || eliminando === semanaSeleccionada}
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
+                {semanaTieneDatos(semanaSeleccionada) && (
+                  <button
+                    onClick={() => manejarEliminarSemana(semanaSeleccionada)}
+                    disabled={eliminando === semanaSeleccionada || guardando}
+                    className={`px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      eliminando === semanaSeleccionada || guardando
+                        ? 'bg-gray-300 text-gray-500'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                    title="Eliminar métricas de esta semana"
+                  >
+                    {eliminando === semanaSeleccionada ? '⏳ Eliminando...' : '🗑️ Eliminar'}
+                  </button>
+                )}
                 <button
-                  onClick={manejarGuardar}
-                  disabled={guardando}
-                  className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => manejarGuardar()}
+                  disabled={guardando || eliminando === semanaSeleccionada}
+                  className={`px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    semanaTieneDatos(semanaSeleccionada)
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
                 >
-                  {guardando ? 'Guardando...' : 'Guardar Métricas'}
+                  {guardando 
+                    ? '⏳ Guardando...' 
+                    : semanaTieneDatos(semanaSeleccionada)
+                    ? '⚠️ Reemplazar Métricas'
+                    : '✨ Guardar Métricas'}
                 </button>
               </div>
             </div>

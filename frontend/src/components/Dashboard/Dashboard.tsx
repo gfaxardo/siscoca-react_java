@@ -1,17 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cargarHistoricoReal } from '../../utils/cargarHistoricoReal';
 import { limpiarTodosLosDatos, limpiarCampanas, limpiarHistorico } from '../../utils/limpiarDatos';
+import { useMenuActions } from '../../store/useMenuActions';
+import { useAuth } from '../../contexts/AuthContext';
+import ConfirmacionCritica from './ConfirmacionCritica';
 
 type FiltroDashboard = 'todas' | 'activas' | 'archivadas' | 'pendientes';
 
 export default function Dashboard() {
   const { campanas, historico } = useCampanaStore();
+  const { user, login } = useAuth();
   const [filtroActivo, setFiltroActivo] = useState<FiltroDashboard>('todas');
   const [cargandoHistorico, setCargandoHistorico] = useState(false);
   const [limpiando, setLimpiando] = useState(false);
+  const { setAcciones } = useMenuActions();
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [accionCritica, setAccionCritica] = useState<(() => void) | null>(null);
+  const [descripcionCritica, setDescripcionCritica] = useState('');
+  const [tituloCritica, setTituloCritica] = useState('');
+  const [verificandoPassword, setVerificandoPassword] = useState(false);
+  
+  const esAdmin = user?.rol === 'Admin';
 
   // Función para obtener campañas según el filtro
   const obtenerCampanasFiltradas = () => {
@@ -110,87 +122,166 @@ export default function Dashboard() {
     }
   };
 
+  // Función para confirmar acciones críticas con contraseña (solo Admin)
+  const confirmarAccionCritica = async (password: string): Promise<void> => {
+    if (!user?.username) {
+      throw new Error('No se pudo obtener el usuario actual');
+    }
+    const resultado = await login(user.username, password);
+    if (!resultado.success) {
+      throw new Error('Contraseña incorrecta');
+    }
+  };
+
   const manejarLimpiarTodo = async () => {
-    const confirmar = window.confirm(
-      `⚠️ ¿ESTÁS SEGURO de que quieres eliminar TODOS los datos?\n\n` +
+    // Mostrar confirmación crítica
+    setTituloCritica('Limpiar Todo el Sistema');
+    setDescripcionCritica(
+      `¿Estás SEGURO de que quieres eliminar TODOS los datos?\n\n` +
       `Esto eliminará:\n` +
       `• Todas las campañas\n` +
       `• Todo el histórico\n` +
       `• Todos los datos guardados\n\n` +
-      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️\n\n` +
-      `¿Continuar con la eliminación total?`
+      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
     );
-
-    if (!confirmar) return;
-
-    setLimpiando(true);
-    try {
-      const resultado = limpiarTodosLosDatos();
-      if (resultado.exito) {
-        alert(`✅ ${resultado.mensaje}`);
-        // Recargar la página para mostrar el estado limpio
-        window.location.reload();
-      } else {
-        alert(`❌ ${resultado.mensaje}`);
+    setAccionCritica(async () => {
+      setLimpiando(true);
+      try {
+        const resultado = limpiarTodosLosDatos();
+        if (resultado.exito) {
+          alert(`✅ ${resultado.mensaje}`);
+          window.location.reload();
+        } else {
+          alert(`❌ ${resultado.mensaje}`);
+        }
+      } catch (error) {
+        alert(`❌ Error limpiando datos: ${error}`);
+      } finally {
+        setLimpiando(false);
       }
-    } catch (error) {
-      alert(`❌ Error limpiando datos: ${error}`);
-    } finally {
-      setLimpiando(false);
-    }
+    });
+    setMostrarConfirmacion(true);
   };
 
   const manejarLimpiarCampanas = async () => {
-    const confirmar = window.confirm(
-      `¿Eliminar todas las campañas?\n\n` +
+    setTituloCritica('Limpiar Campañas');
+    setDescripcionCritica(
+      `¿Estás SEGURO de que quieres eliminar todas las campañas?\n\n` +
       `Esto eliminará:\n` +
       `• Todas las campañas activas\n` +
       `• Todas las campañas pendientes\n` +
       `• Datos de métricas guardados\n\n` +
       `El histórico se mantendrá intacto.\n\n` +
-      `¿Continuar?`
+      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
     );
-
-    if (!confirmar) return;
-
-    try {
-      const resultado = limpiarCampanas();
-      if (resultado.exito) {
-        alert(`✅ ${resultado.mensaje}`);
-        window.location.reload();
-      } else {
-        alert(`❌ ${resultado.mensaje}`);
+    setAccionCritica(async () => {
+      try {
+        const resultado = limpiarCampanas();
+        if (resultado.exito) {
+          alert(`✅ ${resultado.mensaje}`);
+          window.location.reload();
+        } else {
+          alert(`❌ ${resultado.mensaje}`);
+        }
+      } catch (error) {
+        alert(`❌ Error limpiando campañas: ${error}`);
       }
-    } catch (error) {
-      alert(`❌ Error limpiando campañas: ${error}`);
-    }
+    });
+    setMostrarConfirmacion(true);
   };
 
   const manejarLimpiarHistorico = async () => {
-    const confirmar = window.confirm(
-      `¿Eliminar todo el histórico?\n\n` +
+    setTituloCritica('Limpiar Histórico');
+    setDescripcionCritica(
+      `¿Estás SEGURO de que quieres eliminar todo el histórico?\n\n` +
       `Esto eliminará:\n` +
       `• Todas las campañas archivadas\n` +
       `• Métricas históricas\n` +
       `• Datos de evolución semanal\n\n` +
       `Las campañas activas se mantendrán intactas.\n\n` +
-      `¿Continuar?`
+      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
     );
-
-    if (!confirmar) return;
-
-    try {
-      const resultado = limpiarHistorico();
-      if (resultado.exito) {
-        alert(`✅ ${resultado.mensaje}`);
-        window.location.reload();
-      } else {
-        alert(`❌ ${resultado.mensaje}`);
+    setAccionCritica(async () => {
+      try {
+        const resultado = limpiarHistorico();
+        if (resultado.exito) {
+          alert(`✅ ${resultado.mensaje}`);
+          window.location.reload();
+        } else {
+          alert(`❌ ${resultado.mensaje}`);
+        }
+      } catch (error) {
+        alert(`❌ Error limpiando histórico: ${error}`);
       }
-    } catch (error) {
-      alert(`❌ Error limpiando histórico: ${error}`);
-    }
+    });
+    setMostrarConfirmacion(true);
   };
+
+  // Configurar acciones del menú contextual
+  useEffect(() => {
+    const accionesBasicas = [
+      {
+        id: 'cargar-csv',
+        label: 'Cargar CSV Histórico',
+        icono: '📊',
+        onClick: manejarCargarHistorico,
+        color: 'Púrpura',
+        peligroso: false
+      }
+    ];
+
+    // Solo agregar acciones críticas si es Admin
+    const acciones = esAdmin ? [
+      ...accionesBasicas,
+      {
+        id: 'limpiar-todo',
+        label: 'Limpiar Todo',
+        icono: '🗑️',
+        onClick: manejarLimpiarTodo,
+        color: 'Rojo',
+        peligroso: true
+      },
+      {
+        id: 'limpiar-campanas',
+        label: 'Limpiar Campañas',
+        icono: '🎯',
+        onClick: manejarLimpiarCampanas,
+        color: 'Naranja',
+        peligroso: true
+      },
+      {
+        id: 'limpiar-historico',
+        label: 'Limpiar Histórico',
+        icono: '📊',
+        onClick: manejarLimpiarHistorico,
+        color: 'Gris',
+        peligroso: true
+      },
+      {
+        id: 'limpiar-storage',
+        label: 'Limpiar Storage',
+        icono: '🚨',
+        onClick: () => {
+          setTituloCritica('Limpiar Storage');
+          setDescripcionCritica(
+            `⚠️ ¿Limpiar completamente el localStorage?\n\n` +
+            `Esto eliminará TODOS los datos guardados en el navegador.\n\n` +
+            `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
+          );
+          setAccionCritica(async () => {
+            localStorage.clear();
+            alert('✅ localStorage limpiado. Recargando página...');
+            window.location.reload();
+          });
+          setMostrarConfirmacion(true);
+        },
+        color: 'Rojo Oscuro',
+        peligroso: true
+      }
+    ] : accionesBasicas;
+
+    setAcciones(acciones);
+  }, [setAcciones, esAdmin]);
 
   const tarjetas = [
     { titulo: 'Total Campañas', valor: estadisticas.total, icono: '🎯', color: 'bg-blue-500' },
@@ -211,93 +302,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-                <p className="text-gray-600 mt-1">Resumen general del sistema de campañas</p>
-              </div>
-
-              {/* Botones de acción */}
-              <div className="flex flex-wrap gap-2">
-                {/* Botón para cargar histórico automáticamente */}
-                <button
-                  onClick={manejarCargarHistorico}
-                  disabled={cargandoHistorico}
-                  className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
-                >
-                  {cargandoHistorico ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      <span>Cargando CSV...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>📊</span>
-                      <span>Cargar CSV Histórico</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Botón para limpiar todo */}
-                <button
-                  onClick={manejarLimpiarTodo}
-                  disabled={limpiando}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
-                  title="⚠️ Elimina TODOS los datos del sistema"
-                >
-                  {limpiando ? (
-                    <>
-                      <span className="animate-spin">⏳</span>
-                      <span>Limpiando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>🗑️</span>
-                      <span>Limpiar Todo</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Botón para limpiar solo campañas */}
-                <button
-                  onClick={manejarLimpiarCampanas}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
-                  title="Elimina solo las campañas (mantiene histórico)"
-                >
-                  <span>🎯</span>
-                  <span>Limpiar Campañas</span>
-                </button>
-
-                {/* Botón para limpiar solo histórico */}
-                <button
-                  onClick={manejarLimpiarHistorico}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
-                  title="Elimina solo el histórico (mantiene campañas)"
-                >
-                  <span>📊</span>
-                  <span>Limpiar Histórico</span>
-                </button>
-
-                {/* Botón de emergencia para limpiar localStorage */}
-                <button
-                  onClick={() => {
-                    if (confirm('⚠️ ¿Limpiar completamente el localStorage?\n\nEsto eliminará TODOS los datos guardados en el navegador.\n\n¿Continuar?')) {
-                      localStorage.clear();
-                      alert('✅ localStorage limpiado. Recargando página...');
-                      window.location.reload();
-                    }
-                  }}
-                  className="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
-                  title="⚠️ Limpia completamente el localStorage (solución de emergencia)"
-                >
-                  <span>🚨</span>
-                  <span>Limpiar Storage</span>
-                </button>
-              </div>
-            </div>
-        
         {/* Filtros */}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFiltroActivo('todas')}
             className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
@@ -496,6 +502,31 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de confirmación crítica */}
+      {mostrarConfirmacion && (
+        <ConfirmacionCritica
+          titulo={tituloCritica}
+          descripcion={descripcionCritica}
+          onConfirmar={async (password: string) => {
+            setVerificandoPassword(true);
+            try {
+              await confirmarAccionCritica(password);
+              if (accionCritica) {
+                await accionCritica();
+              }
+              setMostrarConfirmacion(false);
+            } catch (err) {
+              console.error('Error verificando contraseña:', err);
+              throw err;
+            } finally {
+              setVerificandoPassword(false);
+            }
+          }}
+          onCancelar={() => setMostrarConfirmacion(false)}
+          isLoading={verificandoPassword}
+        />
       )}
     </div>
   );

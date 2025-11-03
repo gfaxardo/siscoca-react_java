@@ -18,6 +18,12 @@ public class CampanaService {
     @Autowired
     private CampanaRepository campanaRepository;
     
+    @Autowired
+    private HistoricoService historicoService;
+    
+    @Autowired
+    private TareaService tareaService;
+    
     public List<CampanaDto> getAllCampanas() {
         return campanaRepository.findAll().stream()
                 .map(this::convertToDto)
@@ -35,20 +41,122 @@ public class CampanaService {
         campana.setEstado(EstadoCampana.PENDIENTE);
         campana.setFechaCreacion(LocalDateTime.now());
         campana.setFechaActualizacion(LocalDateTime.now());
-        campana.setSemanaISO(getCurrentWeekISO());
+        // Las campañas se crean con la semana anterior (semana actual - 1)
+        campana.setSemanaISO(getPreviousWeekISO());
         
         Campana savedCampana = campanaRepository.save(campana);
+        
+        // Generar tarea pendiente para la nueva campaña
+        try {
+            tareaService.generarTareasPendientes();
+        } catch (Exception e) {
+            // Si falla la generación de tareas, no fallar la creación de la campaña
+            System.err.println("Error generando tareas para nueva campaña: " + e.getMessage());
+        }
+        
         return convertToDto(savedCampana);
     }
     
     public CampanaDto updateCampana(Long id, CampanaDto campanaDto) {
         return campanaRepository.findById(id)
                 .map(existingCampana -> {
+                    // Detectar si se están actualizando métricas (trafficker o dueño)
+                    // Nota: verificar explícitamente si los campos están presentes (incluyendo 0)
+                    boolean actualizandoMetricasTrafficker = campanaDto.getAlcance() != null || 
+                                                           campanaDto.getClics() != null || 
+                                                           campanaDto.getLeads() != null || 
+                                                           campanaDto.getCostoSemanal() != null ||
+                                                           campanaDto.getUrlInforme() != null;
+                    
+                    // Para métricas del dueño, verificar si los campos están presentes en el DTO
+                    // Necesitamos verificar si las propiedades Long están presentes (no null)
+                    // pero también permitir 0 como valor válido
+                    boolean actualizandoMetricasDueno = campanaDto.getConductoresRegistrados() != null || 
+                                                       campanaDto.getConductoresPrimerViaje() != null;
+                    
                     updateCampanaFromDto(existingCampana, campanaDto);
                     existingCampana.setFechaActualizacion(LocalDateTime.now());
-                    return convertToDto(campanaRepository.save(existingCampana));
+                    Campana campanaGuardada = campanaRepository.save(existingCampana);
+                    
+                    // Si se actualizaron métricas, guardar automáticamente en histórico semanal de la semana anterior
+                    if (actualizandoMetricasTrafficker || actualizandoMetricasDueno) {
+                        guardarMetricasEnHistoricoSemanal(campanaGuardada, actualizandoMetricasTrafficker, actualizandoMetricasDueno);
+                    }
+                    
+                    // Actualizar tareas pendientes
+                    try {
+                        tareaService.verificarTareasActivas(campanaGuardada);
+                    } catch (Exception e) {
+                        System.err.println("Error actualizando tareas: " + e.getMessage());
+                    }
+                    
+                    return convertToDto(campanaGuardada);
                 })
                 .orElse(null);
+    }
+    
+    /**
+     * Guarda las métricas de la campaña en el histórico semanal de la semana anterior
+     */
+    private void guardarMetricasEnHistoricoSemanal(Campana campana, boolean actualizandoTrafficker, boolean actualizandoDueno) {
+        try {
+            int semanaAnterior = getPreviousWeekISO();
+            
+            // Verificar si ya existe un registro histórico para esta campaña y semana anterior
+            List<HistoricoSemanal> historicosExistentes = historicoService.obtenerHistoricoPorCampana(campana.getId());
+            HistoricoSemanal historicoExistente = historicosExistentes.stream()
+                .filter(h -> h.getSemanaISO().equals(semanaAnterior))
+                .findFirst()
+                .orElse(null);
+            
+            HistoricoSemanal historico;
+            
+            if (historicoExistente != null) {
+                // Actualizar registro existente
+                historico = historicoExistente;
+            } else {
+                // Crear nuevo registro
+                historico = new HistoricoSemanal();
+                historico.setCampana(campana);
+                historico.setSemanaISO(semanaAnterior);
+                historico.setFechaSemana(LocalDateTime.now());
+            }
+            
+            // Actualizar métricas según lo que se esté actualizando
+            if (actualizandoTrafficker) {
+                if (campana.getAlcance() != null) historico.setAlcance(campana.getAlcance());
+                if (campana.getClics() != null) historico.setClics(campana.getClics());
+                if (campana.getLeads() != null) historico.setLeads(campana.getLeads());
+                if (campana.getCostoSemanal() != null) historico.setCostoSemanal(campana.getCostoSemanal());
+                if (campana.getCostoLead() != null) historico.setCostoLead(campana.getCostoLead());
+            }
+            
+            if (actualizandoDueno) {
+                if (campana.getConductoresRegistrados() != null) historico.setConductoresRegistrados(campana.getConductoresRegistrados());
+                if (campana.getConductoresPrimerViaje() != null) historico.setConductoresPrimerViaje(campana.getConductoresPrimerViaje());
+                
+                // Calcular costos por conductor
+                if (campana.getCostoSemanal() != null) {
+                    if (historico.getConductoresRegistrados() != null && historico.getConductoresRegistrados() > 0) {
+                        historico.setCostoConductorRegistrado(campana.getCostoSemanal() / historico.getConductoresRegistrados());
+                    }
+                    if (historico.getConductoresPrimerViaje() != null && historico.getConductoresPrimerViaje() > 0) {
+                        historico.setCostoConductorPrimerViaje(campana.getCostoSemanal() / historico.getConductoresPrimerViaje());
+                    }
+                }
+            }
+            
+            // Guardar o actualizar
+            if (historicoExistente != null) {
+                historicoService.actualizarRegistroHistorico(historicoExistente.getId(), historico);
+            } else {
+                historicoService.crearRegistroHistorico(historico);
+            }
+        } catch (Exception e) {
+            // Log del error pero no fallar la actualización de la campaña
+            System.err.println("Error guardando métricas en histórico semanal: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     public boolean deleteCampana(Long id) {
@@ -57,6 +165,133 @@ public class CampanaService {
             return true;
         }
         return false;
+    }
+    
+    /**
+     * Archiva una campaña: guarda las métricas en el histórico semanal y cambia el estado a ARCHIVADA
+     * @param id ID de la campaña a archivar
+     * @return CampanaDto con el estado actualizado, o null si no se encontró la campaña
+     */
+    public CampanaDto archivarCampana(Long id) {
+        return campanaRepository.findById(id)
+                .map(campana -> {
+                    // Refrescar la campaña desde la BD para asegurar datos actualizados
+                    campana = campanaRepository.findById(id).orElse(campana);
+                    
+                    // Log para depuración - mostrar valores actuales de las métricas
+                    System.out.println("DEBUG - Archivando campaña ID: " + id);
+                    System.out.println("DEBUG - Alcance: " + campana.getAlcance());
+                    System.out.println("DEBUG - Clics: " + campana.getClics());
+                    System.out.println("DEBUG - Leads: " + campana.getLeads());
+                    System.out.println("DEBUG - Costo Semanal: " + campana.getCostoSemanal());
+                    System.out.println("DEBUG - Conductores Registrados: " + campana.getConductoresRegistrados());
+                    System.out.println("DEBUG - Conductores Primer Viaje: " + campana.getConductoresPrimerViaje());
+                    
+                    // Validación más flexible: permitir archivar incluso sin métricas completas
+                    // Solo validar que no haya valores negativos (que serían inválidos)
+                    boolean tieneValoresInvalidos = false;
+                    StringBuilder valoresInvalidos = new StringBuilder();
+                    
+                    if (campana.getCostoSemanal() != null && campana.getCostoSemanal() < 0) {
+                        valoresInvalidos.append("- Costo Semanal (negativo)\n");
+                        tieneValoresInvalidos = true;
+                    }
+                    if (campana.getConductoresRegistrados() != null && campana.getConductoresRegistrados() < 0) {
+                        valoresInvalidos.append("- Conductores Registrados (negativo)\n");
+                        tieneValoresInvalidos = true;
+                    }
+                    if (campana.getConductoresPrimerViaje() != null && campana.getConductoresPrimerViaje() < 0) {
+                        valoresInvalidos.append("- Conductores Primer Viaje (negativo)\n");
+                        tieneValoresInvalidos = true;
+                    }
+                    
+                    // Solo bloquear si hay valores negativos (inválidos)
+                    if (tieneValoresInvalidos) {
+                        String mensaje = "No se puede archivar: La campaña tiene valores inválidos (negativos).\n\nValores inválidos:\n" + valoresInvalidos.toString();
+                        throw new IllegalArgumentException(mensaje);
+                    }
+                    
+                    // Advertencia (pero no bloqueo) si faltan métricas importantes
+                    boolean faltanMetricas = (campana.getAlcance() == null || campana.getClics() == null || 
+                                             campana.getLeads() == null || campana.getCostoSemanal() == null ||
+                                             campana.getConductoresRegistrados() == null || 
+                                             campana.getConductoresPrimerViaje() == null);
+                    if (faltanMetricas) {
+                        System.out.println("ADVERTENCIA - La campaña se está archivando sin métricas completas");
+                    }
+                    
+                    // Guardar en histórico semanal de la semana anterior
+                    int semanaAnterior = getPreviousWeekISO();
+                    
+                    // Verificar si ya existe un registro histórico para esta campaña y semana anterior
+                    List<HistoricoSemanal> historicosExistentes = historicoService.obtenerHistoricoPorCampana(campana.getId());
+                    HistoricoSemanal historicoExistente = historicosExistentes.stream()
+                        .filter(h -> h.getSemanaISO().equals(semanaAnterior))
+                        .findFirst()
+                        .orElse(null);
+                    
+                    HistoricoSemanal historico;
+                    
+                    if (historicoExistente != null) {
+                        // Actualizar registro existente
+                        historico = historicoExistente;
+                    } else {
+                        // Crear nuevo registro
+                        historico = new HistoricoSemanal();
+                        historico.setCampana(campana);
+                        historico.setSemanaISO(semanaAnterior);
+                        historico.setFechaSemana(LocalDateTime.now());
+                    }
+                    
+                    // Actualizar todas las métricas (solo si no son null)
+                    if (campana.getAlcance() != null) historico.setAlcance(campana.getAlcance());
+                    if (campana.getClics() != null) historico.setClics(campana.getClics());
+                    if (campana.getLeads() != null) historico.setLeads(campana.getLeads());
+                    if (campana.getCostoSemanal() != null) historico.setCostoSemanal(campana.getCostoSemanal());
+                    if (campana.getCostoLead() != null) historico.setCostoLead(campana.getCostoLead());
+                    if (campana.getConductoresRegistrados() != null) historico.setConductoresRegistrados(campana.getConductoresRegistrados());
+                    if (campana.getConductoresPrimerViaje() != null) historico.setConductoresPrimerViaje(campana.getConductoresPrimerViaje());
+                    if (campana.getCostoConductorRegistrado() != null) historico.setCostoConductorRegistrado(campana.getCostoConductorRegistrado());
+                    if (campana.getCostoConductorPrimerViaje() != null) historico.setCostoConductorPrimerViaje(campana.getCostoConductorPrimerViaje());
+                    
+                    // Guardar o actualizar el histórico
+                    if (historicoExistente != null) {
+                        historicoService.actualizarRegistroHistorico(historicoExistente.getId(), historico);
+                    } else {
+                        historicoService.crearRegistroHistorico(historico);
+                    }
+                    
+                    // Cambiar estado a ARCHIVADA
+                    campana.setEstado(EstadoCampana.ARCHIVADA);
+                    campana.setFechaActualizacion(LocalDateTime.now());
+                    Campana campanaGuardada = campanaRepository.save(campana);
+                    
+                    return convertToDto(campanaGuardada);
+                })
+                .orElse(null);
+    }
+    
+    /**
+     * Reactiva una campaña archivada: cambia el estado a ACTIVA
+     * @param id ID de la campaña a reactivar
+     * @return Campaña reactivada o null si no se encuentra
+     */
+    public CampanaDto reactivarCampana(Long id) {
+        return campanaRepository.findById(id)
+                .map(campana -> {
+                    // Solo permitir reactivar campañas archivadas
+                    if (campana.getEstado() != EstadoCampana.ARCHIVADA) {
+                        throw new IllegalArgumentException("Solo se pueden reactivar campañas archivadas. Estado actual: " + campana.getEstado().getDisplayName());
+                    }
+                    
+                    // Cambiar estado a ACTIVA
+                    campana.setEstado(EstadoCampana.ACTIVA);
+                    campana.setFechaActualizacion(LocalDateTime.now());
+                    Campana campanaGuardada = campanaRepository.save(campana);
+                    
+                    return convertToDto(campanaGuardada);
+                })
+                .orElse(null);
     }
     
     public List<CampanaDto> getCampanasByEstado(String estado) {
@@ -91,9 +326,14 @@ public class CampanaService {
         dto.setObjetivo(campana.getObjetivo());
         dto.setBeneficio(campana.getBeneficio());
         dto.setDescripcion(campana.getDescripcion());
+        // Campos de aterrizaje removidos del modelo - dejar null en DTO para compatibilidad con frontend
+        dto.setTipoAterrizaje(null);
+        dto.setUrlAterrizaje(null);
+        dto.setNombrePlataforma(null);
         dto.setEstado(campana.getEstado().getDisplayName());
         dto.setArchivoCreativo(campana.getArchivoCreativo());
         dto.setNombreArchivoCreativo(campana.getNombreArchivoCreativo());
+        dto.setUrlCreativoExterno(campana.getUrlCreativoExterno());
         dto.setUrlInforme(campana.getUrlInforme());
         dto.setAlcance(campana.getAlcance());
         dto.setClics(campana.getClics());
@@ -104,6 +344,12 @@ public class CampanaService {
         dto.setConductoresPrimerViaje(campana.getConductoresPrimerViaje());
         dto.setCostoConductorRegistrado(campana.getCostoConductorRegistrado());
         dto.setCostoConductorPrimerViaje(campana.getCostoConductorPrimerViaje());
+        // Calcular costoConductor dinámicamente (no está almacenado en el modelo)
+        if (campana.getCostoSemanal() != null && campana.getConductoresPrimerViaje() != null && campana.getConductoresPrimerViaje() > 0) {
+            dto.setCostoConductor(campana.getCostoSemanal() / campana.getConductoresPrimerViaje());
+        } else {
+            dto.setCostoConductor(null);
+        }
         dto.setFechaCreacion(campana.getFechaCreacion());
         dto.setFechaActualizacion(campana.getFechaActualizacion());
         dto.setSemanaISO(campana.getSemanaISO());
@@ -132,6 +378,10 @@ public class CampanaService {
         if (dto.getSegmento() == null || dto.getSegmento().trim().isEmpty()) {
             throw new IllegalArgumentException("El segmento es obligatorio");
         }
+        // Validación opcional: tipo de aterrizaje puede ser null si la columna no existe aún en la BD
+        // if (dto.getTipoAterrizaje() == null || dto.getTipoAterrizaje().trim().isEmpty()) {
+        //     throw new IllegalArgumentException("El tipo de aterrizaje es obligatorio");
+        // }
         
         campana.setPais(Pais.fromDisplayName(dto.getPais()));
         campana.setVertical(Vertical.fromDisplayName(dto.getVertical()));
@@ -144,8 +394,11 @@ public class CampanaService {
         campana.setObjetivo(dto.getObjetivo());
         campana.setBeneficio(dto.getBeneficio());
         campana.setDescripcion(dto.getDescripcion());
+        // Campos de aterrizaje removidos del modelo - ignorar en conversión
+        // tipoAterrizaje, urlAterrizaje, nombrePlataforma ya no existen en el modelo
         campana.setArchivoCreativo(dto.getArchivoCreativo());
         campana.setNombreArchivoCreativo(dto.getNombreArchivoCreativo());
+        campana.setUrlCreativoExterno(dto.getUrlCreativoExterno());
         campana.setUrlInforme(dto.getUrlInforme());
         campana.setAlcance(dto.getAlcance());
         campana.setClics(dto.getClics());
@@ -156,6 +409,14 @@ public class CampanaService {
         campana.setConductoresPrimerViaje(dto.getConductoresPrimerViaje());
         campana.setCostoConductorRegistrado(dto.getCostoConductorRegistrado());
         campana.setCostoConductorPrimerViaje(dto.getCostoConductorPrimerViaje());
+        
+        // Calcular costo por lead automáticamente si se proporcionan costoSemanal y leads
+        if (dto.getCostoSemanal() != null && dto.getLeads() != null && dto.getLeads() > 0) {
+            campana.setCostoLead(dto.getCostoSemanal() / dto.getLeads());
+        }
+        
+        // costoConductor ya no está almacenado en el modelo - se calcula dinámicamente
+        
         return campana;
     }
     
@@ -172,23 +433,62 @@ public class CampanaService {
         if (dto.getObjetivo() != null) campana.setObjetivo(dto.getObjetivo());
         if (dto.getBeneficio() != null) campana.setBeneficio(dto.getBeneficio());
         if (dto.getDescripcion() != null) campana.setDescripcion(dto.getDescripcion());
-        if (dto.getEstado() != null) campana.setEstado(EstadoCampana.valueOf(dto.getEstado().toUpperCase()));
+        // Campos de aterrizaje removidos del modelo - ignorar en actualización
+        // tipoAterrizaje, urlAterrizaje, nombrePlataforma ya no existen en el modelo
+        if (dto.getEstado() != null) campana.setEstado(EstadoCampana.fromString(dto.getEstado()));
         if (dto.getArchivoCreativo() != null) campana.setArchivoCreativo(dto.getArchivoCreativo());
         if (dto.getNombreArchivoCreativo() != null) campana.setNombreArchivoCreativo(dto.getNombreArchivoCreativo());
+        if (dto.getUrlCreativoExterno() != null) campana.setUrlCreativoExterno(dto.getUrlCreativoExterno());
         if (dto.getUrlInforme() != null) campana.setUrlInforme(dto.getUrlInforme());
         if (dto.getAlcance() != null) campana.setAlcance(dto.getAlcance());
         if (dto.getClics() != null) campana.setClics(dto.getClics());
         if (dto.getLeads() != null) campana.setLeads(dto.getLeads());
         if (dto.getCostoSemanal() != null) campana.setCostoSemanal(dto.getCostoSemanal());
         if (dto.getCostoLead() != null) campana.setCostoLead(dto.getCostoLead());
-        if (dto.getConductoresRegistrados() != null) campana.setConductoresRegistrados(dto.getConductoresRegistrados());
-        if (dto.getConductoresPrimerViaje() != null) campana.setConductoresPrimerViaje(dto.getConductoresPrimerViaje());
+        // Para métricas del dueño, permitir valores 0 como válidos
+        // Verificar si el campo está presente en el DTO (no null)
+        if (dto.getConductoresRegistrados() != null) {
+            campana.setConductoresRegistrados(dto.getConductoresRegistrados());
+        }
+        if (dto.getConductoresPrimerViaje() != null) {
+            campana.setConductoresPrimerViaje(dto.getConductoresPrimerViaje());
+        }
         if (dto.getCostoConductorRegistrado() != null) campana.setCostoConductorRegistrado(dto.getCostoConductorRegistrado());
         if (dto.getCostoConductorPrimerViaje() != null) campana.setCostoConductorPrimerViaje(dto.getCostoConductorPrimerViaje());
+        
+        // Recalcular costo por lead automáticamente si cambian costoSemanal o leads
+        if ((dto.getCostoSemanal() != null || dto.getLeads() != null) && 
+            campana.getCostoSemanal() != null && campana.getLeads() != null && 
+            campana.getLeads() > 0) {
+            campana.setCostoLead(campana.getCostoSemanal() / campana.getLeads());
+        }
+        
+        // costoConductor ya no está almacenado en el modelo - se calcula dinámicamente en convertToDto
     }
     
     private int getCurrentWeekISO() {
-        WeekFields weekFields = WeekFields.of(Locale.getDefault());
-        return LocalDateTime.now().get(weekFields.weekOfWeekBasedYear());
+        WeekFields weekFields = WeekFields.ISO;
+        LocalDateTime ahora = LocalDateTime.now();
+        return ahora.get(weekFields.weekOfWeekBasedYear());
+    }
+    
+    /**
+     * Obtiene la semana ISO anterior (semana actual - 1)
+     * Si estamos en la semana 1, retorna la última semana del año anterior
+     */
+    public int getPreviousWeekISO() {
+        WeekFields weekFields = WeekFields.ISO;
+        LocalDateTime ahora = LocalDateTime.now();
+        int semanaActual = ahora.get(weekFields.weekOfWeekBasedYear());
+        int añoActual = ahora.getYear();
+        
+        // Si estamos en la semana 1, retornar la última semana del año anterior
+        if (semanaActual == 1) {
+            // Calcular cuántas semanas tiene el año anterior
+            LocalDateTime ultimoDiaAñoAnterior = LocalDateTime.of(añoActual - 1, 12, 31, 23, 59);
+            return ultimoDiaAñoAnterior.get(weekFields.weekOfWeekBasedYear());
+        }
+        
+        return semanaActual - 1;
     }
 }

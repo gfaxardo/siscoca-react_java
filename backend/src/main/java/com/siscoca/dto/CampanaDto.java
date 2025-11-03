@@ -19,9 +19,13 @@ public class CampanaDto {
     private String objetivo;
     private String beneficio;
     private String descripcion;
+    private String tipoAterrizaje;
+    private String urlAterrizaje;
+    private String nombrePlataforma;
     private String estado;
     private String archivoCreativo;
     private String nombreArchivoCreativo;
+    private String urlCreativoExterno;
     private String urlInforme;
     
     // Métricas del Trafficker
@@ -36,6 +40,7 @@ public class CampanaDto {
     private Long conductoresPrimerViaje;
     private Double costoConductorRegistrado; // en USD
     private Double costoConductorPrimerViaje; // en USD
+    private Double costoConductor; // en USD - Costo por conductor
     
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
@@ -149,6 +154,30 @@ public class CampanaDto {
         this.descripcion = descripcion;
     }
     
+    public String getTipoAterrizaje() {
+        return tipoAterrizaje;
+    }
+    
+    public void setTipoAterrizaje(String tipoAterrizaje) {
+        this.tipoAterrizaje = tipoAterrizaje;
+    }
+    
+    public String getUrlAterrizaje() {
+        return urlAterrizaje;
+    }
+    
+    public void setUrlAterrizaje(String urlAterrizaje) {
+        this.urlAterrizaje = urlAterrizaje;
+    }
+    
+    public String getNombrePlataforma() {
+        return nombrePlataforma;
+    }
+    
+    public void setNombrePlataforma(String nombrePlataforma) {
+        this.nombrePlataforma = nombrePlataforma;
+    }
+    
     public String getEstado() {
         return estado;
     }
@@ -171,6 +200,14 @@ public class CampanaDto {
     
     public void setNombreArchivoCreativo(String nombreArchivoCreativo) {
         this.nombreArchivoCreativo = nombreArchivoCreativo;
+    }
+    
+    public String getUrlCreativoExterno() {
+        return urlCreativoExterno;
+    }
+    
+    public void setUrlCreativoExterno(String urlCreativoExterno) {
+        this.urlCreativoExterno = urlCreativoExterno;
     }
     
     public String getUrlInforme() {
@@ -251,6 +288,14 @@ public class CampanaDto {
     
     public void setCostoConductorPrimerViaje(Double costoConductorPrimerViaje) {
         this.costoConductorPrimerViaje = costoConductorPrimerViaje;
+    }
+    
+    public Double getCostoConductor() {
+        return costoConductor;
+    }
+    
+    public void setCostoConductor(Double costoConductor) {
+        this.costoConductor = costoConductor;
     }
     
     public LocalDateTime getFechaCreacion() {

@@ -10,11 +10,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/historico")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"})
 public class HistoricoController {
     
     @Autowired
     private HistoricoService historicoService;
+    
+    @GetMapping
+    public ResponseEntity<List<HistoricoSemanal>> obtenerTodoElHistorico() {
+        List<HistoricoSemanal> historico = historicoService.obtenerTodoElHistorico();
+        return ResponseEntity.ok(historico);
+    }
     
     @GetMapping("/campana/{campanaId}")
     public ResponseEntity<List<HistoricoSemanal>> obtenerHistoricoPorCampana(@PathVariable Long campanaId) {
@@ -37,6 +43,16 @@ public class HistoricoController {
     @PutMapping("/{id}")
     public ResponseEntity<HistoricoSemanal> actualizarRegistroHistorico(@PathVariable Long id, @RequestBody HistoricoSemanal historico) {
         HistoricoSemanal actualizado = historicoService.actualizarRegistroHistorico(id, historico);
+        if (actualizado != null) {
+            return ResponseEntity.ok(actualizado);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @PatchMapping("/{id}/semana-iso")
+    public ResponseEntity<HistoricoSemanal> actualizarSemanaISO(@PathVariable Long id, @RequestParam Integer nuevaSemanaISO) {
+        HistoricoSemanal actualizado = historicoService.actualizarSemanaISO(id, nuevaSemanaISO);
         if (actualizado != null) {
             return ResponseEntity.ok(actualizado);
         } else {

@@ -1,11 +1,13 @@
 // Servicio de autenticación con backend local que valida con Yego
-const API_BASE_URL = 'http://localhost:8080/api';
+// El backend tiene context-path: /api, por lo que no necesitamos agregar /api aquí
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
 export interface Usuario {
   id: string;
   username: string;
   nombre: string;
-  rol: 'Admin' | 'Trafficker' | 'Dueño';
+  iniciales?: string;
+  rol: 'Admin' | 'Trafficker' | 'Dueño' | 'Marketing';
   token: string;
   expiracion: Date;
 }
@@ -73,6 +75,7 @@ class AuthService {
           id: data.user.id || '1',
           username: data.user.username,
           nombre: data.user.nombre || data.user.username,
+          iniciales: data.user.iniciales,
           rol: data.user.rol || 'Trafficker',
           token: data.accessToken || data.token,
           expiracion: new Date(Date.now() + 3600000) // 1 hora
@@ -81,9 +84,20 @@ class AuthService {
         // Guardar en localStorage
         this.saveUser(usuario);
 
+        // Verificar que se guardó correctamente
+        const userVerificado = this.getUser();
+        const tokenVerificado = this.getToken();
+        
         console.log('=== LOGIN EXITOSO ===');
         console.log('Usuario creado:', usuario);
-        console.log('Token guardado:', usuario.token);
+        console.log('Token recibido del backend:', data.accessToken || data.token);
+        console.log('Token guardado en usuario:', usuario.token);
+        console.log('Usuario recuperado después de guardar:', userVerificado);
+        console.log('Token recuperado después de guardar:', tokenVerificado);
+        console.log('Verificación localStorage:');
+        console.log('  - siscoca_user:', localStorage.getItem('siscoca_user'));
+        console.log('  - token:', localStorage.getItem('token'));
+        console.log('  - siscoca_token:', localStorage.getItem('siscoca_token'));
         console.log('========================');
 
         return {
@@ -107,6 +121,52 @@ class AuthService {
 
   async logout(): Promise<void> {
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem('token');
+    localStorage.removeItem('siscoca_token');
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        return {
+          success: false,
+          message: 'No hay sesión activa'
+        };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return {
+          success: false,
+          message: data.message || 'Error al cambiar la contraseña'
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message || 'Contraseña cambiada exitosamente'
+      };
+    } catch (error) {
+      console.error('Error en changePassword:', error);
+      return {
+        success: false,
+        message: 'Error de conexión con el servidor'
+      };
+    }
   }
 
   getUser(): Usuario | null {
@@ -142,9 +202,47 @@ class AuthService {
 
   private saveUser(user: Usuario): void {
     try {
+      // Guardar el usuario completo en la clave principal
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+      
+      // También guardar el token por separado como respaldo
+      if (user.token) {
+        localStorage.setItem('token', user.token);
+        localStorage.setItem('siscoca_token', user.token);
+      }
+      
+      console.log('✅ Usuario guardado en localStorage:', {
+        key: this.USER_KEY,
+        hasToken: !!user.token,
+        tokenLength: user.token?.length || 0
+      });
     } catch (error) {
       console.error('Error al guardar usuario en localStorage:', error);
+      
+      // Si hay error de cuota, intentar limpiar y guardar solo lo esencial
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.warn('⚠️ localStorage lleno, limpiando datos antiguos...');
+        try {
+          // Limpiar datos no esenciales
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && !key.includes('siscoca') && !key.includes('token')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          
+          // Intentar guardar de nuevo
+          localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+          if (user.token) {
+            localStorage.setItem('token', user.token);
+            localStorage.setItem('siscoca_token', user.token);
+          }
+        } catch (retryError) {
+          console.error('Error en reintento de guardado:', retryError);
+        }
+      }
     }
   }
 }

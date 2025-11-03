@@ -3,18 +3,84 @@ import { useCampanaStore } from '../../store/useCampanaStore';
 import { HistoricoSemanal } from '../../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import ListaCampanasArchivadas from '../Campanas/ListaCampanasArchivadas';
 
 interface VistaHistoricoProps {
   onCerrar: () => void;
 }
 
 export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
-  const { historico } = useCampanaStore();
+  const { historico, obtenerHistorico } = useCampanaStore();
   const [historicoFiltrado, setHistoricoFiltrado] = useState<HistoricoSemanal[]>([]);
   const [semanaFiltro, setSemanaFiltro] = useState<string>('');
   const [busqueda, setBusqueda] = useState<string>('');
+  const [vistaActiva, setVistaActiva] = useState<'lista' | 'tarjetas'>('tarjetas');
+
+  // Recargar histórico cuando se abre la vista
+  useEffect(() => {
+    console.log('VistaHistorico: Recargando histórico...');
+    obtenerHistorico().then(() => {
+      console.log('VistaHistorico: Histórico recargado');
+    }).catch((err) => {
+      console.error('VistaHistorico: Error recargando histórico:', err);
+    });
+  }, []);
+
+  // Si la vista es tarjetas, mostrar ListaCampanasArchivadas
+  if (vistaActiva === 'tarjetas') {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-hidden">
+        <div className="bg-white w-full h-full overflow-hidden flex flex-col">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-xl font-bold text-gray-900">Histórico - Campañas Archivadas</h2>
+              <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                <button
+                  onClick={() => setVistaActiva('tarjetas')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    vistaActiva === 'tarjetas'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  📋 Vista Tarjetas
+                </button>
+                <button
+                  onClick={() => setVistaActiva('lista')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    vistaActiva === 'lista'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  📊 Vista Lista
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={onCerrar}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto bg-gray-50">
+            <div className="p-4 lg:p-6">
+              <ListaCampanasArchivadas />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Agrupar por semana
+  useEffect(() => {
+    console.log('VistaHistorico: Histórico actualizado, cantidad:', historico.length);
+  }, [historico]);
+
   const historicoPorSemana = historico.reduce((acc, item) => {
     const semana = item.semanaISO;
     if (!acc[semana]) {
@@ -114,7 +180,31 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
       <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">📊 Histórico Semanal</h2>
+            <div className="flex items-center space-x-4">
+              <h2 className="text-2xl font-bold text-gray-900">📊 Histórico Semanal</h2>
+              <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                <button
+                  onClick={() => setVistaActiva('tarjetas')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    vistaActiva === 'tarjetas'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  📋 Vista Tarjetas
+                </button>
+                <button
+                  onClick={() => setVistaActiva('lista')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    vistaActiva === 'lista'
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  📊 Vista Lista
+                </button>
+              </div>
+            </div>
             <p className="text-sm text-gray-600 mt-1">
               {historicoFiltrado.length} registro{historicoFiltrado.length !== 1 ? 's' : ''} archivado{historicoFiltrado.length !== 1 ? 's' : ''}
             </p>
@@ -176,9 +266,18 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 No hay registros históricos
               </h3>
-              <p className="text-gray-500">
+              <p className="text-gray-500 mb-4">
                 Las campañas archivadas aparecerán aquí
               </p>
+              <p className="text-sm text-gray-400">
+                Total en store: {historico.length} | Filtrados: {historicoFiltrado.length}
+              </p>
+              <button
+                onClick={() => obtenerHistorico()}
+                className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              >
+                🔄 Recargar Histórico
+              </button>
             </div>
           ) : (
             <div className="space-y-4">
