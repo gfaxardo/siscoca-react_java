@@ -134,10 +134,11 @@ export default function Login() {
             <button
               type="button"
               onClick={() => {
+                const API_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
                 console.log('=== DEBUG LOGIN DETALLADO ===');
                 console.log('Usuario:', username);
                 console.log('Password:', password);
-                console.log('API URL: https://api-int.yego.pro/api/auth/login');
+                console.log('API URL:', `${API_URL}/auth/login`);
                 
                 // Probar la API directamente con JSON simple
                 const jsonString = `{"username":"${username}","password":"${password}"}`;
@@ -145,7 +146,7 @@ export default function Login() {
                 console.log('JSON simple enviado:', jsonString);
                 console.log('Solo username y password:', { username, password });
                 
-                fetch('https://api-int.yego.pro/api/auth/login', {
+                fetch(`${API_URL}/auth/login`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -184,7 +185,7 @@ export default function Login() {
               }}
               className="mt-2 text-xs text-gray-400 hover:text-gray-600 underline"
             >
-              🔍 Debug Completo API Yego
+              🔍 Debug Completo API
             </button>
           </div>
         </form>

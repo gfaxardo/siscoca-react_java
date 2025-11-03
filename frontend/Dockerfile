@@ -8,9 +8,10 @@ RUN npm ci --only=production
 COPY . .
 # Copiar y renombrar el archivo de variables de entorno de producción
 COPY env.production .env.production
-# Asegurar que Vite use el modo producción
+# Asegurar que Vite use el modo producción y sobrescribir cualquier variable de entorno anterior
 ENV NODE_ENV=production
-RUN npm run build
+ENV VITE_API_URL=https://apisiscoca.yego.pro/api
+RUN npm run build -- --mode production
 
 FROM nginx:alpine
 
