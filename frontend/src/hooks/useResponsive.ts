@@ -52,7 +52,7 @@ export function useResponsive(): Breakpoints {
 
 // Hook para obtener clases CSS responsivas
 export function useResponsiveClasses() {
-  const { isMobile, isTablet, isDesktop, isSmallMobile } = useResponsive();
+  const { isMobile, isSmallMobile } = useResponsive();
 
   return {
     // Padding responsivo

@@ -61,8 +61,7 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
         }
       ]);
     } catch (err) {
-      setError('Error cargando métricas ideales');
-      console.error('Error:', err);
+      console.error('Error cargando métricas ideales:', err);
     } finally {
       setCargando(false);
     }
@@ -114,8 +113,7 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
       console.log('Guardando métricas ideales:', metricasIdeales);
       onCerrar();
     } catch (err) {
-      setError('Error guardando métricas ideales');
-      console.error('Error:', err);
+      console.error('Error guardando métricas ideales:', err);
     } finally {
       setCargando(false);
     }

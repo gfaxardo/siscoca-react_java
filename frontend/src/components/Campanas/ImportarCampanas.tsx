@@ -19,6 +19,7 @@ interface CampanaImportada {
   objetivo: string;
   beneficio: string;
   descripcion: string;
+  tipoAterrizaje?: string;
   estado: string;
   fechaCreacion: string;
   alcance?: number;

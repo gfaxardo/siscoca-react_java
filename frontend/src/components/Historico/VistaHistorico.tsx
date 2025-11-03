@@ -37,21 +37,13 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
               <div className="flex rounded-lg border border-gray-300 overflow-hidden">
                 <button
                   onClick={() => setVistaActiva('tarjetas')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    vistaActiva === 'tarjetas'
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-primary-600 text-white"
                 >
                   📋 Vista Tarjetas
                 </button>
                 <button
                   onClick={() => setVistaActiva('lista')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    vistaActiva === 'lista'
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50"
                 >
                   📊 Vista Lista
                 </button>
@@ -186,7 +178,7 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
                 <button
                   onClick={() => setVistaActiva('tarjetas')}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    vistaActiva === 'tarjetas'
+                    (vistaActiva as 'lista' | 'tarjetas') === 'tarjetas'
                       ? 'bg-primary-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
@@ -196,7 +188,7 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
                 <button
                   onClick={() => setVistaActiva('lista')}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    vistaActiva === 'lista'
+                    (vistaActiva as 'lista' | 'tarjetas') === 'lista'
                       ? 'bg-primary-600 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}

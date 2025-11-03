@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Campana, MetricaIdeal, EvaluacionMetrica } from '../../types';
+import { Campana, EvaluacionMetrica } from '../../types';
 
 interface DashboardConfigurableProps {
   onCerrar: () => void;
@@ -33,7 +33,6 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
       
       // Por ahora, datos de ejemplo
       setCampanas([]);
-      setMetricasIdeales([]);
       setEvaluaciones([]);
     } catch (err) {
       setError('Error cargando datos del dashboard');

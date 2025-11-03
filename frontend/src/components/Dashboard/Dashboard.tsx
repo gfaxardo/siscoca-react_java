@@ -20,8 +20,6 @@ export default function Dashboard() {
   const [descripcionCritica, setDescripcionCritica] = useState('');
   const [tituloCritica, setTituloCritica] = useState('');
   const [verificandoPassword, setVerificandoPassword] = useState(false);
-  const [cargandoHistorico, setCargandoHistorico] = useState(false);
-  const [limpiando, setLimpiando] = useState(false);
   
   const esAdmin = user?.rol === 'Admin';
 
@@ -105,7 +103,6 @@ export default function Dashboard() {
   const evolucionSemanal = obtenerEvolucionSemanal();
 
   const manejarCargarHistorico = async () => {
-    setCargandoHistorico(true);
     try {
       const resultado = await cargarHistoricoReal();
       if (resultado.exito) {
@@ -117,8 +114,6 @@ export default function Dashboard() {
       }
     } catch (error) {
       alert(`❌ Error cargando histórico: ${error}`);
-    } finally {
-      setCargandoHistorico(false);
     }
   };
 
@@ -145,7 +140,6 @@ export default function Dashboard() {
       `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
     );
     setAccionCritica(async () => {
-      setLimpiando(true);
       try {
         const resultado = limpiarTodosLosDatos();
         if (resultado.exito) {
@@ -156,8 +150,6 @@ export default function Dashboard() {
         }
       } catch (error) {
         alert(`❌ Error limpiando datos: ${error}`);
-      } finally {
-        setLimpiando(false);
       }
     });
     setMostrarConfirmacion(true);

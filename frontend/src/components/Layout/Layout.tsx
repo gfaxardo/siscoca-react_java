@@ -18,7 +18,7 @@ export default function Layout({
   children, 
   vistaActiva,
   onCambiarVista,
-  onAbrirDashboard
+  onAbrirDashboard: _onAbrirDashboard
 }: LayoutProps) {
   const [mostrarDashboard, setMostrarDashboard] = useState(false);
   const [mostrarTareas, setMostrarTareas] = useState(false);
@@ -28,7 +28,7 @@ export default function Layout({
     <div className="flex h-screen bg-gray-50">
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         <Header 
-          onAbrirDashboard={() => setMostrarDashboard(true)}
+          onAbrirDashboard={_onAbrirDashboard || (() => setMostrarDashboard(true))}
           onAbrirTareas={() => setMostrarTareas(true)}
           onAbrirInbox={() => setMostrarInbox(true)}
           vistaActiva={vistaActiva}
