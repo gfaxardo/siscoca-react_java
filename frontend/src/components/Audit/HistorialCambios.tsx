@@ -64,12 +64,16 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
     if (typeof detalles === 'object') {
       const detallesObj = detalles as Record<string, unknown>;
       const tieneAntesDespues = 'antes' in detallesObj || 'despues' in detallesObj;
-      const descripcion = 'descripcion' in detallesObj ? detallesObj.descripcion : undefined;
+      const descripcionValor = 'descripcion' in detallesObj ? detallesObj.descripcion : undefined;
+      const descripcionTexto =
+        descripcionValor === undefined || descripcionValor === null
+          ? undefined
+          : String(descripcionValor);
 
       return (
         <div className="space-y-2">
-          {descripcion && (
-            <p className="text-gray-600">{String(descripcion)}</p>
+          {descripcionTexto && (
+            <p className="text-gray-600">{descripcionTexto}</p>
           )}
           {tieneAntesDespues && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">

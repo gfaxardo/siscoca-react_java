@@ -34,7 +34,6 @@ export default function ListaCampanas({
     historico, 
     cambiarEstadoCampana, 
     eliminarCampana, 
-    subirCreativo, 
     descargarCreativo, 
     archivarCampana,
     obtenerHistoricoSemanalCampana

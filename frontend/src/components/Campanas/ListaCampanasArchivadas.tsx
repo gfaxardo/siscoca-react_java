@@ -20,7 +20,6 @@ export default function ListaCampanasArchivadas() {
     campanas, 
     historico, 
     eliminarCampana, 
-    subirCreativo, 
     descargarCreativo,
     reactivarCampana,
     obtenerHistoricoSemanalCampana,

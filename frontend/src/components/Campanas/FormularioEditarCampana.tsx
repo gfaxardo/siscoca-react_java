@@ -43,6 +43,10 @@ interface FormularioEditarCampanaProps {
   modoLectura?: boolean; // Si es true, solo muestra los detalles sin permitir edición
 }
 
+type FormularioEditarCampanaForm = FormularioCrearCampana & {
+  nombre: string;
+};
+
 const SEGMENTOS_ABREV: Record<string, string> = {
   'Adquisición': 'ADQ',
   'Retención': 'RET',
@@ -87,7 +91,7 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
   );
   
   // Asegurar que todos los valores de la campaña estén disponibles
-  const valoresIniciales = {
+  const valoresIniciales: FormularioEditarCampanaForm = {
     nombre: campana.nombre,
     pais: campana.pais,
     vertical: campana.vertical,
@@ -106,7 +110,7 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
     nombrePlataforma: campana.nombrePlataforma || ''
   };
   
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormularioCrearCampana>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormularioEditarCampanaForm>({
     resolver: zodResolver(esquemaFormulario),
     defaultValues: valoresIniciales
   });
@@ -154,9 +158,6 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
   const inicialesDueno = watch('inicialesDueno');
   const descripcionCorta = watch('descripcionCorta');
   const tipoAterrizaje = watch('tipoAterrizaje');
-  const nombre = watch('nombre');
-  
-
   const [inicialesCustomManual, setInicialesCustomManual] = useState(false);
 
   const manejarCambioDueno = (nombreSeleccionado: string) => {
@@ -199,7 +200,7 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
     setValue
   ]);
 
-  const onSubmit = async (datos: FormularioCrearCampana) => {
+  const onSubmit = async (datos: FormularioEditarCampanaForm) => {
     const resultado = await actualizarCampana(campana.id, datos);
     
     if (resultado.exito) {
@@ -244,7 +245,7 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
               <input
                 {...register('nombre', {
                   minLength: { value: 3, message: 'El nombre debe tener al menos 3 caracteres' },
-                  onChange: (e) => {
+                  onChange: () => {
                     nombreEditadoManualmenteRef.current = true;
                   }
                 })}

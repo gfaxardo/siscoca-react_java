@@ -19,14 +19,11 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
   const calcularMetricasLocales = (): MetricasGlobales => {
     // Calcular métricas globales desde los datos de la campaña
     const alcance = campana.alcance || 0;
-    const clics = campana.clics || 0;
     const leads = campana.leads || 0;
     const costoSemanal = campana.costoSemanal || 0;
-    const conductoresRegistrados = campana.conductoresRegistrados || 0;
     const conductoresPrimerViaje = campana.conductoresPrimerViaje || 0;
     
     const costoLead = campana.costoLead || (leads > 0 ? costoSemanal / leads : 0);
-    const costoConductorRegistrado = conductoresRegistrados > 0 ? costoSemanal / conductoresRegistrados : 0;
     const costoConductorPrimerViaje = conductoresPrimerViaje > 0 ? costoSemanal / conductoresPrimerViaje : 0;
     
     // Calcular costo promedio
@@ -37,7 +34,6 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
     const roi = costoSemanal > 0 && conductoresPrimerViaje > 0 ? ((conductoresPrimerViaje * 100) / costoSemanal) : 0;
     
     return {
-      idCampana: campana.id,
       costoTotal: costoSemanal,
       alcanceTotal: alcance,
       leadsTotales: leads,
@@ -45,8 +41,7 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
       costoPromedioLead: costoPromedioLead,
       costoPromedioConductor: costoPromedioConductor,
       roi: roi,
-      evaluaciones: [], // Se puede calcular comparando con métricas ideales si están disponibles
-      estadoGeneral: 'BUENO' // Se puede calcular basado en las métricas
+      evaluaciones: [] // Se puede calcular comparando con métricas ideales si están disponibles
     };
   };
 

@@ -159,3 +159,4 @@ GROUP BY mc1_0.campana_id
 **Listo para reiniciar el backend y probar la optimización.**
 
 
+

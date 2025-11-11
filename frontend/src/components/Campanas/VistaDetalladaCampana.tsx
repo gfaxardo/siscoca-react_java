@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Campana, HistoricoSemanalCampana, TareaPendiente } from '../../types';
-import { useCampanaStore } from '../../store/useCampanaStore';
+import { Campana, TareaPendiente } from '../../types';
+import { useCampanaStore, HistoricoSemanalCampana } from '../../store/useCampanaStore';
 import { getISOWeek } from 'date-fns';
 import { PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS, TIPOS_ATERRIZAJE_LABELS } from '../../types';
 import { tareaService } from '../../services/tareaService';
