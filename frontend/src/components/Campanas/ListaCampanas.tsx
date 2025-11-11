@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana, TIPOS_ATERRIZAJE_LABELS, PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS } from '../../types';
 import { format } from 'date-fns';
@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import FiltrosCampanas from './FiltrosCampanas';
 import UploadCreativo from './UploadCreativo';
+import VistaDetalladaCampana from './VistaDetalladaCampana';
 import MenuAccionesCampana from './MenuAccionesCampana';
 import GraficosBarrasAvanzados from './GraficosBarrasAvanzados';
 import MetricasGlobalesComponent from './MetricasGlobales';
@@ -42,6 +43,7 @@ export default function ListaCampanas({
   const [campanasFiltradas, setCampanasFiltradas] = useState<Campana[]>([]);
   const [campanaParaUpload, setCampanaParaUpload] = useState<Campana | null>(null);
   const [campanaParaEditar, setCampanaParaEditar] = useState<Campana | null>(null);
+  const [modoLecturaEdicion, setModoLecturaEdicion] = useState<boolean>(false);
   const [campanaParaMetricas, setCampanaParaMetricas] = useState<Campana | null>(null);
   const [mostrarMetricasGlobales, setMostrarMetricasGlobales] = useState(false);
   const [campanaParaHistorial, setCampanaParaHistorial] = useState<Campana | null>(null);
@@ -50,6 +52,64 @@ export default function ListaCampanas({
   const [mostrarChat, setMostrarChat] = useState(false);
   const [mensajesNoLeidosPorCampana, setMensajesNoLeidosPorCampana] = useState<Map<string, number>>(new Map());
   const { setAcciones } = useMenuActions();
+  const [ordenamiento, setOrdenamiento] = useState<'nueva-antigua' | 'antigua-nueva' | 'costosa-menos' | 'menos-costosa' | 'eficiente-menos' | 'menos-eficiente'>('nueva-antigua');
+  const [campanaParaDetalle, setCampanaParaDetalle] = useState<Campana | null>(null);
+  const [mostrarVistaDetallada, setMostrarVistaDetallada] = useState(false);
+  type EstadoFiltro = 'Todas' | Campana['estado'];
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoFiltro>('Todas');
+
+  const ESTADOS_FILTRO: Array<{ valor: EstadoFiltro; label: string; descripcion: string }> = [
+    { valor: 'Todas', label: 'Todas', descripcion: 'Campañas en curso (excluye archivadas)' },
+    { valor: 'Pendiente', label: 'Pendientes', descripcion: 'Campañas esperando creativos o activación' },
+    { valor: 'Creativo Enviado', label: 'Creativo enviado', descripcion: 'Creativo listo para activar' },
+    { valor: 'Activa', label: 'Activas', descripcion: 'Campañas activas con métricas en curso' },
+    { valor: 'Archivada', label: 'Archivadas', descripcion: 'Campañas cerradas y enviadas al histórico' }
+  ];
+
+  const clasesBotonEstado: Record<EstadoFiltro, { activo: string; inactivo: string }> = {
+    Todas: {
+      activo: 'bg-primary-600 border-primary-600 text-white focus:ring-primary-400',
+      inactivo: 'bg-white border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-600 focus:ring-primary-200'
+    },
+    Pendiente: {
+      activo: 'bg-yellow-500 border-yellow-600 text-white focus:ring-yellow-400',
+      inactivo: 'bg-yellow-50 border-yellow-200 text-yellow-700 hover:border-yellow-400 focus:ring-yellow-200'
+    },
+    'Creativo Enviado': {
+      activo: 'bg-blue-500 border-blue-600 text-white focus:ring-blue-400',
+      inactivo: 'bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-400 focus:ring-blue-200'
+    },
+    Activa: {
+      activo: 'bg-green-500 border-green-600 text-white focus:ring-green-400',
+      inactivo: 'bg-green-50 border-green-200 text-green-700 hover:border-green-400 focus:ring-green-200'
+    },
+    Archivada: {
+      activo: 'bg-gray-600 border-gray-700 text-white focus:ring-gray-400',
+      inactivo: 'bg-gray-100 border-gray-300 text-gray-700 hover:border-gray-400 focus:ring-gray-300'
+    }
+  };
+
+  const leyendaEstadoSeleccionado: Record<EstadoFiltro, string> = {
+    Todas: 'en gestión',
+    Pendiente: 'pendientes',
+    'Creativo Enviado': 'con creativo enviado',
+    Activa: 'activas',
+    Archivada: 'archivadas'
+  };
+
+  const obtenerClasesBotonEstado = (estado: EstadoFiltro, estaActivo: boolean, deshabilitado = false) => {
+    const base = 'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed';
+    const estilos = clasesBotonEstado[estado];
+    if (deshabilitado && !estaActivo) {
+      return `${base} ${estilos.inactivo} opacity-60`;
+    }
+    return `${base} ${estaActivo ? estilos.activo + ' shadow-md scale-[1.02]' : estilos.inactivo}`;
+  };
+
+  const obtenerClasesBadgeConteo = (estaActivo: boolean) =>
+    estaActivo
+      ? 'px-2 py-0.5 rounded-full text-[11px] leading-none border border-white/50 bg-white/20 text-white'
+      : 'px-2 py-0.5 rounded-full text-[11px] leading-none border bg-white/80 text-gray-700';
 
   // Funciones para manejar métricas globales
   const handleVerMetricasGlobales = (campana: Campana) => {
@@ -149,22 +209,98 @@ export default function ListaCampanas({
     }
   };
 
-  // Las campañas ya vienen ordenadas del useEffect, solo aplicar filtros adicionales si es necesario
-  const campanasActivas = campanasFiltradas;
-
-  // Inicializar campañas filtradas y manejar errores
-  useEffect(() => {
-    try {
-      // Filtrar y ordenar por fecha de creación descendente (más recientes primero)
-      const campanasOrdenadas = campanas
-        .filter(c => c.estado !== 'Archivada')
-        .sort((a, b) => {
-          // Ordenar por fecha de creación descendente (más recientes primero)
+  // Función para ordenar campañas según el criterio seleccionado
+  const ordenarCampanas = (campanasLista: Campana[], criterio: typeof ordenamiento): Campana[] => {
+    const campanasCopia = [...campanasLista];
+    
+    switch (criterio) {
+      case 'nueva-antigua':
+        return campanasCopia.sort((a, b) => {
           const fechaA = new Date(a.fechaCreacion).getTime();
           const fechaB = new Date(b.fechaCreacion).getTime();
           return fechaB - fechaA;
         });
-      setCampanasFiltradas(campanasOrdenadas);
+      
+      case 'antigua-nueva':
+        return campanasCopia.sort((a, b) => {
+          const fechaA = new Date(a.fechaCreacion).getTime();
+          const fechaB = new Date(b.fechaCreacion).getTime();
+          return fechaA - fechaB;
+        });
+      
+      case 'costosa-menos':
+        return campanasCopia.sort((a, b) => {
+          const costoA = a.costoSemanal || 0;
+          const costoB = b.costoSemanal || 0;
+          return costoB - costoA;
+        });
+      
+      case 'menos-costosa':
+        return campanasCopia.sort((a, b) => {
+          const costoA = a.costoSemanal || 0;
+          const costoB = b.costoSemanal || 0;
+          return costoA - costoB;
+        });
+      
+      case 'eficiente-menos':
+        return campanasCopia.sort((a, b) => {
+          // Eficiencia basada en costo por lead o costo por conductor (menor es mejor)
+          const eficienciaA = a.costoLead || a.costoConductor || Infinity;
+          const eficienciaB = b.costoLead || b.costoConductor || Infinity;
+          return eficienciaA - eficienciaB;
+        });
+      
+      case 'menos-eficiente':
+        return campanasCopia.sort((a, b) => {
+          // Eficiencia basada en costo por lead o costo por conductor (menor es mejor)
+          const eficienciaA = a.costoLead || a.costoConductor || Infinity;
+          const eficienciaB = b.costoLead || b.costoConductor || Infinity;
+          return eficienciaB - eficienciaA;
+        });
+      
+      default:
+        return campanasCopia;
+    }
+  };
+
+  // Las campañas ya vienen ordenadas del useEffect, solo aplicar filtros adicionales si es necesario
+  // Usar useMemo para evitar recalcular en cada render y prevenir bucles infinitos
+  type ConteoEstados = Record<EstadoFiltro, number>;
+
+  const conteoEstados = useMemo<ConteoEstados>(() => {
+    const base: ConteoEstados = {
+      Todas: 0,
+      Pendiente: 0,
+      'Creativo Enviado': 0,
+      Activa: 0,
+      Archivada: 0
+    };
+
+    for (const campana of campanasFiltradas) {
+      base[campana.estado] = (base[campana.estado] ?? 0) + 1;
+      if (campana.estado !== 'Archivada') {
+        base.Todas += 1;
+      }
+    }
+
+    return base;
+  }, [campanasFiltradas]);
+
+  const campanasFiltradasPorEstado = useMemo(() => {
+    if (estadoSeleccionado === 'Todas') {
+      return campanasFiltradas.filter(c => c.estado !== 'Archivada');
+    }
+    return campanasFiltradas.filter(c => c.estado === estadoSeleccionado);
+  }, [campanasFiltradas, estadoSeleccionado]);
+
+  const campanasActivas = useMemo(() => {
+    return ordenarCampanas(campanasFiltradasPorEstado, ordenamiento);
+  }, [campanasFiltradasPorEstado, ordenamiento]);
+
+  // Inicializar campañas filtradas y manejar errores
+  useEffect(() => {
+    try {
+      setCampanasFiltradas(campanas);
       setError(null);
     } catch (err) {
       console.error('Error inicializando campañas:', err);
@@ -174,29 +310,56 @@ export default function ListaCampanas({
 
   // Cargar mensajes no leídos por campaña
   useEffect(() => {
+    // Solo ejecutar si hay campañas activas
+    if (campanasActivas.length === 0) {
+      setMensajesNoLeidosPorCampana(new Map());
+      return;
+    }
+
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     const cargarMensajesNoLeidos = async () => {
+      // Evitar ejecuciones simultáneas
+      if (!isMounted) return;
+      
       try {
+        // Usar el nuevo endpoint optimizado que obtiene todos los conteos en una sola consulta
+        const conteos = await chatService.getMensajesNoLeidosPorTodasLasCampanas();
         const mapa = new Map<string, number>();
-        for (const campana of campanasActivas) {
-          try {
-            const total = await chatService.getMensajesNoLeidosPorCampana(campana.id);
-            if (total > 0) {
-              mapa.set(campana.id, total);
-            }
-          } catch (err) {
-            console.error(`Error cargando mensajes para campaña ${campana.id}:`, err);
+        
+        // Convertir el objeto a Map, filtrando solo campañas con mensajes no leídos
+        for (const [campanaId, count] of Object.entries(conteos)) {
+          if (isMounted && count > 0) {
+            mapa.set(campanaId, count);
           }
         }
-        setMensajesNoLeidosPorCampana(mapa);
+        
+        if (isMounted) {
+          setMensajesNoLeidosPorCampana(mapa);
+        }
       } catch (err) {
         console.error('Error cargando mensajes no leídos:', err);
       }
     };
 
+    // Cargar inmediatamente solo la primera vez
     cargarMensajesNoLeidos();
-    const interval = setInterval(cargarMensajesNoLeidos, 30000); // Actualizar cada 30 segundos
-    return () => clearInterval(interval);
-  }, [campanasActivas]);
+    
+    // Configurar polling con intervalo más largo (60 segundos en lugar de 30)
+    intervalId = setInterval(() => {
+      if (isMounted) {
+        cargarMensajesNoLeidos();
+      }
+    }, 60000); // 60 segundos = 1 minuto
+
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [campanasActivas.length]); // Solo depender de la cantidad, no del array completo
 
   const manejarFiltros = (nuevasCampanasFiltradas: Campana[]) => {
     try {
@@ -268,7 +431,7 @@ export default function ListaCampanas({
   // Actualizar campañas filtradas cuando cambien las originales
   useEffect(() => {
     try {
-      setCampanasFiltradas(campanas.filter(c => c.estado !== 'Archivada'));
+      setCampanasFiltradas(campanas);
     } catch (err) {
       console.error('Error actualizando campañas filtradas:', err);
       setError('Error actualizando campañas');
@@ -342,15 +505,86 @@ export default function ListaCampanas({
 
   return (
       <div className="space-y-2 lg:space-y-3">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <p className="text-gray-600 text-xs lg:text-sm">
-              {campanasActivas.length} campaña{campanasActivas.length !== 1 ? 's' : ''} en gestión
-            </p>
+        {/* Botón destacado de Nueva Campaña */}
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-4 lg:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="text-white">
+              <h2 className="text-xl lg:text-2xl font-bold mb-1">🎯 Gestión de Campañas</h2>
+              <p className="text-primary-100 text-sm lg:text-base">
+                {campanasActivas.length} campaña{campanasActivas.length !== 1 ? 's' : ''} {leyendaEstadoSeleccionado[estadoSeleccionado]}
+              </p>
+            </div>
+            <button
+              onClick={onCrearNueva}
+              className="bg-white text-primary-600 hover:bg-primary-50 px-6 py-3 lg:px-8 lg:py-4 rounded-lg font-bold text-base lg:text-lg shadow-md hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Nueva Campaña
+            </button>
+          </div>
+        </div>
+
+        {/* Selector de Ordenamiento */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-white rounded-lg border border-gray-200 p-3">
+          <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+            Ordenar por:
+          </label>
+          <select
+            value={ordenamiento}
+            onChange={(e) => setOrdenamiento(e.target.value as typeof ordenamiento)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
+          >
+            <option value="nueva-antigua">Más nueva a más antigua</option>
+            <option value="antigua-nueva">Más antigua a más nueva</option>
+            <option value="costosa-menos">Más costosa a menos costosa</option>
+            <option value="menos-costosa">Menos costosa a más costosa</option>
+            <option value="eficiente-menos">Más eficiente a menos eficiente</option>
+            <option value="menos-eficiente">Menos eficiente a más eficiente</option>
+          </select>
+        </div>
+
+        {/* Filtro rápido por estado */}
+        <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold text-gray-700">Filtrar por estado</p>
+              <p className="text-xs text-gray-500">Visualiza rápidamente campañas según su etapa</p>
+            </div>
+            <div className="text-xs text-gray-500">
+              <span className="hidden sm:inline">Mostrando:&nbsp;</span>
+              <span className="font-semibold text-gray-700">
+                {leyendaEstadoSeleccionado[estadoSeleccionado]}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {ESTADOS_FILTRO.map(({ valor, label, descripcion }) => {
+              const estaActivo = estadoSeleccionado === valor;
+              const esDeshabilitado = valor !== 'Todas' && conteoEstados[valor] === 0 && !estaActivo;
+              return (
+                <button
+                  key={valor}
+                  type="button"
+                  onClick={() => setEstadoSeleccionado(valor)}
+                  disabled={esDeshabilitado}
+                  className={obtenerClasesBotonEstado(valor, estaActivo, esDeshabilitado)}
+                  title={descripcion}
+                >
+                  <span>{label}</span>
+                  <span className={obtenerClasesBadgeConteo(estaActivo)}>
+                    {valor === 'Todas' ? conteoEstados.Todas : conteoEstados[valor]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Filtros */}
         <FiltrosCampanas 
-          campanas={campanas.filter(c => c.estado !== 'Archivada')}
+          campanas={campanas}
           onFiltrar={manejarFiltros}
         />
 
@@ -375,7 +609,12 @@ export default function ListaCampanas({
           {campanasActivas.map((campana) => (
             <div
               key={campana.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden"
+              onDoubleClick={() => {
+                setCampanaParaDetalle(campana);
+                setMostrarVistaDetallada(true);
+              }}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+              title="Doble clic para ver detalles completos"
             >
               <div className="p-3 lg:p-4">
                 {/* Header con título y menú de acciones */}
@@ -439,7 +678,14 @@ export default function ListaCampanas({
                       onSubirMetricasDueno={() => onEditarMetricasDueno(campana)}
                       onArchivarCampana={() => manejarArchivado(campana)}
                       onDescargarCreativo={() => manejarDescargaCreativo(campana)}
-                      onEditarCampana={() => setCampanaParaEditar(campana)}
+                      onEditarCampana={() => {
+                        setModoLecturaEdicion(false);
+                        setCampanaParaEditar(campana);
+                      }}
+                      onVerDetalles={() => {
+                        setModoLecturaEdicion(true);
+                        setCampanaParaEditar(campana);
+                      }}
                       onVerMetricasGlobales={() => handleVerMetricasGlobales(campana)}
                       onVerHistorialCambios={() => handleVerHistorialCambios(campana)}
                       onEliminarCampana={async () => {
@@ -557,7 +803,6 @@ export default function ListaCampanas({
         <UploadCreativo
           campana={campanaParaUpload}
           onCerrar={() => setCampanaParaUpload(null)}
-          onSubirCreativo={subirCreativo}
         />
       )}
 
@@ -565,7 +810,11 @@ export default function ListaCampanas({
       {campanaParaEditar && (
         <FormularioEditarCampana
           campana={campanaParaEditar}
-          onCerrar={() => setCampanaParaEditar(null)}
+          onCerrar={() => {
+            setCampanaParaEditar(null);
+            setModoLecturaEdicion(false);
+          }}
+          modoLectura={modoLecturaEdicion}
         />
       )}
 
@@ -596,6 +845,17 @@ export default function ListaCampanas({
             />
           </div>
         </div>
+      )}
+
+      {/* Modal de Vista Detallada */}
+      {mostrarVistaDetallada && campanaParaDetalle && (
+        <VistaDetalladaCampana
+          campana={campanaParaDetalle}
+          onCerrar={() => {
+            setMostrarVistaDetallada(false);
+            setCampanaParaDetalle(null);
+          }}
+        />
       )}
 
     </div>

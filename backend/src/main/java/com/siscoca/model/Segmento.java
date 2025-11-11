@@ -1,9 +1,14 @@
 package com.siscoca.model;
 
+import java.text.Normalizer;
+
 public enum Segmento {
     ADQUISICION("Adquisición"),
     RETENCION("Retención"),
-    RETORNO("Retorno");
+    RETORNO("Retorno"),
+    MAS_VISTAS("Más Vistas"),
+    MAS_SEGUIDORES("Más Seguidores"),
+    MAS_VISTAS_PERFIL("Más Vistas del Perfil");
     
     private final String displayName;
     
@@ -16,17 +21,26 @@ public enum Segmento {
     }
     
     public static Segmento fromDisplayName(String displayName) {
-        // Primero intentar por display name
+        if (displayName == null || displayName.trim().isEmpty()) {
+            throw new IllegalArgumentException("El segmento es obligatorio");
+        }
+        
+        String normalizedInput = normalize(displayName);
+        
         for (Segmento segmento : values()) {
-            if (segmento.displayName.equals(displayName)) {
+            if (normalize(segmento.displayName).equals(normalizedInput)
+                    || segmento.name().equalsIgnoreCase(normalizedInput)) {
                 return segmento;
             }
         }
-        // Si no encuentra, intentar por nombre del enum (código)
-        try {
-            return Segmento.valueOf(displayName);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("No enum constant for display name or code: " + displayName);
-        }
+        
+        throw new IllegalArgumentException("No enum constant for display name or code: " + displayName);
+    }
+    
+    private static String normalize(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace(" ", "_")
+                .toUpperCase();
     }
 }

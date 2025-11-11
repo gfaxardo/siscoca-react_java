@@ -25,8 +25,12 @@ public interface TareaPendienteRepository extends JpaRepository<TareaPendiente, 
     
     List<TareaPendiente> findByCampanaIdAndCompletadaFalse(Long campanaId);
     
+    List<TareaPendiente> findByCampanaIdAndCompletadaTrue(Long campanaId);
+    
     Optional<TareaPendiente> findByCampanaIdAndTipoTareaAndCompletadaFalse(Long campanaId, com.siscoca.model.TipoTarea tipoTarea);
 }
+
+
 
 
 

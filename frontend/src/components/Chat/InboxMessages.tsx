@@ -15,9 +15,24 @@ export default function InboxMessages({ onMensajeClick }: InboxMessagesProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    cargarMensajes();
-    const interval = setInterval(cargarMensajes, 30000); // Actualizar cada 30 segundos
-    return () => clearInterval(interval);
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const cargarMensajesSeguro = async () => {
+      if (!isMounted) return;
+      await cargarMensajes();
+    };
+
+    cargarMensajesSeguro();
+    // Aumentar intervalo a 60 segundos para reducir carga del servidor
+    intervalId = setInterval(cargarMensajesSeguro, 60000); // Actualizar cada 60 segundos
+    
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [user?.rol]);
 
   const cargarMensajes = async () => {

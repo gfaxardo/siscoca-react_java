@@ -54,6 +54,15 @@ public class TareaController {
     }
     
     /**
+     * Obtiene las tareas completadas (historial) de una campaña específica
+     */
+    @GetMapping("/campana/{campanaId}/completadas")
+    public ResponseEntity<List<TareaPendienteDto>> getTareasCompletadasPorCampana(@PathVariable Long campanaId) {
+        List<TareaPendienteDto> tareas = tareaService.getTareasCompletadasPorCampana(campanaId);
+        return ResponseEntity.ok(tareas);
+    }
+    
+    /**
      * Marca una tarea como completada
      */
     @PutMapping("/{tareaId}/completar")
@@ -69,6 +78,25 @@ public class TareaController {
     public ResponseEntity<String> generarTareasPendientes() {
         tareaService.generarTareasPendientes();
         return ResponseEntity.ok("Tareas pendientes generadas correctamente");
+    }
+    
+    /**
+     * Deriva una tarea a otro usuario
+     */
+    @PutMapping("/{tareaId}/derivar")
+    public ResponseEntity<String> derivarTarea(
+            @PathVariable Long tareaId,
+            @RequestParam String nuevoAsignadoA) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String usuarioQueDeriva = authentication.getName();
+            tareaService.derivarTarea(tareaId, nuevoAsignadoA, usuarioQueDeriva);
+            return ResponseEntity.ok("Tarea derivada correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error derivando tarea: " + e.getMessage());
+        }
     }
     
     /**
@@ -90,6 +118,8 @@ public class TareaController {
         return Rol.TRAFFICKER;
     }
 }
+
+
 
 
 

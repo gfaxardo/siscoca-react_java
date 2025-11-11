@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
-import { usuarioService, CreateUsuarioRequest, UpdateUsuarioRequest } from '../../services/usuarioService';
+import { usuarioService, CreateUsuarioRequest, UpdateUsuarioRequest, RolOption } from '../../services/usuarioService';
 import { Usuario, RolUsuario } from '../../types/campana';
+
+const ROLES_POR_DEFECTO: RolOption[] = [
+  { codigo: 'ADMIN', nombre: 'Admin' },
+  { codigo: 'TRAFFICKER', nombre: 'Trafficker' },
+  { codigo: 'DUEÑO', nombre: 'Dueño' },
+  { codigo: 'MKT', nombre: 'Marketing' }
+];
 
 export default function GestionUsuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -8,6 +15,8 @@ export default function GestionUsuarios() {
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rolesDisponibles, setRolesDisponibles] = useState<RolOption[]>(ROLES_POR_DEFECTO);
+  const [cargandoRoles, setCargandoRoles] = useState(false);
   
   // Formulario
   const [formData, setFormData] = useState({
@@ -21,6 +30,7 @@ export default function GestionUsuarios() {
 
   useEffect(() => {
     cargarUsuarios();
+    cargarRoles();
   }, []);
 
   const cargarUsuarios = async () => {
@@ -36,6 +46,24 @@ export default function GestionUsuarios() {
     }
   };
 
+  const cargarRoles = async () => {
+    try {
+      setCargandoRoles(true);
+      const roles = await usuarioService.getRolesDisponibles();
+      if (roles.length > 0) {
+        setRolesDisponibles(roles);
+        setFormData((prev) => ({
+          ...prev,
+          rol: roles.some((rol) => rol.nombre === prev.rol) ? prev.rol : roles[0].nombre
+        }));
+      }
+    } catch (err) {
+      console.error('Error cargando roles disponibles:', err);
+    } finally {
+      setCargandoRoles(false);
+    }
+  };
+
   const handleCrearUsuario = () => {
     setUsuarioEditando(null);
     setFormData({
@@ -43,7 +71,7 @@ export default function GestionUsuarios() {
       password: '',
       nombre: '',
       iniciales: '',
-      rol: 'Marketing',
+      rol: rolesDisponibles[0]?.nombre ?? 'Marketing',
       activo: true
     });
     setMostrarFormulario(true);
@@ -56,7 +84,9 @@ export default function GestionUsuarios() {
       password: '', // No mostrar password
       nombre: usuario.nombre,
       iniciales: usuario.iniciales,
-      rol: usuario.rol,
+      rol: rolesDisponibles.some((rol) => rol.nombre === usuario.rol)
+        ? usuario.rol
+        : rolesDisponibles[0]?.nombre ?? 'Marketing',
       activo: true
     });
     setMostrarFormulario(true);
@@ -305,13 +335,18 @@ export default function GestionUsuarios() {
                   value={formData.rol}
                   onChange={(e) => setFormData({ ...formData, rol: e.target.value as RolUsuario })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  disabled={cargandoRoles}
                   required
                 >
-                  <option value="Marketing">Marketing</option>
-                  <option value="Trafficker">Trafficker</option>
-                  <option value="Dueño">Dueño</option>
-                  <option value="Admin">Admin</option>
+                  {rolesDisponibles.map((rol) => (
+                    <option key={rol.codigo} value={rol.nombre}>
+                      {rol.nombre}
+                    </option>
+                  ))}
                 </select>
+                {cargandoRoles && (
+                  <p className="text-xs text-gray-500 mt-1">Cargando roles...</p>
+                )}
               </div>
 
               <div className="flex space-x-3 pt-4">

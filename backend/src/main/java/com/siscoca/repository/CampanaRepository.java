@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CampanaRepository extends JpaRepository<Campana, Long> {
@@ -32,4 +33,8 @@ public interface CampanaRepository extends JpaRepository<Campana, Long> {
     
     @Query("SELECT c FROM Campana c WHERE c.estado = :estado AND c.nombreDueno = :nombreDueno")
     List<Campana> findByEstadoAndNombreDueno(@Param("estado") EstadoCampana estado, @Param("nombreDueno") String nombreDueno);
+    
+    Optional<Campana> findByIdPlataformaExterna(String idPlataformaExterna);
+    
+    Optional<Campana> findByNombre(String nombre);
 }

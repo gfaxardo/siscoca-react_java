@@ -2,6 +2,7 @@ package com.siscoca.service;
 
 import com.siscoca.dto.CampanaDto;
 import com.siscoca.model.*;
+import com.siscoca.model.AuditEntity;
 import com.siscoca.repository.CampanaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +27,12 @@ public class CampanaService {
     @Autowired
     private TareaService tareaService;
     
+    @Autowired
+    private com.siscoca.repository.UsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private AuditLogger auditLogger;
+    
     public List<CampanaDto> getAllCampanas() {
         return campanaRepository.findAll().stream()
                 .map(this::convertToDto)
@@ -36,13 +45,35 @@ public class CampanaService {
                 .orElse(null);
     }
     
-    public CampanaDto createCampana(CampanaDto campanaDto) {
+    public CampanaDto createCampana(CampanaDto campanaDto, String username) {
         Campana campana = convertToEntity(campanaDto);
         campana.setEstado(EstadoCampana.PENDIENTE);
         campana.setFechaCreacion(LocalDateTime.now());
         campana.setFechaActualizacion(LocalDateTime.now());
         // Las campañas se crean con la semana anterior (semana actual - 1)
         campana.setSemanaISO(getPreviousWeekISO());
+        
+        // Si no se especificó un dueño en el DTO, usar el usuario autenticado como dueño por defecto
+        if (campanaDto.getNombreDueno() == null || campanaDto.getNombreDueno().trim().isEmpty()) {
+            if (username != null && !username.trim().isEmpty()) {
+                // Intentar obtener el nombre completo del usuario desde la base de datos
+                com.siscoca.model.Usuario usuario = usuarioRepository.findByUsername(username).orElse(null);
+                if (usuario != null) {
+                    campana.setNombreDueno(usuario.getNombre());
+                    // Si el usuario tiene iniciales, usarlas; si no, generar desde el nombre
+                    if (usuario.getIniciales() != null && !usuario.getIniciales().trim().isEmpty()) {
+                        campana.setInicialesDueno(usuario.getIniciales());
+                    } else {
+                        // Generar iniciales automáticamente desde el nombre
+                        campana.setInicialesDueno(generarIniciales(usuario.getNombre()));
+                    }
+                } else {
+                    // Si no se encuentra el usuario en la BD, usar el username como nombre
+                    campana.setNombreDueno(username);
+                    campana.setInicialesDueno(generarIniciales(username));
+                }
+            }
+        }
         
         Campana savedCampana = campanaRepository.save(campana);
         
@@ -54,12 +85,50 @@ public class CampanaService {
             System.err.println("Error generando tareas para nueva campaña: " + e.getMessage());
         }
         
+        Map<String, Object> detalles = new LinkedHashMap<>();
+        detalles.put("campana", resumenCampana(savedCampana));
+        if (username != null) {
+            detalles.put("creadoPor", username);
+        }
+        auditLogger.log(
+                AuditEntity.CAMPANAS,
+                "Crear",
+                String.valueOf(savedCampana.getId()),
+                "Campaña creada",
+                detalles
+        );
+        
         return convertToDto(savedCampana);
+    }
+    
+    /**
+     * Genera iniciales automáticamente desde un nombre
+     * Ejemplo: "Juan Pérez" -> "JP"
+     */
+    private String generarIniciales(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return "";
+        }
+        
+        String[] partes = nombre.trim().split("\\s+");
+        if (partes.length == 0) {
+            return "";
+        }
+        
+        StringBuilder iniciales = new StringBuilder();
+        iniciales.append(partes[0].charAt(0));
+        
+        if (partes.length > 1) {
+            iniciales.append(partes[partes.length - 1].charAt(0));
+        }
+        
+        return iniciales.toString().toUpperCase();
     }
     
     public CampanaDto updateCampana(Long id, CampanaDto campanaDto) {
         return campanaRepository.findById(id)
                 .map(existingCampana -> {
+                    Map<String, Object> datosAntes = resumenCampana(existingCampana);
                     // Detectar si se están actualizando métricas (trafficker o dueño)
                     // Nota: verificar explícitamente si los campos están presentes (incluyendo 0)
                     boolean actualizandoMetricasTrafficker = campanaDto.getAlcance() != null || 
@@ -89,6 +158,20 @@ public class CampanaService {
                     } catch (Exception e) {
                         System.err.println("Error actualizando tareas: " + e.getMessage());
                     }
+                    
+                    Map<String, Object> detalles = new LinkedHashMap<>();
+                    detalles.put("antes", datosAntes);
+                    detalles.put("despues", resumenCampana(campanaGuardada));
+                    if (actualizandoMetricasTrafficker || actualizandoMetricasDueno) {
+                        detalles.put("metricasActualizadas", true);
+                    }
+                    auditLogger.log(
+                            AuditEntity.CAMPANAS,
+                            "Actualizar",
+                            String.valueOf(campanaGuardada.getId()),
+                            "Campaña actualizada",
+                            detalles
+                    );
                     
                     return convertToDto(campanaGuardada);
                 })
@@ -160,11 +243,21 @@ public class CampanaService {
     }
     
     public boolean deleteCampana(Long id) {
-        if (campanaRepository.existsById(id)) {
-            campanaRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        return campanaRepository.findById(id)
+                .map(campana -> {
+                    campanaRepository.deleteById(id);
+                    Map<String, Object> detalles = new LinkedHashMap<>();
+                    detalles.put("campana", resumenCampana(campana));
+                    auditLogger.log(
+                            AuditEntity.CAMPANAS,
+                            "Eliminar",
+                            String.valueOf(id),
+                            "Campaña eliminada",
+                            detalles
+                    );
+                    return true;
+                })
+                .orElse(false);
     }
     
     /**
@@ -266,6 +359,17 @@ public class CampanaService {
                     campana.setFechaActualizacion(LocalDateTime.now());
                     Campana campanaGuardada = campanaRepository.save(campana);
                     
+                    Map<String, Object> detalles = new LinkedHashMap<>();
+                    detalles.put("campana", resumenCampana(campanaGuardada));
+                    detalles.put("faltanMetricas", faltanMetricas);
+                    auditLogger.log(
+                            AuditEntity.CAMPANAS,
+                            "Archivar",
+                            String.valueOf(campanaGuardada.getId()),
+                            "Campaña archivada",
+                            detalles
+                    );
+                    
                     return convertToDto(campanaGuardada);
                 })
                 .orElse(null);
@@ -288,6 +392,16 @@ public class CampanaService {
                     campana.setEstado(EstadoCampana.ACTIVA);
                     campana.setFechaActualizacion(LocalDateTime.now());
                     Campana campanaGuardada = campanaRepository.save(campana);
+                    
+                    Map<String, Object> detalles = new LinkedHashMap<>();
+                    detalles.put("campana", resumenCampana(campanaGuardada));
+                    auditLogger.log(
+                            AuditEntity.CAMPANAS,
+                            "Reactivar",
+                            String.valueOf(campanaGuardada.getId()),
+                            "Campaña reactivada",
+                            detalles
+                    );
                     
                     return convertToDto(campanaGuardada);
                 })
@@ -318,7 +432,7 @@ public class CampanaService {
         dto.setPais(campana.getPais().name());
         dto.setVertical(campana.getVertical().name());
         dto.setPlataforma(campana.getPlataforma().name());
-        dto.setSegmento(campana.getSegmento().name());
+        dto.setSegmento(campana.getSegmento() != null ? campana.getSegmento().getDisplayName() : null);
         dto.setIdPlataformaExterna(campana.getIdPlataformaExterna());
         dto.setNombreDueno(campana.getNombreDueno());
         dto.setInicialesDueno(campana.getInicialesDueno());
@@ -326,10 +440,10 @@ public class CampanaService {
         dto.setObjetivo(campana.getObjetivo());
         dto.setBeneficio(campana.getBeneficio());
         dto.setDescripcion(campana.getDescripcion());
-        // Campos de aterrizaje removidos del modelo - dejar null en DTO para compatibilidad con frontend
-        dto.setTipoAterrizaje(null);
-        dto.setUrlAterrizaje(null);
-        dto.setNombrePlataforma(null);
+        dto.setTipoAterrizaje(campana.getTipoAterrizaje() != null ? campana.getTipoAterrizaje().name() : null);
+        dto.setUrlAterrizaje(campana.getUrlAterrizaje());
+        dto.setDetalleAterrizaje(campana.getDetalleAterrizaje());
+        dto.setNombrePlataforma(campana.getNombrePlataforma());
         dto.setEstado(campana.getEstado().getDisplayName());
         dto.setArchivoCreativo(campana.getArchivoCreativo());
         dto.setNombreArchivoCreativo(campana.getNombreArchivoCreativo());
@@ -388,6 +502,18 @@ public class CampanaService {
         campana.setPlataforma(Plataforma.fromDisplayName(dto.getPlataforma()));
         campana.setSegmento(Segmento.fromDisplayName(dto.getSegmento()));
         campana.setIdPlataformaExterna(dto.getIdPlataformaExterna());
+        if (dto.getTipoAterrizaje() != null && !dto.getTipoAterrizaje().trim().isEmpty()) {
+            try {
+                campana.setTipoAterrizaje(TipoAterrizaje.valueOf(dto.getTipoAterrizaje().trim().toUpperCase()));
+            } catch (IllegalArgumentException ex) {
+                campana.setTipoAterrizaje(null);
+            }
+        } else {
+            campana.setTipoAterrizaje(null);
+        }
+        campana.setUrlAterrizaje(dto.getUrlAterrizaje());
+        campana.setDetalleAterrizaje(dto.getDetalleAterrizaje());
+        campana.setNombrePlataforma(dto.getNombrePlataforma());
         campana.setNombreDueno(dto.getNombreDueno());
         campana.setInicialesDueno(dto.getInicialesDueno());
         campana.setDescripcionCorta(dto.getDescripcionCorta());
@@ -433,8 +559,16 @@ public class CampanaService {
         if (dto.getObjetivo() != null) campana.setObjetivo(dto.getObjetivo());
         if (dto.getBeneficio() != null) campana.setBeneficio(dto.getBeneficio());
         if (dto.getDescripcion() != null) campana.setDescripcion(dto.getDescripcion());
-        // Campos de aterrizaje removidos del modelo - ignorar en actualización
-        // tipoAterrizaje, urlAterrizaje, nombrePlataforma ya no existen en el modelo
+        if (dto.getTipoAterrizaje() != null) {
+            try {
+                campana.setTipoAterrizaje(TipoAterrizaje.valueOf(dto.getTipoAterrizaje().trim().toUpperCase()));
+            } catch (IllegalArgumentException ex) {
+                // Ignorar valores inválidos
+            }
+        }
+        if (dto.getUrlAterrizaje() != null) campana.setUrlAterrizaje(dto.getUrlAterrizaje());
+        if (dto.getDetalleAterrizaje() != null) campana.setDetalleAterrizaje(dto.getDetalleAterrizaje());
+        if (dto.getNombrePlataforma() != null) campana.setNombrePlataforma(dto.getNombrePlataforma());
         if (dto.getEstado() != null) campana.setEstado(EstadoCampana.fromString(dto.getEstado()));
         if (dto.getArchivoCreativo() != null) campana.setArchivoCreativo(dto.getArchivoCreativo());
         if (dto.getNombreArchivoCreativo() != null) campana.setNombreArchivoCreativo(dto.getNombreArchivoCreativo());
@@ -464,6 +598,26 @@ public class CampanaService {
         }
         
         // costoConductor ya no está almacenado en el modelo - se calcula dinámicamente en convertToDto
+    }
+    
+    private Map<String, Object> resumenCampana(Campana campana) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        if (campana == null) {
+            return data;
+        }
+        data.put("id", campana.getId());
+        data.put("nombre", campana.getNombre());
+        data.put("estado", campana.getEstado() != null ? campana.getEstado().getDisplayName() : null);
+        data.put("dueno", campana.getNombreDueno());
+        data.put("inicialesDueno", campana.getInicialesDueno());
+        data.put("semanaISO", campana.getSemanaISO());
+        data.put("pais", campana.getPais() != null ? campana.getPais().getDisplayName() : null);
+        data.put("vertical", campana.getVertical() != null ? campana.getVertical().getDisplayName() : null);
+        data.put("plataforma", campana.getPlataforma() != null ? campana.getPlataforma().getDisplayName() : null);
+        data.put("segmento", campana.getSegmento() != null ? campana.getSegmento().getDisplayName() : null);
+        data.put("fechaCreacion", campana.getFechaCreacion());
+        data.put("fechaActualizacion", campana.getFechaActualizacion());
+        return data;
     }
     
     private int getCurrentWeekISO() {

@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HistoricoSemanalRepository extends JpaRepository<HistoricoSemanal, Long> {
@@ -23,4 +24,6 @@ public interface HistoricoSemanalRepository extends JpaRepository<HistoricoSeman
     
     @Query("SELECT h FROM HistoricoSemanal h JOIN FETCH h.campana WHERE h.semanaISO BETWEEN :semanaInicio AND :semanaFin ORDER BY h.semanaISO DESC")
     List<HistoricoSemanal> findBySemanaISOBetween(@Param("semanaInicio") Integer semanaInicio, @Param("semanaFin") Integer semanaFin);
+    
+    Optional<HistoricoSemanal> findByCampana_IdAndSemanaISO(Long campanaId, Integer semanaISO);
 }

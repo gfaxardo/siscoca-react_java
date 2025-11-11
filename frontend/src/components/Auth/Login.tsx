@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -134,7 +135,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => {
-                const API_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
+                const API_URL = API_BASE_URL;
                 console.log('=== DEBUG LOGIN DETALLADO ===');
                 console.log('Usuario:', username);
                 console.log('Password:', password);

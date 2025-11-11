@@ -42,7 +42,7 @@ public class Usuario {
     private Boolean activo = true;
     
     @CreatedDate
-    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
     
     @LastModifiedDate

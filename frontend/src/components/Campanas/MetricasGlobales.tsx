@@ -16,14 +16,67 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
     cargarMetricas();
   }, [campana.id]);
 
+  const calcularMetricasLocales = (): MetricasGlobales => {
+    // Calcular métricas globales desde los datos de la campaña
+    const alcance = campana.alcance || 0;
+    const clics = campana.clics || 0;
+    const leads = campana.leads || 0;
+    const costoSemanal = campana.costoSemanal || 0;
+    const conductoresRegistrados = campana.conductoresRegistrados || 0;
+    const conductoresPrimerViaje = campana.conductoresPrimerViaje || 0;
+    
+    const costoLead = campana.costoLead || (leads > 0 ? costoSemanal / leads : 0);
+    const costoConductorRegistrado = conductoresRegistrados > 0 ? costoSemanal / conductoresRegistrados : 0;
+    const costoConductorPrimerViaje = conductoresPrimerViaje > 0 ? costoSemanal / conductoresPrimerViaje : 0;
+    
+    // Calcular costo promedio
+    const costoPromedioLead = costoLead;
+    const costoPromedioConductor = costoConductorPrimerViaje;
+    
+    // Calcular ROI aproximado (se puede mejorar con datos reales)
+    const roi = costoSemanal > 0 && conductoresPrimerViaje > 0 ? ((conductoresPrimerViaje * 100) / costoSemanal) : 0;
+    
+    return {
+      idCampana: campana.id,
+      costoTotal: costoSemanal,
+      alcanceTotal: alcance,
+      leadsTotales: leads,
+      conductoresTotales: conductoresPrimerViaje,
+      costoPromedioLead: costoPromedioLead,
+      costoPromedioConductor: costoPromedioConductor,
+      roi: roi,
+      evaluaciones: [], // Se puede calcular comparando con métricas ideales si están disponibles
+      estadoGeneral: 'BUENO' // Se puede calcular basado en las métricas
+    };
+  };
+
   const cargarMetricas = async () => {
     try {
       setCargando(true);
-      const datos = await metricasService.obtenerMetricasGlobales(campana.id);
-      setMetricas(datos);
+      setError(null);
+      // Intentar obtener desde el backend
+      try {
+        const datos = await metricasService.obtenerMetricasGlobales(campana.id);
+        if (datos) {
+          setMetricas(datos);
+        } else {
+          // Si no hay datos del backend, calcular localmente
+          setMetricas(calcularMetricasLocales());
+        }
+      } catch (backendError) {
+        // Si el backend falla, calcular localmente desde los datos de la campaña
+        console.warn('No se pudieron obtener métricas del backend, calculando localmente:', backendError);
+        setMetricas(calcularMetricasLocales());
+      }
     } catch (err) {
-      setError('Error cargando métricas globales');
       console.error('Error:', err);
+      // Intentar calcular localmente como último recurso
+      try {
+        setMetricas(calcularMetricasLocales());
+      } catch (calcError) {
+        setError('Error cargando métricas globales');
+        console.error('Error calculando métricas:', calcError);
+      }
     } finally {
       setCargando(false);
     }
@@ -208,7 +261,7 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
         </div>
 
         <div className="p-4 lg:p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
-          {metricas && (
+          {metricas ? (
             <>
               {/* Resumen Global */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 lg:mb-6">
@@ -217,7 +270,7 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
                     <div>
                       <p className="text-xs lg:text-sm text-blue-600 font-medium">Costo Total</p>
                       <p className="text-lg lg:text-2xl font-bold text-blue-900">
-                        ${metricas.costoTotal.toLocaleString()}
+                        ${(metricas.costoTotal || 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-3xl">💰</div>
@@ -229,7 +282,7 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
                     <div>
                       <p className="text-sm text-green-600 font-medium">Alcance Total</p>
                       <p className="text-2xl font-bold text-green-900">
-                        {metricas.alcanceTotal.toLocaleString()}
+                        {(metricas.alcanceTotal || 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-3xl">👥</div>
@@ -241,7 +294,7 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
                     <div>
                       <p className="text-sm text-purple-600 font-medium">Leads Totales</p>
                       <p className="text-2xl font-bold text-purple-900">
-                        {metricas.leadsTotales.toLocaleString()}
+                        {(metricas.leadsTotales || 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-3xl">🎯</div>
@@ -253,7 +306,7 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
                     <div>
                       <p className="text-sm text-orange-600 font-medium">Conductores</p>
                       <p className="text-2xl font-bold text-orange-900">
-                        {metricas.conductoresTotales.toLocaleString()}
+                        {(metricas.conductoresTotales || 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-3xl">🚗</div>
@@ -343,6 +396,10 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
                 </div>
               )}
             </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No hay métricas disponibles para esta campaña</p>
+            </div>
           )}
         </div>
 

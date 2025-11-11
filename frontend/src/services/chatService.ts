@@ -1,6 +1,8 @@
 import { MensajeChat } from '../types/campana';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
+import { API_BASE_URL } from '../config/api';
+
+const API_URL = API_BASE_URL;
 
 class ChatService {
   private getAuthHeaders(): HeadersInit {
@@ -187,6 +189,33 @@ class ChatService {
     } catch (error) {
       console.error('Error en getAllListaMensajesNoLeidos:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Obtiene el conteo de mensajes no leídos para todas las campañas en una sola consulta
+   * Optimizado para reducir el número de peticiones HTTP
+   */
+  async getMensajesNoLeidosPorTodasLasCampanas(): Promise<Record<string, number>> {
+    try {
+      const response = await fetch(`${API_URL}/chat/todos-no-leidos-por-campana`, {
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Error obteniendo mensajes no leídos por campaña');
+      }
+
+      const data = await response.json();
+      // Convertir las claves de número a string para mantener consistencia
+      const resultado: Record<string, number> = {};
+      for (const [campanaId, count] of Object.entries(data)) {
+        resultado[campanaId] = count as number;
+      }
+      return resultado;
+    } catch (error) {
+      console.error('Error en getMensajesNoLeidosPorTodasLasCampanas:', error);
+      return {};
     }
   }
 

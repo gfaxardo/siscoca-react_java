@@ -126,6 +126,15 @@ npm run dev
 - `GET /api/campanas/estado/{estado}` - Obtener campañas por estado
 - `GET /api/campanas/dueno/{nombreDueno}` - Obtener campañas por dueño
 
+### Auditoría
+- `GET /api/logging` - Listar eventos con filtros por usuario, rol, acción, entidad, fechas e identificador
+- `GET /api/logging/entidad/{entidadId}` - Obtener registros asociados a una entidad (por ejemplo, una campaña)
+- `GET /api/logging/usuario/{usuario}` - Obtener registros ejecutados por un usuario
+- `GET /api/logging/recientes?limite=50` - Últimos eventos ordenados por fecha
+- `POST /api/logging` - Registrar manualmente un evento (payload: `{ entidad, accion, entidadId?, descripcion?, detalles?, usuario?, rol? }`)
+
+> Cada petición autenticada genera automáticamente eventos de auditoría en módulos clave: campañas, creativos, tareas, chat, usuarios y autenticación. La interfaz de React incluye un panel de auditoría general (`Auditoría → Historial`) y vistas contextuales en Campañas para revisar el historial de cada entidad.
+
 ## 📖 Uso del Sistema
 
 ### Crear Nueva Campaña

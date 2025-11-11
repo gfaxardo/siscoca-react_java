@@ -16,19 +16,19 @@ public class LogEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank
     @Column(nullable = false)
     private String usuario;
     
-    @NotBlank
     @Column(nullable = false)
     private String rol;
+
+    @Column(name = "usuario_id")
+    private String usuarioId;
     
-    @NotBlank
     @Column(nullable = false)
     private String accion;
     
-    @NotBlank
+   
     @Column(nullable = false)
     private String entidad;
     
@@ -53,7 +53,11 @@ public class LogEntry {
     @CreatedDate
     @Column(name = "timestamp", nullable = false, updatable = false)
     private LocalDateTime timestamp;
-    
+
+    @CreatedDate
+    @Column(name = "fecha_creacion", updatable = false)
+    private LocalDateTime fechaCreacion;
+
     // Constructors
     public LogEntry() {}
     
@@ -101,6 +105,14 @@ public class LogEntry {
     
     public String getEntidad() {
         return entidad;
+    }
+
+    public String getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(String usuarioId) {
+        this.usuarioId = usuarioId;
     }
     
     public void setEntidad(String entidad) {
@@ -161,5 +173,24 @@ public class LogEntry {
     
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        if (timestamp == null) {
+            timestamp = now;
+        }
+        if (fechaCreacion == null) {
+            fechaCreacion = now;
+        }
     }
 }

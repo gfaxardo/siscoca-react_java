@@ -4,8 +4,10 @@ import com.siscoca.dto.LoginRequest;
 import com.siscoca.dto.LoginResponse;
 import com.siscoca.dto.ChangePasswordRequest;
 import com.siscoca.dto.UserDto;
+import com.siscoca.model.AuditEntity;
 import com.siscoca.service.UsuarioService;
 import com.siscoca.service.JwtService;
+import com.siscoca.service.AuditLogger;
 import com.siscoca.model.Usuario;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "https://siscoca.yego.pro", "https://apisiscoca.yego.pro"})
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:5173",
+        "https://siscoca.yego.pro",
+        "https://apisiscoca.yego.pro"
+})
 public class AuthController {
     
     @Autowired
@@ -31,6 +42,9 @@ public class AuthController {
     
     @Autowired
     private JwtService jwtService;
+    
+    @Autowired
+    private AuditLogger auditLogger;
     
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -42,6 +56,17 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         // En una implementación real, podrías invalidar el token
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication != null ? authentication.getName() : null;
+        auditLogger.logManual(
+                username,
+                null,
+                AuditEntity.AUTH,
+                "Logout",
+                username,
+                "Logout exitoso",
+                null
+        );
         return ResponseEntity.ok("Logout exitoso");
     }
     

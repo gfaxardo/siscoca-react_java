@@ -1,6 +1,8 @@
 import { TareaPendiente } from '../types/campana';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
+import { API_BASE_URL } from '../config/api';
+
+const API_URL = API_BASE_URL;
 
 class TareaService {
   private getAuthHeaders(): HeadersInit {
@@ -98,6 +100,24 @@ class TareaService {
     }
   }
 
+  async getTareasCompletadasPorCampana(campanaId: string): Promise<TareaPendiente[]> {
+    try {
+      const response = await fetch(`${API_URL}/tareas/campana/${campanaId}/completadas`, {
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Error obteniendo tareas completadas de la campaña');
+      }
+
+      const data = await response.json();
+      return this.convertirApiATareas(data);
+    } catch (error) {
+      console.error('Error en getTareasCompletadasPorCampana:', error);
+      throw error;
+    }
+  }
+
   async completarTarea(tareaId: string): Promise<void> {
     try {
       const response = await fetch(`${API_URL}/tareas/${tareaId}/completar`, {
@@ -126,6 +146,41 @@ class TareaService {
       }
     } catch (error) {
       console.error('Error en generarTareasPendientes:', error);
+      throw error;
+    }
+  }
+
+  async derivarTarea(tareaId: string, nuevoAsignadoA: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_URL}/tareas/${tareaId}/derivar?nuevoAsignadoA=${encodeURIComponent(nuevoAsignadoA)}`, {
+        method: 'PUT',
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Error derivando tarea');
+      }
+    } catch (error) {
+      console.error('Error en derivarTarea:', error);
+      throw error;
+    }
+  }
+
+  async obtenerUsuarios(): Promise<any[]> {
+    try {
+      const response = await fetch(`${API_URL}/usuarios/activos`, {
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Error obteniendo usuarios');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error en obtenerUsuarios:', error);
       throw error;
     }
   }

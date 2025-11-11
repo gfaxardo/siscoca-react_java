@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MetricaIdeal, Vertical, Pais, Plataforma, Segmento } from '../../types';
+import { metricasService } from '../../services/metricasService';
 
 interface ConfigurarMetricasIdealesProps {
   onCerrar: () => void;
@@ -8,7 +9,7 @@ interface ConfigurarMetricasIdealesProps {
 const VERTICALES: Vertical[] = ['MOTOPER', 'MOTODEL', 'CARGO', 'AUTOPER', 'B2B', 'PREMIER', 'CONFORT', 'YEGOPRO', 'YEGOMIAUTO', 'YEGOMIMOTO'];
 const PAISES: Pais[] = ['PE', 'CO'];
 const PLATAFORMAS: Plataforma[] = ['FB', 'TT', 'IG', 'GG', 'LI'];
-const SEGMENTOS: Segmento[] = ['Adquisición', 'Retención', 'Retorno'];
+const SEGMENTOS: Segmento[] = ['Adquisición', 'Retención', 'Retorno', 'Más Vistas', 'Más Seguidores', 'Más Vistas del Perfil'];
 
 const CATEGORIAS = [
   { codigo: 'ALCANCE', nombre: 'Alcance', unidad: 'personas' },
@@ -28,6 +29,8 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
 
   const [metricasIdeales, setMetricasIdeales] = useState<MetricaIdeal[]>([]);
   const [cargando, setCargando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Cargar métricas ideales al montar el componente
   useEffect(() => {
@@ -37,31 +40,17 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
   const cargarMetricasIdeales = async () => {
     try {
       setCargando(true);
-      // Aquí harías la llamada al API
-      // const metricas = await metricasService.obtenerMetricasIdeales(filtros);
-      // setMetricasIdeales(metricas);
-      
-      // Por ahora, datos de ejemplo
-      setMetricasIdeales([
-        {
-          id: '1',
-          nombre: 'Alcance Ideal',
-          valorIdeal: 1000,
-          valorMinimo: 800,
-          valorMaximo: 1500,
-          unidad: 'personas',
-          categoria: 'ALCANCE',
-          vertical: 'MOTOPER',
-          pais: 'PE',
-          plataforma: 'FB',
-          segmento: 'Adquisición',
-          activa: true,
-          fechaCreacion: new Date(),
-          fechaActualizacion: new Date()
-        }
-      ]);
+      setError(null);
+      const metricas = await metricasService.obtenerMetricasIdeales({
+        vertical: filtros.vertical || undefined,
+        pais: filtros.pais || undefined,
+        plataforma: filtros.plataforma || undefined,
+        segmento: filtros.segmento || undefined
+      });
+      setMetricasIdeales(metricas);
     } catch (err) {
       console.error('Error cargando métricas ideales:', err);
+      setError('No se pudieron cargar las métricas ideales. Intenta nuevamente.');
     } finally {
       setCargando(false);
     }
@@ -76,7 +65,7 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
 
   const handleCrearMetrica = () => {
     const nuevaMetrica: MetricaIdeal = {
-      id: Date.now().toString(),
+      id: `temp-${Date.now()}`,
       nombre: '',
       valorIdeal: 0,
       valorMinimo: 0,
@@ -102,20 +91,34 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
   };
 
   const handleEliminarMetrica = (id: string) => {
-    setMetricasIdeales(prev => prev.filter(m => m.id !== id));
+    const esTemporal = id.startsWith('temp-');
+    if (esTemporal) {
+      setMetricasIdeales(prev => prev.filter(m => m.id !== id));
+      return;
+    }
+    
+    metricasService.eliminarMetricaIdeal(id)
+      .then(() => {
+        setMetricasIdeales(prev => prev.filter(m => m.id !== id));
+      })
+      .catch((err) => {
+        console.error('Error eliminando métrica ideal:', err);
+        alert('No se pudo eliminar la métrica. Intenta nuevamente.');
+      });
   };
 
   const handleGuardar = async () => {
     try {
-      setCargando(true);
-      // Aquí harías la llamada al API para guardar
-      // await metricasService.guardarMetricasIdeales(metricasIdeales);
-      console.log('Guardando métricas ideales:', metricasIdeales);
+      setGuardando(true);
+      setError(null);
+      const resultado = await metricasService.guardarMetricasIdeales(metricasIdeales);
+      setMetricasIdeales(resultado);
       onCerrar();
     } catch (err) {
       console.error('Error guardando métricas ideales:', err);
+      setError('No se pudieron guardar los cambios. Intenta nuevamente.');
     } finally {
-      setCargando(false);
+      setGuardando(false);
     }
   };
 
@@ -222,6 +225,11 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
                 <p className="text-gray-600 mt-2">Cargando métricas...</p>
               </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <div className="text-red-500 text-4xl mb-4">❌</div>
+                <p className="text-red-600">{error}</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {metricasIdeales.map((metrica) => (
@@ -308,10 +316,10 @@ export default function ConfigurarMetricasIdeales({ onCerrar }: ConfigurarMetric
             </button>
             <button
               onClick={handleGuardar}
-              disabled={cargando}
+              disabled={cargando || guardando}
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
             >
-              {cargando ? 'Guardando...' : 'Guardar Configuración'}
+              {guardando ? 'Guardando...' : 'Guardar Configuración'}
             </button>
           </div>
         </div>

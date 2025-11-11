@@ -1,11 +1,15 @@
 package com.siscoca.controller;
 
+import com.siscoca.dto.LogRequest;
 import com.siscoca.model.LogEntry;
+import com.siscoca.service.AuditLogger;
 import com.siscoca.service.LoggingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +20,23 @@ public class LoggingController {
     
     @Autowired
     private LoggingService loggingService;
+    
+    @Autowired
+    private AuditLogger auditLogger;
+    
+    @PostMapping
+    public ResponseEntity<Void> crearLog(@Valid @RequestBody LogRequest request) {
+        auditLogger.logManual(
+                request.getUsuario(),
+                request.getRol(),
+                request.getEntidad(),
+                request.getAccion(),
+                request.getEntidadId(),
+                request.getDescripcion(),
+                request.getDetalles()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
     
     @GetMapping
     public ResponseEntity<List<LogEntry>> obtenerLogs(

@@ -115,5 +115,15 @@ public class ChatController {
         List<MensajeChatDto> mensajes = chatService.getAllListaMensajesNoLeidos();
         return ResponseEntity.ok(mensajes);
     }
+    
+    /**
+     * Obtiene el conteo de mensajes no leídos para todas las campañas en una sola consulta
+     * Optimizado para reducir el número de consultas SQL
+     */
+    @GetMapping("/todos-no-leidos-por-campana")
+    public ResponseEntity<Map<Long, Long>> getMensajesNoLeidosPorTodasLasCampanas() {
+        Map<Long, Long> conteos = chatService.getMensajesNoLeidosPorTodasLasCampanas();
+        return ResponseEntity.ok(conteos);
+    }
 }
 

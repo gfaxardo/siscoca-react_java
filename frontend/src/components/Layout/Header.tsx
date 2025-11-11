@@ -21,9 +21,24 @@ export default function Header({ onAbrirDashboard, onAbrirTareas, onAbrirInbox, 
   const { acciones } = useMenuActions();
 
   useEffect(() => {
-    cargarMensajesNoLeidos();
-    const interval = setInterval(cargarMensajesNoLeidos, 30000); // Actualizar cada 30 segundos
-    return () => clearInterval(interval);
+    let isMounted = true;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const cargarMensajes = async () => {
+      if (!isMounted) return;
+      await cargarMensajesNoLeidos();
+    };
+
+    cargarMensajes();
+    // Aumentar intervalo a 60 segundos para reducir carga del servidor
+    intervalId = setInterval(cargarMensajes, 60000); // Actualizar cada 60 segundos
+    
+    return () => {
+      isMounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [user?.rol]);
 
   const cargarMensajesNoLeidos = async () => {

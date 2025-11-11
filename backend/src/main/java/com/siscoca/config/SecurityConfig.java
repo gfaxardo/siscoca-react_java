@@ -4,6 +4,7 @@ import com.siscoca.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -45,16 +46,20 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/test/**").permitAll()
-                .requestMatchers("/campanas/**").authenticated()
-                .requestMatchers("/chat/**").authenticated()
-                .requestMatchers("/files/**").authenticated()
-                .requestMatchers("/historico/**").authenticated()
-                .requestMatchers("/logging/**").authenticated()
-                .requestMatchers("/tareas/**").authenticated()
-                .requestMatchers("/usuarios/**").authenticated()
-                .requestMatchers("/metricas/**").authenticated()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/auth/**", "/api/auth/**").permitAll()
+                .requestMatchers("/test/**", "/api/test/**").permitAll()
+                .requestMatchers("/campanas/**", "/api/campanas/**").authenticated()
+                .requestMatchers("/creativos/**", "/api/creativos/**").authenticated()
+                .requestMatchers("/chat/**", "/api/chat/**").authenticated()
+                .requestMatchers("/files/**", "/api/files/**").authenticated()
+                .requestMatchers("/historico/import", "/api/historico/import").authenticated()
+                .requestMatchers("/historico/**", "/api/historico/**").authenticated()
+                .requestMatchers("/logging/**", "/api/logging/**").authenticated()
+                .requestMatchers("/tareas/**", "/api/tareas/**").authenticated()
+                .requestMatchers("/usuarios/**", "/api/usuarios/**").authenticated()
+                .requestMatchers("/metricas/**", "/api/metricas/**").authenticated()
+                .requestMatchers("/metricas-ideales/**", "/api/metricas-ideales/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -65,7 +70,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "https://siscoca.yego.pro", "https://apisiscoca.yego.pro"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*", "https://siscoca.yego.pro", "https://apisiscoca.yego.pro"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

@@ -10,11 +10,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import com.siscoca.model.Creativo;
 
 @Entity
 @Table(name = "campanas")
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties({"historicoSemanas", "hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({"historicoSemanas", "creativos", "hibernateLazyInitializer", "handler"})
 public class Campana {
     
     @Id
@@ -71,6 +72,19 @@ public class Campana {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String descripcion;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_aterrizaje", length = 50)
+    private TipoAterrizaje tipoAterrizaje;
+    
+    @Column(name = "url_aterrizaje", columnDefinition = "TEXT")
+    private String urlAterrizaje;
+    
+    @Column(name = "detalle_aterrizaje", columnDefinition = "TEXT")
+    private String detalleAterrizaje;
+    
+    @Column(name = "nombre_plataforma", length = 255)
+    private String nombrePlataforma;
+    
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -114,6 +128,9 @@ public class Campana {
     
     @OneToMany(mappedBy = "campana", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<HistoricoSemanal> historicoSemanas;
+    
+    @OneToMany(mappedBy = "campana", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Creativo> creativos;
     
     // Relación con logs removida - LogEntry ahora es independiente
     
@@ -223,6 +240,38 @@ public class Campana {
     
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+    
+    public TipoAterrizaje getTipoAterrizaje() {
+        return tipoAterrizaje;
+    }
+    
+    public void setTipoAterrizaje(TipoAterrizaje tipoAterrizaje) {
+        this.tipoAterrizaje = tipoAterrizaje;
+    }
+    
+    public String getUrlAterrizaje() {
+        return urlAterrizaje;
+    }
+    
+    public void setUrlAterrizaje(String urlAterrizaje) {
+        this.urlAterrizaje = urlAterrizaje;
+    }
+    
+    public String getDetalleAterrizaje() {
+        return detalleAterrizaje;
+    }
+    
+    public void setDetalleAterrizaje(String detalleAterrizaje) {
+        this.detalleAterrizaje = detalleAterrizaje;
+    }
+    
+    public String getNombrePlataforma() {
+        return nombrePlataforma;
+    }
+    
+    public void setNombrePlataforma(String nombrePlataforma) {
+        this.nombrePlataforma = nombrePlataforma;
     }
     
     public EstadoCampana getEstado() {
@@ -367,6 +416,14 @@ public class Campana {
     
     public void setHistoricoSemanas(List<HistoricoSemanal> historicoSemanas) {
         this.historicoSemanas = historicoSemanas;
+    }
+    
+    public List<Creativo> getCreativos() {
+        return creativos;
+    }
+    
+    public void setCreativos(List<Creativo> creativos) {
+        this.creativos = creativos;
     }
     
 }

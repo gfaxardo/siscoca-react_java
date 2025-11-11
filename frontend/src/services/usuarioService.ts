@@ -1,6 +1,8 @@
-import { Usuario } from '../types/campana';
+import { Usuario, RolUsuario } from '../types/campana';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
+import { API_BASE_URL } from '../config/api';
+
+const API_URL = API_BASE_URL;
 
 export interface CreateUsuarioRequest {
   username: string;
@@ -18,6 +20,18 @@ export interface UpdateUsuarioRequest {
   password?: string;
   activo: boolean;
 }
+
+export interface RolOption {
+  codigo: 'ADMIN' | 'TRAFFICKER' | 'DUEÑO' | 'MKT';
+  nombre: RolUsuario;
+}
+
+const CODIGO_POR_NOMBRE: Record<RolUsuario, RolOption['codigo']> = {
+  Admin: 'ADMIN',
+  Trafficker: 'TRAFFICKER',
+  Dueño: 'DUEÑO',
+  Marketing: 'MKT'
+};
 
 class UsuarioService {
   private getAuthHeaders(): HeadersInit {
@@ -151,6 +165,28 @@ class UsuarioService {
       }
     } catch (error) {
       console.error('Error en deleteUsuario:', error);
+      throw error;
+    }
+  }
+
+  async getRolesDisponibles(): Promise<RolOption[]> {
+    try {
+      const response = await fetch(`${API_URL}/usuarios/roles`, {
+        headers: this.getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Error obteniendo roles disponibles');
+      }
+
+      const data = await response.json();
+      return (Array.isArray(data) ? data : []).map((rol): RolOption => {
+        const nombre = (rol?.nombre || rol?.displayName || 'Marketing') as RolUsuario;
+        const codigo = (rol?.codigo || rol?.code || CODIGO_POR_NOMBRE[nombre]) as RolOption['codigo'];
+        return { codigo, nombre };
+      });
+    } catch (error) {
+      console.error('Error en getRolesDisponibles:', error);
       throw error;
     }
   }

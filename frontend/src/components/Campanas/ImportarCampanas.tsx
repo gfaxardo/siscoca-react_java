@@ -66,6 +66,7 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
   const [campanasImportadas, setCampanasImportadas] = useState<CampanaImportada[]>([]);
   const [historicoImportado, setHistoricoImportado] = useState<HistoricoImportado[]>([]);
   const [errores, setErrores] = useState<string[]>([]);
+  const [mensajeResultado, setMensajeResultado] = useState<string | null>(null);
   const [paso, setPaso] = useState<'seleccion' | 'preview' | 'importando' | 'completado'>('seleccion');
   const [tipoImportacion, setTipoImportacion] = useState<'campanas' | 'historico' | 'auto'>('auto');
 
@@ -155,6 +156,7 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
     }
 
     setErrores(errores);
+    setMensajeResultado(null);
     return historico;
   };
 
@@ -217,6 +219,7 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
     setPaso('importando');
     const erroresImportacion: string[] = [];
     let exitosas = 0;
+    setMensajeResultado(null);
 
     if (tipoImportacion === 'historico') {
       // Importar histórico
@@ -224,6 +227,10 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
         const resultado = await importarHistorico(historicoImportado);
         if (resultado.exito) {
           exitosas = historicoImportado.length;
+          setMensajeResultado(resultado.mensaje);
+          if (resultado.errores && resultado.errores.length > 0) {
+            erroresImportacion.push(...resultado.errores);
+          }
         } else {
           erroresImportacion.push(resultado.mensaje);
         }
@@ -499,7 +506,10 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
                   Importación Completada
                 </h3>
                 <p className="text-gray-500">
-                  Se importaron {campanasImportadas.length - errores.length} de {campanasImportadas.length} campañas
+                  {mensajeResultado ??
+                    (tipoImportacion === 'historico'
+                      ? `Se importaron ${historicoImportado.length - errores.length} de ${historicoImportado.length} registros históricos`
+                      : `Se importaron ${campanasImportadas.length - errores.length} de ${campanasImportadas.length} campañas`)}
                 </p>
               </div>
 

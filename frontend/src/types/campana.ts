@@ -4,7 +4,7 @@ export type EstadoActividad = 'ACTIVA' | 'FINALIZADA' | 'CANCELADA';
 
 export type EstadoMetricas = 'COMPLETA' | 'INCOMPLETA' | 'NO_ACTUALIZADA' | 'ERROR';
 
-export type Segmento = 'Adquisición' | 'Retención' | 'Retorno';
+export type Segmento = 'Adquisición' | 'Retención' | 'Retorno' | 'Más Vistas' | 'Más Seguidores' | 'Más Vistas del Perfil';
 
 export type Pais = 'PE' | 'CO';
 
@@ -76,6 +76,18 @@ export const DUENOS: Dueno[] = [
   { nombre: 'Otro', iniciales: '' }
 ];
 
+export interface Creativo {
+  id: string;
+  campanaId: string;
+  archivoCreativo?: string; // Base64 del archivo
+  nombreArchivoCreativo?: string;
+  urlCreativoExterno?: string;
+  activo: boolean;
+  orden: number;
+  fechaCreacion: Date;
+  fechaActualizacion?: Date;
+}
+
 export interface Campana {
   id: string;
   nombre: string;
@@ -92,11 +104,15 @@ export interface Campana {
   descripcion: string;
   tipoAterrizaje: TipoAterrizaje;
   urlAterrizaje?: string;
+  detalleAterrizaje?: string; // Detalles de campos del formulario cuando tipoAterrizaje es FORMS
   nombrePlataforma?: string;
   estado: EstadoCampana;
+  // Campos legacy para compatibilidad (deprecated - usar creativos[])
   archivoCreativo?: string;
   nombreArchivoCreativo?: string;
   urlCreativoExterno?: string;
+  // Array de creativos (nuevo sistema)
+  creativos?: Creativo[];
   urlInforme?: string;
   alcance?: number;
   clics?: number;
@@ -178,6 +194,7 @@ export interface FormularioCrearCampana {
   descripcion: string;
   tipoAterrizaje: TipoAterrizaje;
   urlAterrizaje?: string;
+  detalleAterrizaje?: string; // Detalles de campos del formulario cuando tipoAterrizaje es FORMS
   nombrePlataforma?: string;
 }
 

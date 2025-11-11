@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { HistorialCambio, Campana } from '../../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useLogging } from '../../hooks/useLogging';
+import { LogEntry } from '../../services/loggingService';
 
 interface HistorialCambiosProps {
   campana: Campana;
   onCerrar: () => void;
 }
 
-const TIPOS_CAMBIO_LABELS = {
+const TIPOS_CAMBIO_LABELS: Record<HistorialCambio['tipoCambio'], string> = {
   CREACION: 'Creación',
   EDICION: 'Edición',
   METRICAS: 'Métricas',
@@ -16,7 +18,7 @@ const TIPOS_CAMBIO_LABELS = {
   ARCHIVADO: 'Archivado'
 };
 
-const TIPOS_CAMBIO_COLORS = {
+const TIPOS_CAMBIO_COLORS: Record<HistorialCambio['tipoCambio'], string> = {
   CREACION: 'bg-green-100 text-green-800',
   EDICION: 'bg-blue-100 text-blue-800',
   METRICAS: 'bg-purple-100 text-purple-800',
@@ -24,7 +26,7 @@ const TIPOS_CAMBIO_COLORS = {
   ARCHIVADO: 'bg-gray-100 text-gray-800'
 };
 
-const TIPOS_CAMBIO_ICONS = {
+const TIPOS_CAMBIO_ICONS: Record<HistorialCambio['tipoCambio'], string> = {
   CREACION: '🆕',
   EDICION: '✏️',
   METRICAS: '📊',
@@ -43,63 +45,41 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
     fechaHasta: ''
   });
 
-  useEffect(() => {
-    cargarHistorial();
-  }, [campana.id, filtros]);
+  const { getLogsByEntity } = useLogging();
 
-  const cargarHistorial = async () => {
-    try {
-      setCargando(true);
-      // Aquí harías la llamada al API
-      // const historialData = await historialService.obtenerHistorialCampana(campana.id, filtros);
-      // setHistorial(historialData);
-      
-      // Por ahora, datos de ejemplo
-      setHistorial([
-        {
-          id: '1',
-          idCampana: campana.id,
-          tipoCambio: 'CREACION',
-          campoModificado: 'Campaña creada',
-          valorAnterior: null,
-          valorNuevo: campana.nombre,
-          usuario: 'Ana C.',
-          fechaCambio: new Date('2024-01-15T10:30:00'),
-          comentario: 'Campaña creada desde el formulario'
-        },
-        {
-          id: '2',
-          idCampana: campana.id,
-          tipoCambio: 'METRICAS',
-          campoModificado: 'Alcance',
-          valorAnterior: '1000',
-          valorNuevo: '1250',
-          usuario: 'Diego V.',
-          fechaCambio: new Date('2024-01-15T14:30:00'),
-          comentario: 'Actualización de métricas del trafficker'
-        },
-        {
-          id: '3',
-          idCampana: campana.id,
-          tipoCambio: 'ESTADO',
-          campoModificado: 'Estado',
-          valorAnterior: 'Pendiente',
-          valorNuevo: 'Activa',
-          usuario: 'Ana C.',
-          fechaCambio: new Date('2024-01-15T16:45:00'),
-          comentario: 'Campaña activada después de revisión'
-        }
-      ]);
-    } catch (err) {
-      setError('Error cargando historial de cambios');
-      console.error('Error:', err);
-    } finally {
-      setCargando(false);
-    }
-  };
+  useEffect(() => {
+    const cargarHistorial = async () => {
+      try {
+        setCargando(true);
+        setError(null);
+        const logs = await getLogsByEntity(String(campana.id));
+        const historico = logs
+          .map((log) => transformarLogACambio(log, campana.id))
+          .filter((item): item is HistorialCambio => item !== null);
+        setHistorial(historico);
+      } catch (err) {
+        console.error('Error cargando historial de cambios:', err);
+        setError('Error cargando historial de cambios');
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarHistorial();
+  }, [campana.id, getLogsByEntity]);
+
+  const historialFiltrado = useMemo(() => {
+    return historial.filter((cambio) => {
+      if (filtros.tipoCambio && cambio.tipoCambio !== filtros.tipoCambio) return false;
+      if (filtros.usuario && !cambio.usuario.toLowerCase().includes(filtros.usuario.toLowerCase())) return false;
+      if (filtros.fechaDesde && new Date(cambio.fechaCambio) < new Date(filtros.fechaDesde)) return false;
+      if (filtros.fechaHasta && new Date(cambio.fechaCambio) > new Date(filtros.fechaHasta)) return false;
+      return true;
+    });
+  }, [historial, filtros]);
 
   const handleFiltroChange = (campo: keyof typeof filtros, valor: string) => {
-    setFiltros(prev => ({
+    setFiltros((prev) => ({
       ...prev,
       [campo]: valor
     }));
@@ -109,21 +89,14 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
     if (valor === null || valor === undefined) return 'N/A';
     if (typeof valor === 'boolean') return valor ? 'Sí' : 'No';
     if (typeof valor === 'number') return valor.toLocaleString();
+    if (valor instanceof Date) return format(valor, 'dd/MM/yyyy HH:mm', { locale: es });
+    if (typeof valor === 'object') return JSON.stringify(valor, null, 2);
     return String(valor);
   };
-
-  const historialFiltrado = historial.filter(cambio => {
-    if (filtros.tipoCambio && cambio.tipoCambio !== filtros.tipoCambio) return false;
-    if (filtros.usuario && !cambio.usuario.toLowerCase().includes(filtros.usuario.toLowerCase())) return false;
-    if (filtros.fechaDesde && new Date(cambio.fechaCambio) < new Date(filtros.fechaDesde)) return false;
-    if (filtros.fechaHasta && new Date(cambio.fechaCambio) > new Date(filtros.fechaHasta)) return false;
-    return true;
-  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
@@ -142,7 +115,6 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {/* Filtros */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">🔍 Filtros</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -187,13 +159,12 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
                   type="date"
                   value={filtros.fechaHasta}
                   onChange={(e) => handleFiltroChange('fechaHasta', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus-border-transparent"
                 />
               </div>
             </div>
           </div>
 
-          {/* Lista de Cambios */}
           {cargando ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
@@ -238,7 +209,7 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
                         
                         <div className="mt-2">
                           <p className="text-sm text-gray-700">
-                            <span className="font-medium">{cambio.usuario}</span> cambió{' '}
+                            <span className="font-medium">{cambio.usuario}</span> registró un cambio en{' '}
                             <span className="font-medium">{cambio.campoModificado}</span>
                           </p>
                           
@@ -269,7 +240,6 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
           )}
         </div>
 
-        {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
           <div className="flex justify-between items-center">
             <p className="text-sm text-gray-600">
@@ -286,4 +256,41 @@ export default function HistorialCambios({ campana, onCerrar }: HistorialCambios
       </div>
     </div>
   );
+}
+
+function transformarLogACambio(log: LogEntry, campanaId: string | number): HistorialCambio | null {
+  if (!log.timestamp) {
+    return null;
+  }
+
+  const tipoCambio = determinarTipoCambio(log);
+  let valorAnterior: any = null;
+  let valorNuevo: any = null;
+
+  if (log.detalles && typeof log.detalles === 'object' && !Array.isArray(log.detalles)) {
+    const detallesObj = log.detalles as Record<string, unknown>;
+    if ('antes' in detallesObj) valorAnterior = detallesObj['antes'];
+    if ('despues' in detallesObj) valorNuevo = detallesObj['despues'];
+  }
+
+  return {
+    id: String(log.id),
+    idCampana: String(campanaId),
+    tipoCambio,
+    campoModificado: log.descripcion || log.entidad || 'Cambio',
+    valorAnterior,
+    valorNuevo,
+    usuario: log.usuario,
+    fechaCambio: log.timestamp,
+    comentario: log.descripcion || undefined
+  };
+}
+
+function determinarTipoCambio(log: LogEntry): HistorialCambio['tipoCambio'] {
+  const accion = log.accion.toLowerCase();
+  if (accion.includes('crear')) return 'CREACION';
+  if (accion.includes('archiv')) return 'ARCHIVADO';
+  if (accion.includes('reactivar') || accion.includes('estado')) return 'ESTADO';
+  if (accion.includes('métric') || accion.includes('metric')) return 'METRICAS';
+  return 'EDICION';
 }

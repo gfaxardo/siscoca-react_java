@@ -3,13 +3,19 @@ package com.siscoca.service;
 import com.siscoca.model.LogEntry;
 import com.siscoca.repository.LogEntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class LoggingService {
@@ -17,9 +23,27 @@ public class LoggingService {
     @Autowired
     private LogEntryRepository logEntryRepository;
     
-    public List<LogEntry> obtenerLogs(String usuario, String rol, String accion, String entidad, 
+    public List<LogEntry> obtenerLogs(String usuario, String rol, String accion, String entidad,
                                      String entidadId, String fechaDesde, String fechaHasta) {
-        return logEntryRepository.findByFilters(usuario, rol, accion, entidad, entidadId);
+        LocalDateTime desde = parseDateTime(fechaDesde, false);
+        LocalDateTime hasta = parseDateTime(fechaHasta, true);
+
+        if (desde != null && hasta != null && hasta.isBefore(desde)) {
+            LocalDateTime temp = desde;
+            desde = hasta;
+            hasta = temp;
+        }
+
+        return logEntryRepository.findByFilters(
+                normalize(usuario),
+                normalize(rol),
+                normalize(accion),
+                normalize(entidad),
+                normalize(entidadId),
+                desde,
+                hasta,
+                Sort.by(Sort.Direction.DESC, "timestamp")
+        );
     }
     
     public List<LogEntry> obtenerLogsPorEntidad(String entidadId) {
@@ -31,15 +55,17 @@ public class LoggingService {
     }
     
     public List<LogEntry> obtenerLogsRecientes(int limite) {
-        return logEntryRepository.findTopNByOrderByTimestampDesc(limite);
+        int size = Math.max(limite, 1);
+        Pageable pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "timestamp"));
+        return logEntryRepository.findAll(pageable).getContent();
     }
     
     public Map<String, Object> obtenerEstadisticas() {
         long totalLogs = logEntryRepository.count();
         
-        Map<String, Long> logsPorUsuario = logEntryRepository.countByUsuario();
-        Map<String, Long> logsPorAccion = logEntryRepository.countByAccion();
-        Map<String, Long> logsPorEntidad = logEntryRepository.countByEntidad();
+        Map<String, Long> logsPorUsuario = toCountMap(logEntryRepository.countLogsByUsuario());
+        Map<String, Long> logsPorAccion = toCountMap(logEntryRepository.countLogsByAccion());
+        Map<String, Long> logsPorEntidad = toCountMap(logEntryRepository.countLogsByEntidad());
         
         List<LogEntry> actividadReciente = obtenerLogsRecientes(10);
         
@@ -56,18 +82,96 @@ public class LoggingService {
         logEntryRepository.deleteAll();
     }
     
-    public void crearLog(String usuario, String rol, String accion, String entidad, 
+    public void crearLog(String usuario, String rol, String accion, String entidad,
                         String entidadId, String descripcion, String detalles) {
+        crearLog(usuario, rol, accion, entidad, entidadId, descripcion, detalles, null, null, null);
+    }
+
+    public void crearLog(String usuario, String rol, String accion, String entidad,
+                        String entidadId, String descripcion, String detalles,
+                        String ipAddress, String userAgent, String sessionId) {
         LogEntry logEntry = new LogEntry();
         logEntry.setUsuario(usuario);
         logEntry.setRol(rol);
+        logEntry.setUsuarioId(resolveUsuarioId(usuario));
         logEntry.setAccion(accion);
         logEntry.setEntidad(entidad);
         logEntry.setEntidadId(entidadId);
         logEntry.setDescripcion(descripcion);
         logEntry.setDetalles(detalles);
-        logEntry.setTimestamp(LocalDateTime.now());
+        logEntry.setIpAddress(ipAddress);
+        logEntry.setUserAgent(userAgent);
+        logEntry.setSessionId(sessionId);
+        LocalDateTime now = LocalDateTime.now();
+        logEntry.setTimestamp(now);
+        logEntry.setFechaCreacion(now);
         
         logEntryRepository.save(logEntry);
+    }
+
+    private Map<String, Long> toCountMap(List<Object[]> values) {
+        Map<String, Long> result = new HashMap<>();
+        if (values == null) {
+            return result;
+        }
+        for (Object[] row : values) {
+            if (row == null || row.length < 2 || row[0] == null || row[1] == null) {
+                continue;
+            }
+            String key = String.valueOf(row[0]);
+            long count = ((Number) row[1]).longValue();
+            result.put(key, count);
+        }
+        return result;
+    }
+
+    private String resolveUsuarioId(String usuario) {
+        if (usuario == null || usuario.isBlank()) {
+            return "Sistema";
+        }
+        return usuario.trim();
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private LocalDateTime parseDateTime(String value, boolean endOfDay) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = value.trim();
+
+        try {
+            return LocalDateTime.parse(trimmed);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            OffsetDateTime offsetDateTime = OffsetDateTime.parse(trimmed);
+            return offsetDateTime.toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(trimmed, DateTimeFormatter.ISO_DATE);
+            if (endOfDay) {
+                return date.atTime(23, 59, 59);
+            }
+            return date.atStartOfDay();
+        } catch (DateTimeParseException ignored) {
+        }
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        try {
+            return LocalDateTime.parse(trimmed, formatter);
+        } catch (DateTimeParseException ignored) {
+        }
+
+        return null;
     }
 }

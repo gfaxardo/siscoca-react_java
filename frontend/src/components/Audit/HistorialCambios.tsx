@@ -34,6 +34,76 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
     }
   };
 
+  const formatearFecha = (fecha: Date | null, formato: string) => {
+    if (!fecha) return '—';
+    return format(fecha, formato, { locale: es });
+  };
+
+  const renderDetalles = (detalles: LogEntry['detalles']) => {
+    if (!detalles) {
+      return <span className="text-gray-500">Sin detalles</span>;
+    }
+
+    if (typeof detalles === 'string') {
+      return <p className="text-gray-600">{detalles}</p>;
+    }
+
+    if (Array.isArray(detalles)) {
+      return (
+        <ul className="text-gray-600 text-xs space-y-1">
+          {detalles.slice(0, 5).map((item, idx) => (
+            <li key={idx} className="truncate">• {JSON.stringify(item)}</li>
+          ))}
+          {detalles.length > 5 && (
+            <li className="text-gray-400">... y {detalles.length - 5} más</li>
+          )}
+        </ul>
+      );
+    }
+
+    if (typeof detalles === 'object') {
+      const detallesObj = detalles as Record<string, unknown>;
+      const tieneAntesDespues = 'antes' in detallesObj || 'despues' in detallesObj;
+      const descripcion = 'descripcion' in detallesObj ? detallesObj.descripcion : undefined;
+
+      return (
+        <div className="space-y-2">
+          {descripcion && (
+            <p className="text-gray-600">{String(descripcion)}</p>
+          )}
+          {tieneAntesDespues && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+              {'antes' in detallesObj && (
+                <div>
+                  <span className="font-semibold text-gray-700">Antes</span>
+                  <pre className="bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">
+                    {JSON.stringify(detallesObj.antes, null, 2)}
+                  </pre>
+                </div>
+              )}
+              {'despues' in detallesObj && (
+                <div>
+                  <span className="font-semibold text-gray-700">Después</span>
+                  <pre className="bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">
+                    {JSON.stringify(detallesObj.despues, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+          <details className="text-xs text-gray-500">
+            <summary className="cursor-pointer select-none">Ver JSON completo</summary>
+            <pre className="bg-gray-50 border border-gray-200 rounded p-2 mt-2 overflow-x-auto">
+              {JSON.stringify(detallesObj, null, 2)}
+            </pre>
+          </details>
+        </div>
+      );
+    }
+
+    return <span>{String(detalles)}</span>;
+  };
+
   const manejarFiltro = (campo: keyof LogFilter, valor: any) => {
     setFiltros(prev => ({
       ...prev,
@@ -172,10 +242,12 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
               >
                 <option value="">Todas las entidades</option>
                 <option value="Campaña">Campaña</option>
-                <option value="Métricas">Métricas</option>
                 <option value="Creativo">Creativo</option>
-                <option value="Histórico">Histórico</option>
+                <option value="Métricas">Métricas</option>
+                <option value="Tarea">Tarea</option>
                 <option value="Usuario">Usuario</option>
+                <option value="Chat">Chat</option>
+                <option value="Auth">Auth</option>
                 <option value="Sistema">Sistema</option>
               </select>
             </div>
@@ -238,10 +310,10 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
                         <div className="font-medium">
-                          {format(log.timestamp, 'dd/MM/yyyy', { locale: es })}
+                          {formatearFecha(log.timestamp, 'dd/MM/yyyy')}
                         </div>
                         <div className="text-gray-500">
-                          {format(log.timestamp, 'HH:mm:ss', { locale: es })}
+                          {formatearFecha(log.timestamp, 'HH:mm:ss')}
                         </div>
                       </div>
                     </td>
@@ -257,6 +329,9 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">{log.usuario}</div>
                           <div className="text-sm text-gray-500">{log.rol}</div>
+                          {log.ipAddress && (
+                            <div className="text-xs text-gray-400">IP: {log.ipAddress}</div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -265,37 +340,21 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
                         <span className="mr-1">{obtenerIconoAccion(log.accion)}</span>
                         {log.accion}
                       </span>
+                      {log.descripcion && (
+                        <div className="text-xs text-gray-500 mt-1">{log.descripcion}</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
                         <div className="font-medium">{log.entidad}</div>
-                        <div className="text-gray-500">ID: {log.entidadId}</div>
+                        {log.entidadId && (
+                          <div className="text-gray-500 text-xs">ID: {log.entidadId}</div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       <div className="max-w-xs">
-                        {log.detalles && typeof log.detalles === 'object' && log.detalles !== null && 'descripcion' in log.detalles && (log.detalles as { descripcion?: string }).descripcion && (
-                          <div className="mb-2">
-                            <span className="font-medium">Descripción:</span>
-                            <p className="text-gray-600">{(log.detalles as { descripcion: string }).descripcion}</p>
-                          </div>
-                        )}
-                        {log.detalles && typeof log.detalles === 'object' && log.detalles !== null && 'cambios' in log.detalles && Array.isArray((log.detalles as { cambios?: string[] }).cambios) && (log.detalles as { cambios: string[] }).cambios.length > 0 && (
-                          <div>
-                            <span className="font-medium">Cambios:</span>
-                            <ul className="text-gray-600 text-xs mt-1">
-                              {(log.detalles as { cambios: string[] }).cambios.slice(0, 3).map((cambio: string, index: number) => (
-                                <li key={index} className="truncate">• {cambio}</li>
-                              ))}
-                              {(log.detalles as { cambios: string[] }).cambios.length > 3 && (
-                                <li className="text-gray-400">... y {(log.detalles as { cambios: string[] }).cambios.length - 3} más</li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
-                        {log.detalles && typeof log.detalles === 'string' && (
-                          <p className="text-gray-600">{log.detalles}</p>
-                        )}
+                        {renderDetalles(log.detalles)}
                       </div>
                     </td>
                   </tr>

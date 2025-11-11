@@ -12,6 +12,7 @@ interface MenuAccionesCampanaProps {
   onDescargarCreativo: () => void;
   onEliminarCampana: () => void;
   onEditarCampana: () => void;
+  onVerDetalles?: () => void;
   onVerMetricasGlobales: () => void;
   onVerHistorialCambios: () => void;
 }
@@ -27,6 +28,7 @@ export default function MenuAccionesCampana({
   onDescargarCreativo,
   onEliminarCampana,
   onEditarCampana,
+  onVerDetalles,
   onVerMetricasGlobales,
   onVerHistorialCambios
 }: MenuAccionesCampanaProps) {
@@ -55,13 +57,20 @@ export default function MenuAccionesCampana({
       case 'Pendiente':
         acciones.push({
           id: 'enviar-creativo',
-          label: '📎 Enviar Creativo',
+          label: '📎 Gestionar Creativos',
           onClick: onEnviarCreativo,
           color: 'text-blue-600 hover:bg-blue-50'
         });
         break;
 
       case 'Creativo Enviado':
+        acciones.push({
+          id: 'enviar-creativo',
+          label: '📎 Gestionar Creativos',
+          onClick: onEnviarCreativo,
+          color: 'text-blue-600 hover:bg-blue-50'
+        });
+        
         acciones.push({
           id: 'activar-campana',
           label: '✅ Activar Campaña',
@@ -80,6 +89,14 @@ export default function MenuAccionesCampana({
         break;
 
       case 'Activa':
+        // Opción para gestionar creativos (agregar, modificar, eliminar)
+        acciones.push({
+          id: 'enviar-creativo',
+          label: '📎 Gestionar Creativos',
+          onClick: onEnviarCreativo,
+          color: 'text-blue-600 hover:bg-blue-50'
+        });
+        
         acciones.push({
           id: 'subir-metricas-trafficker',
           label: '📊 Subir Métricas Trafficker',
@@ -94,7 +111,7 @@ export default function MenuAccionesCampana({
           color: 'text-orange-600 hover:bg-orange-50'
         });
 
-        // Mostrar descargar creativo si existe
+        // Mostrar descargar creativo si existe (legacy)
         if (campana.archivoCreativo) {
           acciones.push({
             id: 'descargar-creativo',
@@ -117,6 +134,14 @@ export default function MenuAccionesCampana({
         break;
 
       case 'Archivada':
+        // Opción para gestionar creativos (solo lectura)
+        acciones.push({
+          id: 'enviar-creativo',
+          label: '📎 Gestionar Creativos',
+          onClick: onEnviarCreativo,
+          color: 'text-blue-600 hover:bg-blue-50'
+        });
+        
         // Opción de reactivar para campañas archivadas
         if (onReactivarCampana) {
           acciones.push({
@@ -156,6 +181,16 @@ export default function MenuAccionesCampana({
       onClick: onVerHistorialCambios,
       color: 'text-indigo-600 hover:bg-indigo-50'
     });
+
+    // Acción de ver detalles siempre disponible
+    if (onVerDetalles) {
+      acciones.push({
+        id: 'ver-detalles',
+        label: '👁️ Ver Detalles',
+        onClick: onVerDetalles,
+        color: 'text-purple-600 hover:bg-purple-50'
+      });
+    }
 
     // Acción de editar siempre disponible
     acciones.push({

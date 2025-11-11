@@ -26,5 +26,12 @@ public interface MensajeChatRepository extends JpaRepository<MensajeChat, Long> 
     
     @Query("SELECT COUNT(m) FROM MensajeChat m WHERE m.leido = false")
     Long countMensajesNoLeidos();
+    
+    /**
+     * Obtiene el conteo de mensajes no leídos agrupado por campaña
+     * Retorna un Map donde la clave es el ID de la campaña y el valor es el conteo
+     */
+    @Query("SELECT m.campana.id, COUNT(m) FROM MensajeChat m WHERE m.leido = false GROUP BY m.campana.id")
+    List<Object[]> countMensajesNoLeidosPorCampanaAgrupado();
 }
 

@@ -3,7 +3,7 @@ import { authService } from './authService';
 
 // Servicio de campañas con API del backend local
 // El backend tiene context-path: /api, por lo que la URL debe incluir /api
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
+import { API_BASE_URL } from '../config/api';
 
 export interface CampanaApi {
   id: number;
@@ -237,6 +237,11 @@ class CampanaService {
         throw new Error('No hay token de autenticación. Por favor, inicia sesión nuevamente.');
       }
       
+      // Asegurar que Content-Type esté presente
+      if (!headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+      
       const response = await fetch(`${API_BASE_URL}/campanas/update/${id}`, {
         method: 'PUT',
         headers,
@@ -256,6 +261,12 @@ class CampanaService {
       return await response.json();
     } catch (error) {
       console.error('Error actualizando campaña:', error);
+      
+      // Mejorar mensaje de error para "Failed to fetch"
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('No se pudo conectar con el servidor. Verifica que el backend esté corriendo y que la URL sea correcta.');
+      }
+      
       throw error;
     }
   }

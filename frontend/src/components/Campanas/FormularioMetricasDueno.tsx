@@ -76,6 +76,20 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
   const historicoExistente = obtenerHistoricoSemanalCampana(campana.id);
   const semanaActualSeleccionada = opcionesSemanas.find(o => o.valor === semanaSeleccionada);
   
+  // Obtener el costo semanal de la semana seleccionada
+  const obtenerCostoSemanal = () => {
+    const esSemanaActual = semanaSeleccionada === obtenerSemanaActual();
+    if (esSemanaActual) {
+      return campana.costoSemanal || 0;
+    } else {
+      // Buscar en el histórico de la semana seleccionada
+      const datosSemana = historicoExistente.find(h => h.semanaISO === semanaSeleccionada);
+      return datosSemana?.costoSemanal || campana.costoSemanal || 0;
+    }
+  };
+
+  const [costoSemanalActual, setCostoSemanalActual] = useState(obtenerCostoSemanal());
+  
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<MetricasDueno>({
     resolver: zodResolver(esquemaFormulario),
     defaultValues: {
@@ -87,17 +101,22 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
 
   // Observar cambios en costoSemanal y conductoresPrimerViaje para calcular automáticamente costoConductor
   const conductoresPrimerViaje = watch('conductoresPrimerViaje');
-  const costoSemanal = campana.costoSemanal;
+  
+  // Actualizar costo semanal cuando cambia la semana seleccionada
+  useEffect(() => {
+    const nuevoCosto = obtenerCostoSemanal();
+    setCostoSemanalActual(nuevoCosto);
+  }, [semanaSeleccionada, historicoExistente]);
 
   useEffect(() => {
     // Calcular costo por conductor usando conductoresPrimerViaje (no registros)
-    if (costoSemanal && conductoresPrimerViaje && conductoresPrimerViaje > 0) {
+    if (costoSemanalActual && conductoresPrimerViaje && conductoresPrimerViaje > 0) {
       // Actualizar el store para que el cálculo se refleje
       // Nota: El store calculará esto automáticamente al guardar, pero mostramos el cálculo aquí
-    } else if (costoSemanal === 0 || conductoresPrimerViaje === 0) {
+    } else if (costoSemanalActual === 0 || conductoresPrimerViaje === 0) {
       // Si el costo o conductores son 0, el costo por conductor debe ser 0
     }
-  }, [costoSemanal, conductoresPrimerViaje]);
+  }, [costoSemanalActual, conductoresPrimerViaje]);
 
   const onSubmit = async (datos: MetricasDueno) => {
     // Validar funnel de métricas dueño
@@ -268,23 +287,23 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
               <p className="text-red-500 text-sm mt-1">{errors.conductoresPrimerViaje.message}</p>
             )}
             {/* Mostrar cálculo automático en tiempo real */}
-            {costoSemanal && conductoresPrimerViaje && conductoresPrimerViaje > 0 && (
+            {costoSemanalActual && conductoresPrimerViaje && conductoresPrimerViaje > 0 && (
               <p className="text-xs text-green-600 mt-1 font-medium">
-                💰 Costo por Conductor: ${Math.round((costoSemanal / conductoresPrimerViaje) * 100) / 100} USD
+                💰 Costo por Conductor: ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
               </p>
             )}
           </div>
 
           {/* Cálculo automático de costo por conductor */}
-          {costoSemanal && conductoresPrimerViaje && conductoresPrimerViaje > 0 && (
+          {costoSemanalActual && conductoresPrimerViaje && conductoresPrimerViaje > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-green-800 font-semibold mb-2">💰 Cálculo Automático</p>
               <div className="text-sm text-green-700 space-y-1">
                 <p>
-                  <strong>Costo por Conductor:</strong> ${Math.round((costoSemanal / conductoresPrimerViaje) * 100) / 100} USD
+                  <strong>Costo por Conductor:</strong> ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
                 </p>
                 <p className="text-xs text-green-600 mt-1">
-                  Fórmula: Costo Semanal ({costoSemanal} USD) ÷ Conductores ({conductoresPrimerViaje}) = ${Math.round((costoSemanal / conductoresPrimerViaje) * 100) / 100} USD
+                  Fórmula: Costo Semanal ({costoSemanalActual} USD) ÷ Conductores ({conductoresPrimerViaje}) = ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
                 </p>
               </div>
             </div>
@@ -297,9 +316,14 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
             <ul className="mt-2 text-sm text-blue-700 space-y-1 ml-4">
               <li>• <strong>Registros:</strong> Personas que se registraron en la plataforma</li>
               <li>• <strong>Conductores:</strong> Personas que ya hicieron al menos un viaje</li>
-              <li className="mt-2">El sistema calculará automáticamente:</li>
+              <li className="mt-2">El sistema calculará automáticamente usando el costo semanal de la semana seleccionada:</li>
               <li>• Costo por Registro (USD) = Costo Semanal ÷ Registros</li>
               <li>• Costo por Conductor (USD) = Costo Semanal ÷ Conductores (usando conductoresPrimerViaje)</li>
+              {costoSemanalActual > 0 && (
+                <li className="text-xs text-blue-600 mt-2 font-medium">
+                  💡 Costo semanal de la semana {semanaSeleccionada}: ${costoSemanalActual} USD
+                </li>
+              )}
             </ul>
           </div>
 

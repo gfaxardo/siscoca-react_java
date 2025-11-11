@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Campana, MetricasTrafficker, MetricasDueno, FormularioCrearCampana, HistoricoSemanal, Vertical, Segmento } from '../types';
 import { campanaService, CampanaApi } from '../services/campanaService';
+import { historicoService, HistoricoImportPayload } from '../services/historicoService';
 
 // Función auxiliar para obtener el token de autenticación
 function getAuthToken(): string | null {
@@ -36,6 +37,59 @@ function getAuthToken(): string | null {
 }
 
 // Función para convertir CampanaApi a Campana
+const SEGMENTOS_MAP: Record<string, Segmento> = {
+  'ADQ': 'Adquisición',
+  'ADQUISICION': 'Adquisición',
+  'ADQUISICIÓN': 'Adquisición',
+  'RET': 'Retención',
+  'RETENCION': 'Retención',
+  'RETENCIÓN': 'Retención',
+  'RETO': 'Retorno',
+  'RETORNO': 'Retorno',
+  'MAS_VISTAS': 'Más Vistas',
+  'MAS VISTAS': 'Más Vistas',
+  'MÁS VISTAS': 'Más Vistas',
+  'MAS_SEGUIDORES': 'Más Seguidores',
+  'MAS SEGUIDORES': 'Más Seguidores',
+  'MÁS SEGUIDORES': 'Más Seguidores',
+  'MAS_VISTAS_PERFIL': 'Más Vistas del Perfil',
+  'MAS VISTAS DEL PERFIL': 'Más Vistas del Perfil',
+  'MÁS VISTAS DEL PERFIL': 'Más Vistas del Perfil'
+};
+
+const TIPOS_ATERRIZAJE_MAP: Record<string, Campana['tipoAterrizaje']> = {
+  'FORMULARIO': 'FORMS',
+  'FORMULARIO DE REGISTRO': 'FORMS',
+  'FORMULARIO_REGISTRO': 'FORMS',
+  'FORM': 'FORMS',
+  'FORMS': 'FORMS',
+  'WHATSAPP': 'WHATSAPP',
+  'URL': 'URL',
+  'LANDING': 'LANDING',
+  'APP': 'APP',
+  'CALL_CENTER': 'CALL_CENTER',
+  'CALL CENTER': 'CALL_CENTER',
+  'EMAIL': 'EMAIL',
+  'CORREO': 'EMAIL',
+  'OTRO': 'OTRO'
+};
+
+function normalizarSegmento(valor: string | null | undefined): Segmento {
+  if (!valor) {
+    return 'Adquisición';
+  }
+  const clave = valor.toString().trim().toUpperCase();
+  return SEGMENTOS_MAP[clave] ?? (valor as Segmento) ?? 'Adquisición';
+}
+
+function normalizarTipoAterrizaje(valor: string | null | undefined): Campana['tipoAterrizaje'] {
+  if (!valor) {
+    return 'FORMS';
+  }
+  const clave = valor.toString().trim().toUpperCase();
+  return TIPOS_ATERRIZAJE_MAP[clave] ?? (valor.toUpperCase() as Campana['tipoAterrizaje']) ?? 'FORMS';
+}
+
 function convertirApiACampana(api: CampanaApi): Campana {
   return {
     id: api.id.toString(),
@@ -43,7 +97,7 @@ function convertirApiACampana(api: CampanaApi): Campana {
     pais: api.pais as 'PE' | 'CO',
     vertical: api.vertical as Vertical,
     plataforma: api.plataforma as 'FB' | 'TT' | 'IG' | 'GG' | 'LI',
-    segmento: api.segmento as 'Adquisición' | 'Retención' | 'Retorno',
+    segmento: normalizarSegmento(api.segmento),
     idPlataformaExterna: api.idPlataformaExterna,
     nombreDueno: api.nombreDueno,
     inicialesDueno: api.inicialesDueno,
@@ -51,7 +105,7 @@ function convertirApiACampana(api: CampanaApi): Campana {
     objetivo: api.objetivo,
     beneficio: api.beneficio,
     descripcion: api.descripcion,
-    tipoAterrizaje: api.tipoAterrizaje as 'FORMS' | 'WHATSAPP' | 'URL' | 'LANDING' | 'APP' | 'CALL_CENTER' | 'EMAIL' | 'OTRO',
+    tipoAterrizaje: normalizarTipoAterrizaje(api.tipoAterrizaje),
     urlAterrizaje: api.urlAterrizaje,
     nombrePlataforma: api.nombrePlataforma,
     estado: api.estado as 'Pendiente' | 'Creativo Enviado' | 'Activa' | 'Archivada',
@@ -75,10 +129,53 @@ function convertirApiACampana(api: CampanaApi): Campana {
   };
 }
 
+function normalizarCampana(campana: Campana): Campana {
+  return {
+    ...campana,
+    segmento: normalizarSegmento(campana.segmento),
+    tipoAterrizaje: normalizarTipoAterrizaje(campana.tipoAterrizaje),
+    pais: campana.pais as 'PE' | 'CO',
+    vertical: campana.vertical as Vertical,
+    plataforma: campana.plataforma as 'FB' | 'TT' | 'IG' | 'GG' | 'LI'
+  };
+}
+
 // Función para convertir FormularioCrearCampana a CampanaApi
-function convertirFormularioAApi(formulario: FormularioCrearCampana, nombreGenerado?: string): Omit<CampanaApi, 'id' | 'fechaCreacion' | 'fechaActualizacion' | 'semanaISO'> {
-  // Generar nombre si no se proporciona uno y tenemos todos los datos necesarios
-  let nombre = nombreGenerado || '';
+type FormularioCampanaConNombre = FormularioCrearCampana & {
+  nombre?: string;
+  estado?: Campana['estado'];
+};
+
+function mapearCampanaAFormulario(campana: Campana): FormularioCampanaConNombre {
+  return {
+    nombre: campana.nombre,
+    pais: campana.pais,
+    vertical: campana.vertical,
+    plataforma: campana.plataforma,
+    segmento: campana.segmento,
+    idPlataformaExterna: campana.idPlataformaExterna,
+    nombreDueno: campana.nombreDueno,
+    inicialesDueno: campana.inicialesDueno,
+    descripcionCorta: campana.descripcionCorta,
+    objetivo: campana.objetivo,
+    beneficio: campana.beneficio,
+    descripcion: campana.descripcion,
+    tipoAterrizaje: campana.tipoAterrizaje,
+    urlAterrizaje: campana.urlAterrizaje,
+    detalleAterrizaje: campana.detalleAterrizaje,
+    nombrePlataforma: campana.nombrePlataforma,
+    estado: campana.estado
+  };
+}
+
+function convertirFormularioAApi(
+  formulario: FormularioCampanaConNombre,
+  nombreGenerado?: string,
+  estadoActual?: Campana['estado']
+): Omit<CampanaApi, 'id' | 'fechaCreacion' | 'fechaActualizacion' | 'semanaISO'> {
+  const nombreManual = formulario.nombre?.trim();
+  // Priorizar el nombre escrito manualmente; si no existe, usar el nombre generado recibido
+  let nombre = nombreManual || nombreGenerado || '';
   
   if (!nombre && formulario.pais && formulario.vertical && formulario.plataforma && formulario.segmento && formulario.inicialesDueno && formulario.descripcionCorta) {
     const SEGMENTOS_ABREV: Record<string, string> = {
@@ -92,7 +189,7 @@ function convertirFormularioAApi(formulario: FormularioCrearCampana, nombreGener
   }
   
   return {
-    nombre: nombre || '', // Enviar el nombre generado o string vacío si no se puede generar
+    nombre: nombre || formulario.nombre || '',
     pais: formulario.pais,
     vertical: formulario.vertical,
     plataforma: formulario.plataforma,
@@ -107,11 +204,11 @@ function convertirFormularioAApi(formulario: FormularioCrearCampana, nombreGener
     tipoAterrizaje: formulario.tipoAterrizaje,
     urlAterrizaje: formulario.urlAterrizaje,
     nombrePlataforma: formulario.nombrePlataforma,
-    estado: 'Pendiente'
+    estado: formulario.estado ?? estadoActual ?? 'Pendiente'
   };
 }
 
-interface HistoricoSemanalCampana {
+export interface HistoricoSemanalCampana {
   id: string;
   idCampana: string;
   semanaISO: number;
@@ -126,6 +223,8 @@ interface HistoricoSemanalCampana {
   // Métricas dueño
   conductoresRegistrados?: number;
   conductoresPrimerViaje?: number;
+  costoConductorRegistrado?: number; // en USD
+  costoConductorPrimerViaje?: number; // en USD
   // Metadatos
   fechaRegistro: Date;
   registradoPor: string;
@@ -138,7 +237,7 @@ interface CampanaStore {
   campanaSeleccionada: Campana | null;
   
   crearCampana: (datos: FormularioCrearCampana, idPersonalizado?: string) => Promise<{ exito: boolean; mensaje: string }>;
-  actualizarCampana: (idCampana: string, datos: Partial<FormularioCrearCampana>) => Promise<{ exito: boolean; mensaje: string }>;
+  actualizarCampana: (idCampana: string, datos: Partial<FormularioCampanaConNombre>) => Promise<{ exito: boolean; mensaje: string }>;
   subirMetricasTrafficker: (datos: MetricasTrafficker) => Promise<{ exito: boolean; mensaje: string }>;
   completarMetricasDueno: (datos: MetricasDueno) => Promise<{ exito: boolean; mensaje: string }>;
   cambiarEstadoCampana: (idCampana: string, nuevoEstado: Campana['estado']) => Promise<{ exito: boolean; mensaje: string }>;
@@ -147,7 +246,7 @@ interface CampanaStore {
   descargarCreativo: (campana: Campana) => { exito: boolean; mensaje: string };
   archivarCampana: (campana: Campana) => Promise<{ exito: boolean; mensaje: string }>;
   reactivarCampana: (campana: Campana) => Promise<{ exito: boolean; mensaje: string }>;
-  importarHistorico: (datosHistorico: any[]) => Promise<{ exito: boolean; mensaje: string }>;
+  importarHistorico: (datosHistorico: any[]) => Promise<{ exito: boolean; mensaje: string; errores?: string[] }>;
   guardarHistoricoSemanal: (datos: Omit<HistoricoSemanalCampana, 'id' | 'fechaRegistro' | 'registradoPor'>) => Promise<{ exito: boolean; mensaje: string }>;
   obtenerHistoricoSemanalCampana: (idCampana: string) => HistoricoSemanalCampana[];
   eliminarHistoricoSemanal: (id: string) => Promise<{ exito: boolean; mensaje: string }>;
@@ -179,13 +278,26 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
     }
   },
 
-  actualizarCampana: async (idCampana: string, datos: Partial<FormularioCrearCampana>) => {
+  actualizarCampana: async (idCampana: string, datos: Partial<FormularioCampanaConNombre>) => {
     try {
-      const datosApi = convertirFormularioAApi(datos as FormularioCrearCampana);
+      const campanas = get().campanas;
+      const campanaOriginal = campanas.find(c => c.id === idCampana);
+      if (!campanaOriginal) {
+        return { exito: false, mensaje: 'Campaña no encontrada en memoria' };
+      }
+
+      const formularioBase = mapearCampanaAFormulario(campanaOriginal);
+      const datosFormulario: FormularioCampanaConNombre = {
+        ...formularioBase,
+        ...datos,
+        nombre: (datos.nombre ?? formularioBase.nombre) || campanaOriginal.nombre,
+        estado: datos.estado ?? formularioBase.estado
+      };
+
+      const datosApi = convertirFormularioAApi(datosFormulario, undefined, campanaOriginal.estado);
       const campanaApi = await campanaService.actualizarCampana(parseInt(idCampana), datosApi);
       const campanaActualizada = convertirApiACampana(campanaApi);
       
-      const campanas = get().campanas;
       const campanasActualizadas = campanas.map(c => 
         c.id === idCampana ? campanaActualizada : c
       );
@@ -496,60 +608,72 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
   },
 
   importarHistorico: async (datosHistorico: any[]) => {
-    try {
-      const historico = get().historico;
-      const nuevosRegistros: HistoricoSemanal[] = [];
+    const parseNumber = (valor: any): number | undefined => {
+      if (valor === null || valor === undefined || valor === '') {
+        return undefined;
+      }
+      if (typeof valor === 'number') {
+        return isNaN(valor) ? undefined : valor;
+      }
+      const convertido = parseFloat(String(valor).replace(/[$,]/g, ''));
+      return isNaN(convertido) ? undefined : convertido;
+    };
 
-      for (const registro of datosHistorico) {
-        const fechaArchivo = new Date(registro.FECHA_ARCHIVO.split(' ')[0].split('/').reverse().join('-'));
-        
-        const nuevoRegistro: HistoricoSemanal = {
-          id: `${registro.ID_CAMPANIA}-${registro.SEMANA_ISO}`,
-          idCampana: registro.ID_CAMPANIA,
-          nombre: registro.NOMBRE_CAMPANIA,
-          semanaISO: parseInt(registro.SEMANA_ISO.toString()),
-          fechaArchivo: fechaArchivo,
-          pais: 'PE', // Por defecto, se puede mapear desde vertical
-          vertical: registro.VERTICAL as Vertical || 'MOTOPER',
-          plataforma: 'FB', // Por defecto, se puede extraer del nombre
-          segmento: registro.SEGMENTO as Segmento || 'Adquisición',
+    const parseInteger = (valor: any): number | undefined => {
+      const numero = parseNumber(valor);
+      return numero !== undefined ? Math.round(numero) : undefined;
+    };
+
+    try {
+      const payload: HistoricoImportPayload[] = datosHistorico.map((registro: any) => {
+        const semanaISO = parseInteger(registro.SEMANA_ISO);
+        const campanaId = parseInteger(registro.ID_CAMPANIA);
+
+        return {
+          campanaId: campanaId,
+          campanaIdPlataforma: registro.ID_CAMPANIA ? String(registro.ID_CAMPANIA).trim() : undefined,
+          campanaNombre: registro.NOMBRE_CAMPANIA,
+          semanaISO,
+          fechaArchivo: registro.FECHA_ARCHIVO,
+          alcance: parseInteger(registro.ALCANCE),
+          clics: parseInteger(registro.CLICS),
+          leads: parseNumber(registro.LEADS),
+          costoSemanal: parseNumber(registro.COSTO_SEMANAL),
+          costoLead: parseNumber(registro.COSTO_LEAD),
+          conductoresRegistrados: parseInteger(registro.CONDUCTORES_REGISTRADOS),
+          conductoresPrimerViaje: parseInteger(registro.CONDUCTORES_PRIMER_VIAJE),
+          costoConductorRegistrado: parseNumber(registro.COSTO_CONDUCTOR_REGISTRADO),
+          costoConductorPrimerViaje: parseNumber(registro.COSTO_CONDUCTOR_PRIMER_VIAJE),
+          estadoActividad: registro.ESTADO_ACTIVIDAD,
+          estadoMetricas: registro.ESTADO_METRICAS,
+          mensaje: registro.MENSAJE,
           objetivo: registro.OBJETIVO,
           beneficio: registro.BENEFICIO_PROGRAMA,
           descripcion: registro.DESCRIPCION,
-          nombreDueno: 'Importado',
-          
-          // Métricas del trafficker
-          alcance: registro.ALCANCE || undefined,
-          clics: registro.CLICKS || undefined,
-          leads: registro.LEADS || undefined,
-          costoSemanal: registro.COSTO_SEMANAL || undefined,
-          costoLead: registro.COSTO_LEAD || undefined,
-          
-          // Métricas del dueño
-          conductoresRegistrados: registro.CONDUCTORES_REGISTRADOS || undefined,
-          conductoresPrimerViaje: registro.CONDUCTORES_PRIMER_VIAJE || undefined,
-          costoConductorRegistrado: registro.COSTO_CONDUCTOR_REGISTRADO || undefined,
-          costoConductorPrimerViaje: registro.COSTO_CONDUCTOR_PRIMER_VIAJE || undefined,
-          
-          // Estados
-          estadoActividad: registro.ESTADO_ACTIVIDAD,
-          estadoMetricas: registro.ESTADO_METRICAS,
-          mensaje: registro.MENSAJE || 'Importado desde Google Sheets'
+          registradoPor: registro.REGISTRADO_POR,
+          urlInforme: registro.URL_INFORME,
+          pais: registro.PAIS,
+          vertical: registro.VERTICAL,
+          plataforma: registro.PLATAFORMA,
+          segmento: registro.SEGMENTO,
         };
+      });
 
-        nuevosRegistros.push(nuevoRegistro);
-      }
+      const respuesta = await historicoService.importarHistorico(payload);
 
-      const historicoActualizado = [...historico, ...nuevosRegistros];
-      set({ historico: historicoActualizado });
-      localStorage.setItem('historico', JSON.stringify(historicoActualizado));
+      await get().obtenerHistorico();
 
-      return { 
-        exito: true, 
-        mensaje: `${nuevosRegistros.length} registros históricos importados exitosamente` 
+      const mensaje = `Importación completada: ${respuesta.registrosProcesados} registros procesados. ` +
+        `${respuesta.registrosCreados} creados, ${respuesta.registrosActualizados} actualizados.`;
+
+      return {
+        exito: true,
+        mensaje,
+        errores: respuesta.errores,
       };
     } catch (error) {
-      return { exito: false, mensaje: `Error importando histórico: ${error}` };
+      const mensajeError = error instanceof Error ? error.message : String(error);
+      return { exito: false, mensaje: `Error importando histórico: ${mensajeError}` };
     }
   },
 
@@ -564,12 +688,15 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
       try {
         const campanasGuardadas = localStorage.getItem('campanas');
         if (campanasGuardadas) {
-          const campanas = JSON.parse(campanasGuardadas);
-          campanas.forEach((c: Campana) => {
-            c.fechaCreacion = new Date(c.fechaCreacion);
-            c.ultimaActualizacion = new Date(c.ultimaActualizacion);
+        const campanas = JSON.parse(campanasGuardadas).map((c: Campana) => {
+          const campanaNormalizada = normalizarCampana({
+            ...c,
+            fechaCreacion: new Date(c.fechaCreacion),
+            ultimaActualizacion: new Date(c.ultimaActualizacion)
           });
-          set({ campanas });
+          return campanaNormalizada;
+        });
+        set({ campanas });
         }
       } catch (localStorageError) {
         console.error('Error cargando datos de localStorage:', localStorageError);
@@ -583,7 +710,7 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
     try {
       // Intentar obtener desde el backend primero
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://apisiscoca.yego.pro/api';
+        const { API_BASE_URL } = await import('../config/api');
         const token = getAuthToken();
         const headers: Record<string, string> = {
           'Content-Type': 'application/json'
@@ -733,9 +860,16 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
       
       let historicoActualizado;
       if (indiceExistente >= 0) {
-        // Actualizar registro existente
+        // Actualizar registro existente haciendo merge (preservar campos existentes que no se envían)
+        const registroExistente = historicoSemanasCampanas[indiceExistente];
         historicoActualizado = [...historicoSemanasCampanas];
-        historicoActualizado[indiceExistente] = nuevoRegistro;
+        historicoActualizado[indiceExistente] = {
+          ...registroExistente, // Preservar campos existentes
+          ...datos, // Sobrescribir solo con los campos enviados
+          id: registroExistente.id, // Mantener el ID original
+          fechaRegistro: registroExistente.fechaRegistro, // Mantener fecha de registro original
+          registradoPor: registroExistente.registradoPor || nuevoRegistro.registradoPor // Mantener registradoPor original si existe
+        };
       } else {
         // Agregar nuevo registro
         historicoActualizado = [...historicoSemanasCampanas, nuevoRegistro];

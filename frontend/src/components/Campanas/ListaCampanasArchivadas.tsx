@@ -450,7 +450,6 @@ export default function ListaCampanasArchivadas() {
         <UploadCreativo
           campana={campanaParaUpload}
           onCerrar={() => setCampanaParaUpload(null)}
-          onSubirCreativo={subirCreativo}
         />
       )}
 

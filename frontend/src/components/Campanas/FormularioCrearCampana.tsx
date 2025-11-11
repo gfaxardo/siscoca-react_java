@@ -15,7 +15,7 @@ const esquemaFormulario = z.object({
   plataforma: z.enum(['FB', 'TT', 'IG', 'GG', 'LI'], {
     errorMap: () => ({ message: 'Selecciona una plataforma' })
   }),
-  segmento: z.enum(['Adquisición', 'Retención', 'Retorno'], {
+  segmento: z.enum(['Adquisición', 'Retención', 'Retorno', 'Más Vistas', 'Más Seguidores', 'Más Vistas del Perfil'], {
     errorMap: () => ({ message: 'Selecciona un segmento válido' })
   }),
   idPlataformaExterna: z.string().optional(),
@@ -32,6 +32,7 @@ const esquemaFormulario = z.object({
     errorMap: () => ({ message: 'Selecciona un tipo de aterrizaje' })
   }),
   urlAterrizaje: z.string().optional(),
+  detalleAterrizaje: z.string().optional(),
   nombrePlataforma: z.string().optional()
 });
 
@@ -42,11 +43,14 @@ interface FormularioCrearCampanaProps {
 const SEGMENTOS_ABREV: Record<string, string> = {
   'Adquisición': 'ADQ',
   'Retención': 'RET',
-  'Retorno': 'RTO'
+  'Retorno': 'RTO',
+  'Más Vistas': 'VST',
+  'Más Seguidores': 'SEG',
+  'Más Vistas del Perfil': 'VDP'
 };
 
 export default function FormularioCrearCampanaComponent({ onCerrar }: FormularioCrearCampanaProps) {
-  const { crearCampana, campanas } = useCampanaStore();
+  const { crearCampana, campanas, obtenerCampanas } = useCampanaStore();
   const [nombreGenerado, setNombreGenerado] = useState<string>('');
   const [nombreEditando, setNombreEditando] = useState<string>('');
   const [esEditable, setEsEditable] = useState(false);
@@ -70,6 +74,27 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
   const tipoAterrizaje = watch('tipoAterrizaje');
 
   const [inicialesCustomManual, setInicialesCustomManual] = useState(false);
+  
+  // Sincronizar parámetros al cambiar tipo de aterrizaje
+  useEffect(() => {
+    // Cuando cambia el tipo de aterrizaje, limpiar el campo urlAterrizaje para evitar valores incorrectos
+    if (tipoAterrizaje) {
+      const valorActual = watch('urlAterrizaje');
+      // Solo limpiar si el valor actual no es válido para el nuevo tipo
+      if (tipoAterrizaje === 'EMAIL' && valorActual && !valorActual.includes('@')) {
+        setValue('urlAterrizaje', '');
+      } else if (tipoAterrizaje === 'WHATSAPP' && valorActual && valorActual.includes('@')) {
+        setValue('urlAterrizaje', '');
+      } else if (tipoAterrizaje === 'CALL_CENTER' && valorActual && valorActual.includes('@')) {
+        setValue('urlAterrizaje', '');
+      } else if (['FORMS', 'URL', 'LANDING', 'APP'].includes(tipoAterrizaje) && valorActual && !valorActual.startsWith('http') && valorActual.length > 0) {
+        // Si cambia de tipo que no requiere URL a uno que sí, limpiar
+        if (!['FORMS', 'URL', 'LANDING', 'APP'].includes(valorActual)) {
+          setValue('urlAterrizaje', '');
+        }
+      }
+    }
+  }, [tipoAterrizaje, setValue, watch]);
 
   const manejarCambioDueno = (nombreSeleccionado: string) => {
     const dueno = DUENOS.find(d => d.nombre === nombreSeleccionado);
@@ -114,6 +139,7 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
     
     if (resultado.exito) {
       alert(`✅ ${resultado.mensaje}`);
+      await obtenerCampanas();
       onCerrar();
     } else {
       alert(`❌ ${resultado.mensaje}`);
@@ -260,6 +286,9 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                   <option value="Adquisición">Adquisición</option>
                   <option value="Retención">Retención</option>
                   <option value="Retorno">Retorno</option>
+                  <option value="Más Vistas">Más Vistas</option>
+                  <option value="Más Seguidores">Más Seguidores</option>
+                  <option value="Más Vistas del Perfil">Más Vistas del Perfil</option>
                 </select>
                 {errors.segmento && (
                   <p className="text-red-500 text-sm mt-1">{errors.segmento.message}</p>
@@ -461,6 +490,22 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                     </p>
                     {errors.urlAterrizaje && (
                       <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                    )}
+                    {tipoAterrizaje === 'FORMS' && (
+                      <>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 mt-4">
+                          Detalles de Campos del Formulario (Opcional)
+                        </label>
+                        <textarea
+                          {...register('detalleAterrizaje')}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                          placeholder="Ej: Nombre, Email, Teléfono, Mensaje..."
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Describe qué campos tendrá el formulario de la landing de aterrizaje
+                        </p>
+                      </>
                     )}
                   </>
                 )}

@@ -21,6 +21,7 @@ public class CampanaDto {
     private String descripcion;
     private String tipoAterrizaje;
     private String urlAterrizaje;
+    private String detalleAterrizaje;
     private String nombrePlataforma;
     private String estado;
     private String archivoCreativo;
@@ -168,6 +169,14 @@ public class CampanaDto {
     
     public void setUrlAterrizaje(String urlAterrizaje) {
         this.urlAterrizaje = urlAterrizaje;
+    }
+    
+    public String getDetalleAterrizaje() {
+        return detalleAterrizaje;
+    }
+    
+    public void setDetalleAterrizaje(String detalleAterrizaje) {
+        this.detalleAterrizaje = detalleAterrizaje;
     }
     
     public String getNombrePlataforma() {

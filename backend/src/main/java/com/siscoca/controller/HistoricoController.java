@@ -1,5 +1,7 @@
 package com.siscoca.controller;
 
+import com.siscoca.dto.HistoricoImportDto;
+import com.siscoca.dto.HistoricoImportResponseDto;
 import com.siscoca.model.HistoricoSemanal;
 import com.siscoca.service.HistoricoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,5 +70,11 @@ public class HistoricoController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+    
+    @PostMapping("/import")
+    public ResponseEntity<HistoricoImportResponseDto> importarHistorico(@RequestBody List<HistoricoImportDto> registros) {
+        HistoricoImportResponseDto respuesta = historicoService.importarRegistros(registros);
+        return ResponseEntity.ok(respuesta);
     }
 }
