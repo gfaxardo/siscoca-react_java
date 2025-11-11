@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpiar Sistema SISCOCA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .button {
+            background: #dc2626;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #b91c1c;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .warning {
+            color: #dc2626;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Limpiar Sistema SISCOCA</h1>
+        <p>Esta página te permite limpiar completamente todos los datos del sistema.</p>
+        
+        <div class="warning">
+            ⚠️ ADVERTENCIA: Esta acción eliminará TODOS los datos guardados y no se puede deshacer.
+        </div>
+
+        <button class="button" onclick="limpiarTodo()">
+            🗑️ LIMPIAR TODO EL SISTEMA
+        </button>
+
+        <div id="resultado"></div>
+
+        <p style="margin-top: 30px; color: #666;">
+            Después de limpiar, puedes cerrar esta página y volver al sistema SISCOCA que estará completamente vacío.
+        </p>
+    </div>
+
+    <script>
+        function limpiarTodo() {
+            try {
+                // Limpiar localStorage
+                localStorage.clear();
+                
+                // Limpiar sessionStorage
+                sessionStorage.clear();
+                
+                // Limpiar cookies relacionadas (si las hay)
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+
+                document.getElementById('resultado').innerHTML = 
+                    '<div class="success">✅ ¡Sistema limpiado exitosamente!<br>Todos los datos han sido eliminados.<br>El sistema está listo para empezar desde cero.</div>';
+                
+            } catch (error) {
+                document.getElementById('resultado').innerHTML = 
+                    '<div style="color: #dc2626;">❌ Error: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>
+
