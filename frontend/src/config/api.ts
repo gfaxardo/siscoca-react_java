@@ -13,6 +13,11 @@ const resolveBaseUrl = () => {
       return `${protocol}//${hostname}:${backendPort}/api`;
     }
 
+    // En producción, si el frontend está en siscoca.yego.pro, usar apisiscoca.yego.pro para el backend
+    if (hostname === 'siscoca.yego.pro' || hostname.includes('siscoca.yego.pro')) {
+      return 'https://apisiscoca.yego.pro/api';
+    }
+
     return `${protocol}//${hostname}${port ? `:${port}` : ''}/api`;
   }
 
