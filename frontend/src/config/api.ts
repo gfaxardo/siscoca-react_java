@@ -9,7 +9,7 @@ const resolveBaseUrl = () => {
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
 
     if (isLocalhost) {
-      const backendPort = port === '5173' || port === '3000' ? '8081' : port;
+      const backendPort = port === '5173' || port === '3000' ? '8080' : port;
       return `${protocol}//${hostname}:${backendPort}/api`;
     }
 
