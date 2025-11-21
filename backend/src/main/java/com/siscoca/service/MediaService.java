@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MediaService {
@@ -150,27 +153,59 @@ public class MediaService {
             
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             
-            ResponseEntity<String> response = restTemplate.exchange(
-                MEDIA_API_URL,
-                HttpMethod.POST,
-                requestEntity,
-                String.class
-            );
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                // Parsear la respuesta JSON
-                JsonNode jsonResponse = objectMapper.readTree(response.getBody());
-                String url = jsonResponse.has("url") ? jsonResponse.get("url").asText() : null;
+            try {
+                // Intentar recibir como Map para manejar JSON correctamente
+                ParameterizedTypeReference<Map<String, Object>> responseType = 
+                    new ParameterizedTypeReference<Map<String, Object>>() {};
+                ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    MEDIA_API_URL,
+                    HttpMethod.POST,
+                    requestEntity,
+                    responseType
+                );
                 
-                if (url != null && !url.isEmpty()) {
-                    return url;
+                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                    Map<String, Object> responseBody = response.getBody();
+                    Object urlObj = responseBody.get("url");
+                    
+                    if (urlObj != null) {
+                        String url = urlObj.toString();
+                        if (!url.isEmpty()) {
+                            return url;
+                        }
+                    }
+                    throw new RuntimeException("La API no devolvió una URL válida. Respuesta: " + responseBody);
                 } else {
-                    throw new RuntimeException("La API no devolvió una URL válida. Respuesta: " + response.getBody());
+                    throw new RuntimeException("Error al subir archivo: " + response.getStatusCode() + " - " + response.getBody());
                 }
-            } else {
-                throw new RuntimeException("Error al subir archivo: " + response.getStatusCode() + " - " + response.getBody());
+            } catch (RestClientException e) {
+                // Si falla con Map, intentar como String y parsear manualmente
+                try {
+                    ResponseEntity<String> stringResponse = restTemplate.exchange(
+                        MEDIA_API_URL,
+                        HttpMethod.POST,
+                        requestEntity,
+                        String.class
+                    );
+                    
+                    if (stringResponse.getStatusCode().is2xxSuccessful() && stringResponse.getBody() != null) {
+                        JsonNode jsonResponse = objectMapper.readTree(stringResponse.getBody());
+                        String url = jsonResponse.has("url") ? jsonResponse.get("url").asText() : null;
+                        
+                        if (url != null && !url.isEmpty()) {
+                            return url;
+                        }
+                        throw new RuntimeException("La API no devolvió una URL válida. Respuesta: " + stringResponse.getBody());
+                    } else {
+                        throw new RuntimeException("Error al subir archivo: " + stringResponse.getStatusCode() + " - " + stringResponse.getBody());
+                    }
+                } catch (Exception ex) {
+                    throw new RuntimeException("Error al subir archivo a la API externa: " + ex.getMessage() + " (original: " + e.getMessage() + ")", ex);
+                }
             }
             
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error al subir archivo a la API externa: " + e.getMessage(), e);
         }
