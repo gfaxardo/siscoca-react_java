@@ -62,7 +62,7 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-La API estará disponible en: `http://localhost:8080/api`
+La API estará disponible en: `http://localhost:8081/api`
 
 ## Endpoints disponibles
 

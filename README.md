@@ -208,7 +208,7 @@ java -jar target/siscoca-backend-2.0.0.jar
 ### Frontend
 Crear archivo `frontend/.env`:
 ```env
-VITE_API_URL=http://localhost:8080/api
+VITE_API_URL=http://localhost:8081/api
 VITE_APP_TITLE=SISCOCA 2.0
 ```
 
@@ -232,7 +232,7 @@ spring:
 
 ## 📝 Notas Importantes
 
-- El frontend se conecta al backend en `http://localhost:8080/api`
+- El frontend se conecta al backend en `http://localhost:8081/api`
 - El backend está configurado para CORS con los puertos 3000 y 5173
 - Las contraseñas se almacenan encriptadas con BCrypt
 - La autenticación se realiza mediante JWT tokens

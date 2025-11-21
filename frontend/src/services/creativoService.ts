@@ -62,23 +62,32 @@ class CreativoService {
   }
 
   /**
-   * Sube una imagen directamente a la API externa de media
+   * Sube una imagen a través del backend, que la subirá al servidor de media externo
+   * El backend puede hacer peticiones HTTP sin problemas de Mixed Content
    * @param archivo Archivo a subir
    * @returns URL pública de la imagen subida
    */
   async subirImagenAMedia(archivo: File): Promise<string> {
     const formData = new FormData();
-    formData.append('bucket', 'siscoca');
     formData.append('file', archivo);
 
-    const response = await fetch('http://178.156.204.129:3000/media', {
+    // Obtener headers de autenticación sin Content-Type (el navegador lo establece automáticamente para FormData)
+    const authHeaders = this.getAuthHeaders() as Record<string, string>;
+    const headers: Record<string, string> = {};
+    if (authHeaders['Authorization']) {
+      headers['Authorization'] = authHeaders['Authorization'];
+    }
+
+    // Llamar al endpoint del backend que se encargará de subir al servidor de media
+    const response = await fetch(`${API_BASE_URL}/files/upload-to-media`, {
       method: 'POST',
+      headers: headers,
       body: formData
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error al subir imagen: ${response.statusText} - ${errorText}`);
+      const errorData = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(`Error al subir imagen: ${errorData.error || response.statusText}`);
     }
 
     const data = await response.json();

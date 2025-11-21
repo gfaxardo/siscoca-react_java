@@ -1,5 +1,7 @@
 package com.siscoca.controller;
 
+import com.siscoca.service.MediaService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -24,6 +26,9 @@ public class FileController {
     
     @Value("${file.upload-dir:./uploads/creativos}")
     private String uploadDir;
+    
+    @Autowired
+    private MediaService mediaService;
     
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> subirArchivo(@RequestParam("file") MultipartFile file) {
@@ -95,6 +100,33 @@ public class FileController {
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
                 .body(Map.of("error", "Error eliminando archivo: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Endpoint para subir archivos al servidor de media externo
+     * Este endpoint recibe el archivo del frontend y lo sube al servidor de media usando HTTP
+     * (el backend puede hacer peticiones HTTP sin problemas de Mixed Content)
+     */
+    @PostMapping("/upload-to-media")
+    public ResponseEntity<Map<String, String>> subirArchivoAMedia(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Archivo vacío"));
+            }
+            
+            // Usar MediaService para subir al servidor de media externo
+            String urlPublica = mediaService.subirArchivo(file);
+            
+            return ResponseEntity.ok(Map.of(
+                "url", urlPublica,
+                "originalName", file.getOriginalFilename() != null ? file.getOriginalFilename() : "",
+                "size", String.valueOf(file.getSize())
+            ));
+            
+        } catch (RuntimeException e) {
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Error subiendo archivo a media: " + e.getMessage()));
         }
     }
 }
