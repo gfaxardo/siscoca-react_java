@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
 import Header from './Header';
+import Sidebar from './Sidebar';
 import DashboardConfigurable from '../Dashboard/DashboardConfigurable';
 import DashboardTareas from '../Tareas/DashboardTareas';
 import InboxMessages from '../Chat/InboxMessages';
@@ -18,14 +19,33 @@ export default function Layout({
   children, 
   vistaActiva,
   onCambiarVista,
+  onCrearNueva,
+  onImportarCampanas,
+  onVerHistorico,
   onAbrirDashboard: _onAbrirDashboard
 }: LayoutProps) {
   const [mostrarDashboard, setMostrarDashboard] = useState(false);
   const [mostrarTareas, setMostrarTareas] = useState(false);
   const [mostrarInbox, setMostrarInbox] = useState(false);
+  const [sidebarAbierto, setSidebarAbierto] = useState(true);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-slate-100">
+      {/* Sidebar */}
+      {onCambiarVista && (
+        <Sidebar
+          abierto={sidebarAbierto}
+          vistaActiva={vistaActiva || 'dashboard'}
+          onCambiarVista={(vista) => {
+            onCambiarVista(vista);
+            setSidebarAbierto(false); // Cerrar en móviles después de seleccionar
+          }}
+          onCrearNueva={onCrearNueva || (() => {})}
+          onImportarCampanas={onImportarCampanas || (() => {})}
+          onVerHistorico={onVerHistorico || (() => {})}
+        />
+      )}
+      
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         <Header 
           onAbrirDashboard={_onAbrirDashboard || (() => setMostrarDashboard(true))}
@@ -35,7 +55,7 @@ export default function Layout({
           onCambiarVista={onCambiarVista}
         />
         
-        <main className="flex-1 overflow-y-auto p-3 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100">
           {children}
         </main>
       </div>
@@ -49,18 +69,20 @@ export default function Layout({
 
       {/* Modal de Tareas Pendientes */}
       {mostrarTareas && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-800">Mis Tareas</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="sticky top-0 bg-gradient-to-r from-slate-900 to-slate-800 p-5 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">Mis Tareas</h2>
               <button
                 onClick={() => setMostrarTareas(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-300 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
               >
-                ✖️ Cerrar
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-5 overflow-y-auto max-h-[calc(90vh-80px)]">
               <DashboardTareas />
             </div>
           </div>
@@ -69,18 +91,20 @@ export default function Layout({
 
       {/* Modal de Inbox */}
       {mostrarInbox && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-800">Inbox</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+            <div className="sticky top-0 bg-gradient-to-r from-slate-900 to-slate-800 p-5 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">Inbox</h2>
               <button
                 onClick={() => setMostrarInbox(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-300 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
               >
-                ✖️ Cerrar
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <div className="p-4">
+            <div className="p-5 overflow-y-auto max-h-[calc(90vh-80px)]">
               <InboxMessages />
             </div>
           </div>

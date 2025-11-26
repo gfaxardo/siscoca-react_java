@@ -298,41 +298,45 @@ export default function Dashboard() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFiltroActivo('todas')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
               filtroActivo === 'todas'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'text-white shadow-lg transform scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
+            style={filtroActivo === 'todas' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
             📊 Todas ({campanas.length})
           </button>
           <button
             onClick={() => setFiltroActivo('activas')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
               filtroActivo === 'activas'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'text-white shadow-lg transform scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
+            style={filtroActivo === 'activas' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
             ✅ Activas ({estadisticas.activas})
           </button>
           <button
             onClick={() => setFiltroActivo('pendientes')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
               filtroActivo === 'pendientes'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'text-white shadow-lg transform scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
+            style={filtroActivo === 'pendientes' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
             ⏳ Pendientes ({estadisticas.pendientes + estadisticas.creativoEnviado})
           </button>
           <button
             onClick={() => setFiltroActivo('archivadas')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
               filtroActivo === 'archivadas'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'text-white shadow-lg transform scale-105'
+                : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
+            style={filtroActivo === 'archivadas' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
             📁 Archivadas ({estadisticas.archivadas})
           </button>
@@ -343,14 +347,14 @@ export default function Dashboard() {
         {tarjetas.map((tarjeta, index) => (
           <div
             key={index}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:border-gray-200 transition-all duration-200 transform hover:-translate-y-1"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{tarjeta.titulo}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{tarjeta.valor}</p>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{tarjeta.titulo}</p>
+                <p className="text-4xl font-bold text-gray-900 mt-3">{tarjeta.valor}</p>
               </div>
-              <div className={`${tarjeta.color} w-12 h-12 rounded-lg flex items-center justify-center text-2xl`}>
+              <div className={`${tarjeta.color} w-14 h-14 rounded-xl flex items-center justify-center text-3xl shadow-lg`}>
                 {tarjeta.icono}
               </div>
             </div>
@@ -366,14 +370,14 @@ export default function Dashboard() {
           {metricasTarjetas.map((tarjeta, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+              className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:border-gray-200 transition-all duration-200 transform hover:-translate-y-1"
             >
               <div className="flex items-center space-x-4">
-                <div className={`${tarjeta.color} w-14 h-14 rounded-lg flex items-center justify-center text-2xl flex-shrink-0`}>
+                <div className={`${tarjeta.color} w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 shadow-lg`}>
                   {tarjeta.icono}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-600">{tarjeta.titulo}</p>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{tarjeta.titulo}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1 truncate">{tarjeta.valor}</p>
                 </div>
               </div>
@@ -385,13 +389,13 @@ export default function Dashboard() {
       {/* Evolución Semanal */}
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-4">📈 Evolución Semanal (Últimas 4 Semanas)</h3>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {evolucionSemanal.map((semana, index) => (
               <div key={index} className="text-center">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Sem {semana.numeroSemana}</h4>
-                  <p className="text-sm text-gray-600 mb-4">{semana.semana}</p>
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-5 hover:shadow-lg transition-all duration-200 border border-slate-200">
+                  <h4 className="font-bold text-gray-900 mb-2">Sem {semana.numeroSemana}</h4>
+                  <p className="text-sm text-gray-600 mb-4 font-medium">{semana.semana}</p>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
@@ -429,10 +433,10 @@ export default function Dashboard() {
       {campanasFiltradas.length > 0 && (
         <div>
           <h3 className="text-xl font-bold text-gray-900 mb-4">Top 5 Campañas por Rendimiento</h3>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Campaña
