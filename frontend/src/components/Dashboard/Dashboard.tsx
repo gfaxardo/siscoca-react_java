@@ -7,6 +7,7 @@ import { limpiarTodosLosDatos, limpiarCampanas, limpiarHistorico } from '../../u
 import { useMenuActions } from '../../store/useMenuActions';
 import { useAuth } from '../../contexts/AuthContext';
 import ConfirmacionCritica from './ConfirmacionCritica';
+import { Target, CheckCircle, Clock, Send, Users, MousePointer, FileText, DollarSign, Car, Flag, BarChart3 } from 'lucide-react';
 
 type FiltroDashboard = 'todas' | 'activas' | 'archivadas' | 'pendientes';
 
@@ -276,19 +277,19 @@ export default function Dashboard() {
   }, [setAcciones, esAdmin]);
 
   const tarjetas = [
-    { titulo: 'Total Campañas', valor: estadisticas.total, icono: '🎯', color: 'bg-blue-500' },
-    { titulo: 'Activas', valor: estadisticas.activas, icono: '✅', color: 'bg-green-500' },
-    { titulo: 'Pendientes', valor: estadisticas.pendientes, icono: '⏳', color: 'bg-yellow-500' },
-    { titulo: 'Creativo Enviado', valor: estadisticas.creativoEnviado, icono: '📤', color: 'bg-blue-400' },
+    { titulo: 'Total Campañas', valor: estadisticas.total, Icon: Target, color: 'bg-blue-500' },
+    { titulo: 'Activas', valor: estadisticas.activas, Icon: CheckCircle, color: 'bg-green-500' },
+    { titulo: 'Pendientes', valor: estadisticas.pendientes, Icon: Clock, color: 'bg-yellow-500' },
+    { titulo: 'Creativo Enviado', valor: estadisticas.creativoEnviado, Icon: Send, color: 'bg-blue-400' },
   ];
 
   const metricasTarjetas = [
-    { titulo: 'Alcance Total', valor: metricas.totalAlcance.toLocaleString(), icono: '👥', color: 'bg-purple-500' },
-    { titulo: 'Total Clics', valor: metricas.totalClics.toLocaleString(), icono: '🖱️', color: 'bg-indigo-500' },
-    { titulo: 'Total Leads', valor: metricas.totalLeads.toLocaleString(), icono: '📝', color: 'bg-pink-500' },
-    { titulo: 'Inversión Semanal', valor: `$${metricas.totalCosto.toFixed(2)} USD`, icono: '💰', color: 'bg-green-600' },
-    { titulo: 'Conductores Reg.', valor: metricas.totalConductores.toLocaleString(), icono: '🚗', color: 'bg-orange-500' },
-    { titulo: 'Primer Viaje', valor: metricas.totalPrimerViaje.toLocaleString(), icono: '🏁', color: 'bg-red-500' },
+    { titulo: 'Alcance Total', valor: metricas.totalAlcance.toLocaleString(), Icon: Users, color: 'bg-purple-500' },
+    { titulo: 'Total Clics', valor: metricas.totalClics.toLocaleString(), Icon: MousePointer, color: 'bg-indigo-500' },
+    { titulo: 'Total Leads', valor: metricas.totalLeads.toLocaleString(), Icon: FileText, color: 'bg-pink-500' },
+    { titulo: 'Inversión Semanal', valor: `$${metricas.totalCosto.toFixed(2)} USD`, Icon: DollarSign, color: 'bg-green-600' },
+    { titulo: 'Conductores Reg.', valor: metricas.totalConductores.toLocaleString(), Icon: Car, color: 'bg-orange-500' },
+    { titulo: 'Primer Viaje', valor: metricas.totalPrimerViaje.toLocaleString(), Icon: Flag, color: 'bg-red-500' },
   ];
 
   return (
@@ -298,68 +299,75 @@ export default function Dashboard() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFiltroActivo('todas')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center gap-2 ${
               filtroActivo === 'todas'
                 ? 'text-white shadow-lg transform scale-105'
                 : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
             style={filtroActivo === 'todas' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
-            📊 Todas ({campanas.length})
+            <BarChart3 className="w-4 h-4" />
+            <span>Todas ({campanas.length})</span>
           </button>
           <button
             onClick={() => setFiltroActivo('activas')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center gap-2 ${
               filtroActivo === 'activas'
                 ? 'text-white shadow-lg transform scale-105'
                 : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
             style={filtroActivo === 'activas' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
-            ✅ Activas ({estadisticas.activas})
+            <CheckCircle className="w-4 h-4" />
+            <span>Activas ({estadisticas.activas})</span>
           </button>
           <button
             onClick={() => setFiltroActivo('pendientes')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center gap-2 ${
               filtroActivo === 'pendientes'
                 ? 'text-white shadow-lg transform scale-105'
                 : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
             style={filtroActivo === 'pendientes' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
-            ⏳ Pendientes ({estadisticas.pendientes + estadisticas.creativoEnviado})
+            <Clock className="w-4 h-4" />
+            <span>Pendientes ({estadisticas.pendientes + estadisticas.creativoEnviado})</span>
           </button>
           <button
             onClick={() => setFiltroActivo('archivadas')}
-            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center gap-2 ${
               filtroActivo === 'archivadas'
                 ? 'text-white shadow-lg transform scale-105'
                 : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
             }`}
             style={filtroActivo === 'archivadas' ? { background: 'linear-gradient(to right, #ef0000, #dc0000)' } : {}}
           >
-            📁 Archivadas ({estadisticas.archivadas})
+            <FileText className="w-4 h-4" />
+            <span>Archivadas ({estadisticas.archivadas})</span>
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {tarjetas.map((tarjeta, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:border-gray-200 transition-all duration-200 transform hover:-translate-y-1"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{tarjeta.titulo}</p>
-                <p className="text-4xl font-bold text-gray-900 mt-3">{tarjeta.valor}</p>
-              </div>
-              <div className={`${tarjeta.color} w-14 h-14 rounded-xl flex items-center justify-center text-3xl shadow-lg`}>
-                {tarjeta.icono}
+        {tarjetas.map((tarjeta, index) => {
+          const Icon = tarjeta.Icon;
+          return (
+            <div
+              key={index}
+              className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:border-gray-200 transition-all duration-200 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{tarjeta.titulo}</p>
+                  <p className="text-4xl font-bold text-gray-900 mt-3">{tarjeta.valor}</p>
+                </div>
+                <div className={`${tarjeta.color} w-14 h-14 rounded-xl flex items-center justify-center shadow-lg`}>
+                  <Icon className="w-8 h-8 text-white" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div>
@@ -367,22 +375,25 @@ export default function Dashboard() {
           Métricas {filtroActivo === 'todas' ? 'Generales' : filtroActivo === 'activas' ? 'Campañas Activas' : filtroActivo === 'archivadas' ? 'Campañas Archivadas' : 'Campañas Pendientes'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {metricasTarjetas.map((tarjeta, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:border-gray-200 transition-all duration-200 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center space-x-4">
-                <div className={`${tarjeta.color} w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 shadow-lg`}>
-                  {tarjeta.icono}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{tarjeta.titulo}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1 truncate">{tarjeta.valor}</p>
+          {metricasTarjetas.map((tarjeta, index) => {
+            const Icon = tarjeta.Icon;
+            return (
+              <div
+                key={index}
+                className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 hover:shadow-xl hover:border-gray-200 transition-all duration-200 transform hover:-translate-y-1"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className={`${tarjeta.color} w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                    <Icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">{tarjeta.titulo}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1 truncate">{tarjeta.valor}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
