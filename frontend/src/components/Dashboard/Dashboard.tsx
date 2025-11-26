@@ -212,20 +212,8 @@ export default function Dashboard() {
 
   // Configurar acciones del menú contextual
   useEffect(() => {
-    const accionesBasicas = [
-      {
-        id: 'cargar-csv',
-        label: 'Cargar CSV Histórico',
-        icono: '📊',
-        onClick: manejarCargarHistorico,
-        color: 'Púrpura',
-        peligroso: false
-      }
-    ];
-
     // Solo agregar acciones críticas si es Admin
     const acciones = esAdmin ? [
-      ...accionesBasicas,
       {
         id: 'limpiar-todo',
         label: 'Limpiar Todo',
@@ -271,7 +259,7 @@ export default function Dashboard() {
         color: 'Rojo Oscuro',
         peligroso: true
       }
-    ] : accionesBasicas;
+    ] : [];
 
     setAcciones(acciones);
   }, [setAcciones, esAdmin]);

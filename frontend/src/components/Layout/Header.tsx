@@ -4,7 +4,7 @@ import { chatService } from '../../services/chatService';
 import MenuContextual from './MenuContextual';
 import { useMenuActions } from '../../store/useMenuActions';
 import CambiarContrasena from '../Auth/CambiarContrasena';
-import { Mail, ClipboardList, Lock, LogOut, BarChart3 } from 'lucide-react';
+import { Mail, ClipboardList, Lock, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   onAbrirTareas?: () => void;
@@ -56,23 +56,6 @@ export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCam
     <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-white/10">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6 lg:py-4">
         <div className="flex items-center space-x-3 lg:space-x-4">
-          {/* Logo clickeable que lleva al Dashboard */}
-          <button
-            onClick={() => onCambiarVista?.('dashboard')}
-            className="flex items-center gap-3 group transition-all duration-200 hover:opacity-80"
-            title="Ir al Dashboard"
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-110" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
-              <BarChart3 className="w-6 h-6 text-white" />
-            </div>
-            <div className="hidden lg:block">
-              <h2 className="text-white font-bold text-lg leading-tight">SISCOCA 2.0</h2>
-              <p className="text-gray-400 text-xs">Gestión de Campañas</p>
-            </div>
-          </button>
-          
-          <div className="h-8 w-px bg-white/20 hidden lg:block"></div>
-          
           <MenuContextual vistaActiva={vistaActiva} acciones={acciones} />
         </div>
         

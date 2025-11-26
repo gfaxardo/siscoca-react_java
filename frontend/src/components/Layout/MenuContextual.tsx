@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Menu } from 'lucide-react';
 
 interface AccionMenu {
   id: string;
@@ -37,39 +38,36 @@ export default function MenuContextual({ vistaActiva, acciones }: MenuContextual
 
   return (
     <div className="relative" ref={menuRef}>
-      {/* Botón SISCOCA 2.0 */}
+      {/* Botón del menú */}
       <button
         onClick={() => setMostrarMenu(!mostrarMenu)}
-        className="text-base lg:text-xl font-bold text-gray-800 hover:text-primary-600 transition-colors cursor-pointer flex items-center space-x-1"
+        className="p-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+        title="Menú de acciones"
       >
-        <span>🎯</span>
-        <span>SISCOCA 2.0</span>
-        <span className={`text-xs transition-transform duration-200 ${mostrarMenu ? 'rotate-180' : ''}`}>
-          ▼
-        </span>
+        <Menu className="w-5 h-5" />
       </button>
 
       {/* Menú desplegable */}
       {mostrarMenu && (
-        <div className="absolute left-0 top-full mt-2 w-72 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 overflow-hidden">
+        <div className="absolute left-0 top-full mt-2 w-72 bg-slate-800 rounded-xl shadow-2xl border border-white/20 z-50 overflow-hidden backdrop-blur-xl">
           {/* Header del menú */}
-          <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-4 py-3">
+          <div className="px-4 py-3 border-b border-white/10" style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}>
             <h3 className="text-white font-bold text-sm">
-              {vistaActiva === 'dashboard' && '📊 Dashboard'}
-              {vistaActiva === 'campanas' && '🎯 Campañas'}
-              {vistaActiva === 'historico' && '📈 Histórico'}
-              {vistaActiva === 'auditoria' && '📋 Auditoría'}
-              {vistaActiva === 'administracion' && '⚙️ Administración'}
-              {!vistaActiva && '🎯 Sistema'}
+              {vistaActiva === 'dashboard' && 'Dashboard'}
+              {vistaActiva === 'campanas' && 'Campañas'}
+              {vistaActiva === 'historico' && 'Histórico'}
+              {vistaActiva === 'auditoria' && 'Auditoría'}
+              {vistaActiva === 'administracion' && 'Administración'}
+              {!vistaActiva && 'Sistema'}
             </h3>
-            <p className="text-primary-100 text-xs mt-1">Acciones disponibles</p>
+            <p className="text-white/80 text-xs mt-1">Acciones disponibles</p>
           </div>
 
           {/* Lista de acciones */}
           <div className="max-h-96 overflow-y-auto">
             {acciones.length === 0 ? (
-              <div className="px-4 py-6 text-center text-gray-500 text-sm">
-                No hay acciones disponibles para esta vista
+              <div className="px-4 py-6 text-center text-gray-400 text-sm">
+                No hay acciones disponibles
               </div>
             ) : (
               acciones.map((accion) => (
@@ -79,24 +77,23 @@ export default function MenuContextual({ vistaActiva, acciones }: MenuContextual
                     accion.onClick();
                     setMostrarMenu(false);
                   }}
-                  className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center space-x-3 border-b border-gray-100 last:border-b-0 ${
-                    accion.peligroso ? 'hover:bg-red-50' : ''
+                  className={`w-full px-4 py-3 text-left transition-colors flex items-center space-x-3 border-b border-white/10 last:border-b-0 ${
+                    accion.peligroso ? 'hover:bg-red-500/20 text-red-400' : 'hover:bg-white/10 text-gray-300'
                   }`}
                 >
                   <span className="text-xl">{accion.icono}</span>
                   <div className="flex-1">
-                    <div className={`font-semibold text-sm ${accion.peligroso ? 'text-red-600' : 'text-gray-900'}`}>
+                    <div className={`font-semibold text-sm ${accion.peligroso ? 'text-red-400' : 'text-white'}`}>
                       {accion.label}
                     </div>
                   </div>
-                  <span className="text-xs opacity-50">{accion.color}</span>
                 </button>
               ))
             )}
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 px-4 py-2 border-t border-gray-200">
+          <div className="px-4 py-2 border-t border-white/10">
             <div className="text-xs text-gray-500 text-center">
               SISCOCA v2.0.0
             </div>
