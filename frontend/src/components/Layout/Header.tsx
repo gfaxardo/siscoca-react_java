@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { chatService } from '../../services/chatService';
-import MenuContextual from './MenuContextual';
-import { useMenuActions } from '../../store/useMenuActions';
 import CambiarContrasena from '../Auth/CambiarContrasena';
 import { Mail, ClipboardList, Lock, LogOut } from 'lucide-react';
 
@@ -18,7 +16,6 @@ export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCam
   const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
   const [mostrarCambioContrasena, setMostrarCambioContrasena] = useState(false);
   const [mostrarMenuUsuario, setMostrarMenuUsuario] = useState(false);
-  const { acciones } = useMenuActions();
 
   useEffect(() => {
     let isMounted = true;
@@ -56,7 +53,7 @@ export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCam
     <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-white/10">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6 lg:py-4">
         <div className="flex items-center space-x-3 lg:space-x-4">
-          <MenuContextual vistaActiva={vistaActiva} acciones={acciones} />
+          {/* Espacio para futuras acciones si se necesitan */}
         </div>
         
         <div className="flex items-center space-x-2 lg:space-x-3">

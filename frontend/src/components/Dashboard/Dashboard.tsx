@@ -1,28 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { cargarHistoricoReal } from '../../utils/cargarHistoricoReal';
-import { limpiarTodosLosDatos, limpiarCampanas, limpiarHistorico } from '../../utils/limpiarDatos';
-import { useMenuActions } from '../../store/useMenuActions';
-import { useAuth } from '../../contexts/AuthContext';
-import ConfirmacionCritica from './ConfirmacionCritica';
 import { Target, CheckCircle, Clock, Send, Users, MousePointer, FileText, DollarSign, Car, Flag, BarChart3 } from 'lucide-react';
 
 type FiltroDashboard = 'todas' | 'activas' | 'archivadas' | 'pendientes';
 
 export default function Dashboard() {
   const { campanas, historico } = useCampanaStore();
-  const { user, login } = useAuth();
   const [filtroActivo, setFiltroActivo] = useState<FiltroDashboard>('todas');
-  const { setAcciones } = useMenuActions();
-  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
-  const [accionCritica, setAccionCritica] = useState<(() => void) | null>(null);
-  const [descripcionCritica, setDescripcionCritica] = useState('');
-  const [tituloCritica, setTituloCritica] = useState('');
-  const [verificandoPassword, setVerificandoPassword] = useState(false);
-  
-  const esAdmin = user?.rol === 'Admin';
 
   // Función para obtener campañas según el filtro
   const obtenerCampanasFiltradas = () => {
@@ -102,167 +88,6 @@ export default function Dashboard() {
   };
 
   const evolucionSemanal = obtenerEvolucionSemanal();
-
-  const manejarCargarHistorico = async () => {
-    try {
-      const resultado = await cargarHistoricoReal();
-      if (resultado.exito) {
-        alert(`✅ ${resultado.mensaje}`);
-        // Recargar la página para mostrar los nuevos datos
-        window.location.reload();
-      } else {
-        alert(`❌ ${resultado.mensaje}`);
-      }
-    } catch (error) {
-      alert(`❌ Error cargando histórico: ${error}`);
-    }
-  };
-
-  // Función para confirmar acciones críticas con contraseña (solo Admin)
-  const confirmarAccionCritica = async (password: string): Promise<void> => {
-    if (!user?.username) {
-      throw new Error('No se pudo obtener el usuario actual');
-    }
-    const resultado = await login(user.username, password);
-    if (!resultado.success) {
-      throw new Error('Contraseña incorrecta');
-    }
-  };
-
-  const manejarLimpiarTodo = async () => {
-    // Mostrar confirmación crítica
-    setTituloCritica('Limpiar Todo el Sistema');
-    setDescripcionCritica(
-      `¿Estás SEGURO de que quieres eliminar TODOS los datos?\n\n` +
-      `Esto eliminará:\n` +
-      `• Todas las campañas\n` +
-      `• Todo el histórico\n` +
-      `• Todos los datos guardados\n\n` +
-      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
-    );
-    setAccionCritica(async () => {
-      try {
-        const resultado = limpiarTodosLosDatos();
-        if (resultado.exito) {
-          alert(`✅ ${resultado.mensaje}`);
-          window.location.reload();
-        } else {
-          alert(`❌ ${resultado.mensaje}`);
-        }
-      } catch (error) {
-        alert(`❌ Error limpiando datos: ${error}`);
-      }
-    });
-    setMostrarConfirmacion(true);
-  };
-
-  const manejarLimpiarCampanas = async () => {
-    setTituloCritica('Limpiar Campañas');
-    setDescripcionCritica(
-      `¿Estás SEGURO de que quieres eliminar todas las campañas?\n\n` +
-      `Esto eliminará:\n` +
-      `• Todas las campañas activas\n` +
-      `• Todas las campañas pendientes\n` +
-      `• Datos de métricas guardados\n\n` +
-      `El histórico se mantendrá intacto.\n\n` +
-      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
-    );
-    setAccionCritica(async () => {
-      try {
-        const resultado = limpiarCampanas();
-        if (resultado.exito) {
-          alert(`✅ ${resultado.mensaje}`);
-          window.location.reload();
-        } else {
-          alert(`❌ ${resultado.mensaje}`);
-        }
-      } catch (error) {
-        alert(`❌ Error limpiando campañas: ${error}`);
-      }
-    });
-    setMostrarConfirmacion(true);
-  };
-
-  const manejarLimpiarHistorico = async () => {
-    setTituloCritica('Limpiar Histórico');
-    setDescripcionCritica(
-      `¿Estás SEGURO de que quieres eliminar todo el histórico?\n\n` +
-      `Esto eliminará:\n` +
-      `• Todas las campañas archivadas\n` +
-      `• Métricas históricas\n` +
-      `• Datos de evolución semanal\n\n` +
-      `Las campañas activas se mantendrán intactas.\n\n` +
-      `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
-    );
-    setAccionCritica(async () => {
-      try {
-        const resultado = limpiarHistorico();
-        if (resultado.exito) {
-          alert(`✅ ${resultado.mensaje}`);
-          window.location.reload();
-        } else {
-          alert(`❌ ${resultado.mensaje}`);
-        }
-      } catch (error) {
-        alert(`❌ Error limpiando histórico: ${error}`);
-      }
-    });
-    setMostrarConfirmacion(true);
-  };
-
-  // Configurar acciones del menú contextual
-  useEffect(() => {
-    // Solo agregar acciones críticas si es Admin
-    const acciones = esAdmin ? [
-      {
-        id: 'limpiar-todo',
-        label: 'Limpiar Todo',
-        icono: '🗑️',
-        onClick: manejarLimpiarTodo,
-        color: 'Rojo',
-        peligroso: true
-      },
-      {
-        id: 'limpiar-campanas',
-        label: 'Limpiar Campañas',
-        icono: '🎯',
-        onClick: manejarLimpiarCampanas,
-        color: 'Naranja',
-        peligroso: true
-      },
-      {
-        id: 'limpiar-historico',
-        label: 'Limpiar Histórico',
-        icono: '📊',
-        onClick: manejarLimpiarHistorico,
-        color: 'Gris',
-        peligroso: true
-      },
-      {
-        id: 'limpiar-storage',
-        label: 'Limpiar Storage',
-        icono: '🚨',
-        onClick: () => {
-          setTituloCritica('Limpiar Storage');
-          setDescripcionCritica(
-            `⚠️ ¿Limpiar completamente el localStorage?\n\n` +
-            `Esto eliminará TODOS los datos guardados en el navegador.\n\n` +
-            `⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️`
-          );
-          setAccionCritica(async () => {
-            localStorage.clear();
-            alert('✅ localStorage limpiado. Recargando página...');
-            window.location.reload();
-          });
-          setMostrarConfirmacion(true);
-        },
-        color: 'Rojo Oscuro',
-        peligroso: true
-      }
-    ] : [];
-
-    setAcciones(acciones);
-  }, [setAcciones, esAdmin]);
 
   const tarjetas = [
     { titulo: 'Total Campañas', valor: estadisticas.total, Icon: Target, color: 'bg-blue-500' },
@@ -497,31 +322,6 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Modal de confirmación crítica */}
-      {mostrarConfirmacion && (
-        <ConfirmacionCritica
-          titulo={tituloCritica}
-          descripcion={descripcionCritica}
-          onConfirmar={async (password: string) => {
-            setVerificandoPassword(true);
-            try {
-              await confirmarAccionCritica(password);
-              if (accionCritica) {
-                await accionCritica();
-              }
-              setMostrarConfirmacion(false);
-            } catch (err) {
-              console.error('Error verificando contraseña:', err);
-              throw err;
-            } finally {
-              setVerificandoPassword(false);
-            }
-          }}
-          onCancelar={() => setMostrarConfirmacion(false)}
-          isLoading={verificandoPassword}
-        />
       )}
     </div>
   );
