@@ -49,7 +49,6 @@ export default function Layout({
       
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         <Header 
-          onAbrirDashboard={_onAbrirDashboard || (() => setMostrarDashboard(true))}
           onAbrirTareas={() => setMostrarTareas(true)}
           onAbrirInbox={() => setMostrarInbox(true)}
           vistaActiva={vistaActiva}

@@ -4,17 +4,16 @@ import { chatService } from '../../services/chatService';
 import MenuContextual from './MenuContextual';
 import { useMenuActions } from '../../store/useMenuActions';
 import CambiarContrasena from '../Auth/CambiarContrasena';
-import { Mail, ClipboardList, BarChart3, Lock, LogOut, X } from 'lucide-react';
+import { Mail, ClipboardList, Lock, LogOut } from 'lucide-react';
 
 interface HeaderProps {
-  onAbrirDashboard?: () => void;
   onAbrirTareas?: () => void;
   onAbrirInbox?: () => void;
   vistaActiva?: string;
   onCambiarVista?: (vista: string) => void;
 }
 
-export default function Header({ onAbrirDashboard, onAbrirTareas, onAbrirInbox, vistaActiva, onCambiarVista }: HeaderProps) {
+export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCambiarVista }: HeaderProps) {
   const { user, logout } = useAuth();
   const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
   const [mostrarCambioContrasena, setMostrarCambioContrasena] = useState(false);
@@ -83,17 +82,6 @@ export default function Header({ onAbrirDashboard, onAbrirTareas, onAbrirInbox, 
               title="Tareas pendientes"
             >
               <ClipboardList className="w-5 h-5" />
-            </button>
-          )}
-
-          {onAbrirDashboard && (
-            <button
-              onClick={onAbrirDashboard}
-              className="px-4 py-2.5 text-white rounded-xl transition-all duration-200 flex items-center space-x-2 text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
             </button>
           )}
           
