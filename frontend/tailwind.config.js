@@ -8,29 +8,44 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#e3f2fd',
-          100: '#bbdefb',
-          200: '#90caf9',
-          300: '#64b5f6',
-          400: '#42a5f5',
-          500: '#2196f3',
-          600: '#1e88e5',
-          700: '#1976d2',
-          800: '#1565c0',
-          900: '#0d47a1',
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#ef0000',
+          600: '#dc0000',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
         },
         success: {
-          500: '#34a853',
-          600: '#2d8e47',
+          500: '#10b981',
+          600: '#059669',
         },
         warning: {
-          500: '#ff9800',
-          600: '#f57c00',
+          500: '#f59e0b',
+          600: '#d97706',
         },
         danger: {
-          500: '#ea4335',
-          600: '#d32f2f',
+          500: '#ef0000',
+          600: '#dc0000',
         }
+      },
+      keyframes: {
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+          '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        }
+      },
+      animation: {
+        shake: 'shake 0.5s ease-in-out',
+        fadeIn: 'fadeIn 0.3s ease-out',
       }
     },
   },
