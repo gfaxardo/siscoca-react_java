@@ -148,10 +148,10 @@ export default function Dashboard() {
   };
 
   const tarjetas = [
-    { titulo: 'Total Campañas', valor: estadisticas.total, Icon: Target, color: 'bg-blue-500' },
-    { titulo: 'Activas', valor: estadisticas.activas, Icon: CheckCircle, color: 'bg-green-500' },
-    { titulo: 'Pendientes', valor: estadisticas.pendientes, Icon: Clock, color: 'bg-yellow-500' },
-    { titulo: 'Creativo Enviado', valor: estadisticas.creativoEnviado, Icon: Send, color: 'bg-blue-400' },
+    { titulo: 'Total Campañas', valor: estadisticas.total, Icon: Target, colorClass: 'bg-gradient-to-br from-blue-500 to-blue-600' },
+    { titulo: 'Activas', valor: estadisticas.activas, Icon: CheckCircle, colorClass: 'bg-gradient-to-br from-green-500 to-green-600' },
+    { titulo: 'Pendientes', valor: estadisticas.pendientes, Icon: Clock, colorClass: 'bg-gradient-to-br from-yellow-500 to-yellow-600' },
+    { titulo: 'Creativo Enviado', valor: estadisticas.creativoEnviado, Icon: Send, colorClass: 'bg-gradient-to-br from-blue-400 to-blue-500' },
   ];
 
   const metricasTarjetas = [
@@ -285,8 +285,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div 
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
-                      style={{ background: `linear-gradient(135deg, ${tarjeta.color.replace('bg-', '#')}, ${tarjeta.color.replace('bg-', '#')})` }}
+                      className={`${tarjeta.colorClass} w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}
                     >
                       <Icon className="w-9 h-9 text-white" />
                     </div>
