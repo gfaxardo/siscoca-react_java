@@ -15,6 +15,7 @@ import FormularioEditarCampana from './FormularioEditarCampana';
 import ChatCampana from '../Chat/ChatCampana';
 import { chatService } from '../../services/chatService';
 import { useMenuActions } from '../../store/useMenuActions';
+import { AlertTriangle, Plus, MessageCircle } from 'lucide-react';
 
 interface ListaCampanasProps {
   onCrearNueva: () => void;
@@ -482,9 +483,7 @@ export default function ListaCampanas({
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
           <div className="flex items-center">
             <div className="text-red-400 mr-3">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
+              <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-red-800 font-semibold">Error en Campañas</h3>
@@ -515,11 +514,10 @@ export default function ListaCampanas({
             </div>
             <button
               onClick={onCrearNueva}
-              className="bg-white text-primary-600 hover:bg-primary-50 px-6 py-3 lg:px-8 lg:py-4 rounded-lg font-bold text-base lg:text-lg shadow-md hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
+              className="text-white px-6 py-3 lg:px-8 lg:py-4 rounded-xl font-bold text-base lg:text-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap transform hover:-translate-y-0.5"
+              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+              <Plus className="w-5 h-5 lg:w-6 lg:h-6" />
               Nueva Campaña
             </button>
           </div>
@@ -649,9 +647,7 @@ export default function ListaCampanas({
                         className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Chat de la campaña"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
+                        <MessageCircle className="w-5 h-5" />
                         <span className="absolute top-0 right-0 w-4 h-4 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
                           {mensajesNoLeidosPorCampana.get(campana.id)!}
                         </span>
@@ -662,9 +658,7 @@ export default function ListaCampanas({
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Chat de la campaña"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
+                        <MessageCircle className="w-5 h-5" />
                       </button>
                     )}
                     
