@@ -29,11 +29,18 @@ siscoca-2.0/
 
 ### Frontend (React + TypeScript)
 - **Gestión de Campañas**: Crear, editar y gestionar campañas publicitarias
+  - Skeleton loader mientras se cargan las campañas
+  - Filtros avanzados por estado, fecha, dueño, etc.
+  - Vista detallada con doble clic
+  - Gráficos de evolución de métricas
 - **Métricas**: Seguimiento de métricas de trafficker y dueño
 - **Histórico**: Visualización de datos históricos por semana
-- **Auditoría**: Registro de cambios y actividades
+- **Auditoría**: Registro completo de cambios y actividades
+  - Filtros por usuario, rol, acción, entidad y fechas
+  - Exportación a CSV y JSON
+  - Fechas correctamente ajustadas a zona horaria local
 - **Roles**: Sistema de roles (Admin, Trafficker, Dueño)
-- **Autenticación**: Sistema de login seguro
+- **Autenticación**: Sistema de login seguro con JWT
 
 ### Backend (Java 18 + Spring Boot)
 - **API REST**: Endpoints para todas las operaciones
@@ -121,10 +128,13 @@ npm run dev
 - `GET /api/campanas` - Obtener todas las campañas
 - `GET /api/campanas/{id}` - Obtener campaña por ID
 - `POST /api/campanas` - Crear nueva campaña
-- `PUT /api/campanas/{id}` - Actualizar campaña
+- `PUT /api/campanas/update/{id}` - Actualizar campaña
 - `DELETE /api/campanas/{id}` - Eliminar campaña
+- `POST /api/campanas/{id}/archivar` - Archivar campaña
+- `POST /api/campanas/{id}/reactivar` - Reactivar campaña archivada
 - `GET /api/campanas/estado/{estado}` - Obtener campañas por estado
 - `GET /api/campanas/dueno/{nombreDueno}` - Obtener campañas por dueño
+- `GET /api/campanas/semana-anterior` - Obtener número de semana anterior (ISO)
 
 ### Auditoría
 - `GET /api/logging` - Listar eventos con filtros por usuario, rol, acción, entidad, fechas e identificador
@@ -132,8 +142,22 @@ npm run dev
 - `GET /api/logging/usuario/{usuario}` - Obtener registros ejecutados por un usuario
 - `GET /api/logging/recientes?limite=50` - Últimos eventos ordenados por fecha
 - `POST /api/logging` - Registrar manualmente un evento (payload: `{ entidad, accion, entidadId?, descripcion?, detalles?, usuario?, rol? }`)
+- `DELETE /api/logging` - Limpiar todos los logs (requiere autenticación)
 
-> Cada petición autenticada genera automáticamente eventos de auditoría en módulos clave: campañas, creativos, tareas, chat, usuarios y autenticación. La interfaz de React incluye un panel de auditoría general (`Auditoría → Historial`) y vistas contextuales en Campañas para revisar el historial de cada entidad.
+> **Sistema de Auditoría Completo**: Cada petición autenticada genera automáticamente eventos de auditoría en módulos clave:
+> - **Autenticación**: Login exitoso/fallido, Logout, Cambio de contraseña
+> - **Campañas**: Crear, Actualizar, Eliminar, Archivar, Reactivar, Cambiar estado (automático y manual)
+> - **Creativos**: Crear, Actualizar, Eliminar, Activar/Desactivar
+> - **Tareas**: Crear, Actualizar, Completar, Eliminar
+> - **Chat**: Enviar mensajes, Leer mensajes
+> - **Usuarios**: Crear, Actualizar, Eliminar
+> 
+> La interfaz de React incluye un panel de auditoría general (`Auditoría → Historial`) con:
+> - Filtros avanzados por usuario, rol, acción, entidad y fechas
+> - Exportación a CSV y JSON
+> - Visualización de detalles completos de cada evento
+> - Fechas y horas correctamente ajustadas a la zona horaria local (UTC-5 para Perú)
+> - Vistas contextuales en Campañas para revisar el historial de cada entidad
 
 ## 📖 Uso del Sistema
 
@@ -238,6 +262,11 @@ spring:
 - La autenticación se realiza mediante JWT tokens
 - La base de datos se crea automáticamente al iniciar el backend
 - **Todas las cantidades monetarias se manejan en USD (Dólares)**
+- **Zona horaria**: El sistema está configurado para UTC-5 (Perú). Las fechas en los logs de auditoría se muestran correctamente ajustadas a la zona horaria local del navegador
+- **Logs de auditoría**: Todos los cambios importantes se registran automáticamente, incluyendo:
+  - Cambios de estado automáticos (cuando se suben/eliminan creativos)
+  - Cambios de estado manuales (cuando se actualiza una campaña)
+  - Todas las operaciones CRUD en campañas, creativos, tareas, usuarios y chat
 
 ## 📄 Licencia
 
