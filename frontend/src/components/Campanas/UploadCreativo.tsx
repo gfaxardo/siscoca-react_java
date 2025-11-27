@@ -79,8 +79,10 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
         // Recargar la campaña para obtener el estado actualizado
         const campanaActualizada = await campanaService.obtenerCampanaPorId(Number(campana.id));
         if (campanaActualizada && campanaActualizada.estado !== campana.estado) {
-          // El estado fue corregido, pero no mostrar alert para no molestar
+          // El estado fue corregido, actualizar en el store
           console.log(`Estado de campaña sincronizado: ${campana.estado} → ${campanaActualizada.estado}`);
+          // Actualizar el store para refrescar la UI
+          await obtenerCampanas();
         }
       } catch (syncError) {
         // Si falla la sincronización, no es crítico, solo loguear
@@ -105,7 +107,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     // Validar cantidad máxima
     const totalDespues = archivosSeleccionados.length + archivosArray.length;
     if (totalDespues > maxArchivos) {
-      alert(`❌ Máximo ${maxArchivos} archivos permitidos. Ya tienes ${archivosSeleccionados.length} seleccionados.`);
+      notify.error(`Máximo ${maxArchivos} archivos permitidos. Ya tienes ${archivosSeleccionados.length} seleccionados.`);
       return;
     }
 
@@ -115,13 +117,13 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     for (const archivo of archivosArray) {
       // Validar tipo
       if (!tiposPermitidos.includes(archivo.type)) {
-        alert(`❌ "${archivo.name}" no es un tipo permitido. Solo se aceptan imágenes (JPEG, PNG, GIF) y videos (MP4, AVI, MOV)`);
+        notify.error(` "${archivo.name}" no es un tipo permitido. Solo se aceptan imágenes (JPEG, PNG, GIF) y videos (MP4, AVI, MOV)`);
         continue;
       }
 
       // Validar tamaño
       if (archivo.size > tamanoMaximo) {
-        alert(`❌ "${archivo.name}" es demasiado grande. Máximo 10MB`);
+        notify.error(` "${archivo.name}" es demasiado grande. Máximo 10MB`);
         continue;
       }
 
@@ -217,7 +219,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
   const agregarUrl = () => {
     if (!urlInputTemporal || !urlInputTemporal.trim()) {
-      alert('❌ Ingresa una URL válida');
+      notify.error(' Ingresa una URL válida');
       return;
     }
 
@@ -225,13 +227,13 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     try {
       new URL(urlInputTemporal.trim());
     } catch {
-      alert('❌ La URL no tiene un formato válido');
+      notify.error(' La URL no tiene un formato válido');
       return;
     }
 
     // Verificar si ya existe
     if (urlsExternas.some(u => u.url === urlInputTemporal.trim())) {
-      alert('❌ Esta URL ya está en la lista');
+      notify.error(' Esta URL ya está en la lista');
       return;
     }
 
@@ -258,7 +260,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     const totalItems = archivosSeleccionados.length + urlsExternas.length;
     
     if (totalItems === 0) {
-      alert('❌ No hay creativos para subir. Agrega archivos o URLs primero.');
+      notify.error(' No hay creativos para subir. Agrega archivos o URLs primero.');
       return;
     }
 
@@ -266,7 +268,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     const token = localStorage.getItem('token') || localStorage.getItem('siscoca_token');
     
     if (!userStr && !token) {
-      alert('⚠️ No hay sesión activa. Por favor, recarga la página e inicia sesión nuevamente.');
+      notify.warning(' No hay sesión activa. Por favor, recarga la página e inicia sesión nuevamente.');
       setTimeout(() => window.location.reload(), 2000);
       return;
     }
@@ -277,7 +279,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       // Verificar límite de activos
       const activos = creativosExistentes.filter(c => c.activo);
       if (activos.length + totalItems > maxArchivos) {
-        alert(`❌ Solo puedes tener ${maxArchivos} creativos activos. Actualmente tienes ${activos.length} y estás intentando agregar ${totalItems}.`);
+        notify.error(` Solo puedes tener ${maxArchivos} creativos activos. Actualmente tienes ${activos.length} y estás intentando agregar ${totalItems}.`);
         setSubiendo(false);
         return;
       }
@@ -328,12 +330,12 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       try {
         const campanaActualizada = await campanaService.obtenerCampanaPorId(Number(campana.id));
         if (campanaActualizada && campanaActualizada.estado !== estadoAnterior) {
-          alert(`✅ ${itemsSubidos} creativo(s) agregado(s) exitosamente\n\n🎉 El estado de la campaña cambió a "${campanaActualizada.estado}"`);
+          notify.success(` ${itemsSubidos} creativo(s) agregado(s) exitosamente\n\n🎉 El estado de la campaña cambió a "${campanaActualizada.estado}"`);
         } else {
-          alert(`✅ ${itemsSubidos} creativo(s) agregado(s) exitosamente`);
+          notify.success(` ${itemsSubidos} creativo(s) agregado(s) exitosamente`);
         }
       } catch (error) {
-        alert(`✅ ${itemsSubidos} creativo(s) agregado(s) exitosamente`);
+        notify.success(` ${itemsSubidos} creativo(s) agregado(s) exitosamente`);
       }
       
       // Limpiar todo
@@ -348,7 +350,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     } catch (error) {
       console.error('Error en manejarSubirTodo:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
-      alert(`❌ Error: ${mensajeError}`);
+      notify.error(` Error: ${mensajeError}`);
     } finally {
       setSubiendo(false);
     }
@@ -356,7 +358,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
   const manejarActivarDescartar = async (creativo: Creativo) => {
     if (esSoloLectura) {
-      alert('⚠️ Esta campaña está archivada. Solo puedes ver y descargar creativos.');
+      notify.warning(' Esta campaña está archivada. Solo puedes ver y descargar creativos.');
       return;
     }
     
@@ -364,28 +366,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       if (creativo.activo) {
         // Descartar
         await creativoService.marcarComoDescartado(creativo.id);
-        alert('✅ Creativo descartado');
+        notify.success(' Creativo descartado');
       } else {
         // Activar - verificar límite
         const activos = creativosExistentes.filter(c => c.activo);
         if (activos.length >= maxArchivos) {
-          alert(`❌ Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
+          notify.error(` Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
           return;
         }
         await creativoService.marcarComoActivo(creativo.id);
-        alert('✅ Creativo activado');
+        notify.success(' Creativo activado');
       }
       await cargarCreativosExistentes();
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
-      alert(`❌ Error: ${mensajeError}`);
+      notify.error(` Error: ${mensajeError}`);
     }
   };
 
   const manejarEliminar = async (creativo: Creativo) => {
     if (esSoloLectura) {
-      alert('⚠️ Esta campaña está archivada. Solo puedes ver y descargar creativos.');
+      notify.warning(' Esta campaña está archivada. Solo puedes ver y descargar creativos.');
       return;
     }
     
@@ -395,12 +397,12 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
     try {
       await creativoService.eliminarCreativo(creativo.id);
-      alert('✅ Creativo eliminado');
+      notify.success(' Creativo eliminado');
       await cargarCreativosExistentes();
     } catch (error) {
       console.error('Error al eliminar:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
-      alert(`❌ Error: ${mensajeError}`);
+      notify.error(` Error: ${mensajeError}`);
     }
   };
 
@@ -490,7 +492,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                 try {
                                   await creativoService.descargarCreativo(creativo.id);
                                 } catch (error) {
-                                  alert(`❌ Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
+                                  notify.error(` Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
                                 }
                               }}
                               className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
@@ -578,7 +580,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                 try {
                                   await creativoService.descargarCreativo(creativo.id);
                                 } catch (error) {
-                                  alert(`❌ Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
+                                  notify.error(` Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
                                 }
                               }}
                               className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
