@@ -34,12 +34,15 @@ public class CampanaService {
     private AuditLogger auditLogger;
     
     public List<CampanaDto> getAllCampanas() {
+        // Optimizado: Usa findAll() simple porque el DTO no necesita relaciones
+        // Si necesitas historicos/creativos, usa findAllWithRelations()
         return campanaRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
     
     public CampanaDto getCampanaById(Long id) {
+        // Optimizado: Usa findById() simple para DTOs
         return campanaRepository.findById(id)
                 .map(this::convertToDto)
                 .orElse(null);
