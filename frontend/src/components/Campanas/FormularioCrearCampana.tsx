@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { FormularioCrearCampana, VERTICALES_LABELS, PLATAFORMAS_LABELS, PAISES_LABELS, DUENOS, TIPOS_ATERRIZAJE_LABELS } from '../../types';
 import { useState, useEffect } from 'react';
-import { X, Target, Globe, BarChart3, Smartphone, User, FileText, MapPin, Edit3, Check } from 'lucide-react';
+import { X, Target, Globe, BarChart3, Smartphone, User, FileText, MapPin, Edit3, Check, Link2, Mail, Phone, MessageSquare } from 'lucide-react';
 
 const esquemaFormulario = z.object({
   pais: z.enum(['PE', 'CO'], {
@@ -358,7 +358,7 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
 
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-gray-500" />
+                  <Link2 className="w-4 h-4" style={{ color: '#ef0000' }} />
                   ID Plataforma (Opcional)
                 </label>
                 <input
@@ -371,7 +371,7 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
 
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-gray-500" />
+                  <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Nombre en Plataforma (Opcional)
                 </label>
                 <input
@@ -493,7 +493,8 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
               <div>
                 {(['FORMS', 'URL', 'LANDING', 'APP'].includes(tipoAterrizaje)) && (
                   <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <Link2 className="w-4 h-4" style={{ color: '#ef0000' }} />
                       URL de Aterrizaje *
                     </label>
                     <input
@@ -508,24 +509,25 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm"
                       placeholder="https://ejemplo.com/landing"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1 font-medium">
                       Ingresa la URL completa del formulario, landing page o app
                     </p>
                     {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                      <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
                     )}
                     {tipoAterrizaje === 'FORMS' && (
                       <>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2 mt-4">
+                        <label className="block text-sm font-bold text-gray-900 mb-2 mt-4 flex items-center gap-2">
+                          <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                           Detalles de Campos del Formulario (Opcional)
                         </label>
                         <textarea
                           {...register('detalleAterrizaje')}
                           rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm resize-none"
                           placeholder="Ej: Nombre, Email, Teléfono, Mensaje..."
                         />
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-600 mt-1 font-medium">
                           Describe qué campos tendrá el formulario de la landing de aterrizaje
                         </p>
                       </>
@@ -535,7 +537,8 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
 
                 {tipoAterrizaje === 'WHATSAPP' && (
                   <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" style={{ color: '#ef0000' }} />
                       Número de WhatsApp *
                     </label>
                     <input
@@ -550,18 +553,19 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm"
                       placeholder="+51987654321"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1 font-medium">
                       Ingresa el número de WhatsApp con código de país (ej: +51987654321)
                     </p>
                     {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                      <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
                     )}
                   </>
                 )}
 
                 {tipoAterrizaje === 'EMAIL' && (
                   <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <Mail className="w-4 h-4" style={{ color: '#ef0000' }} />
                       Correo Electrónico *
                     </label>
                     <input
@@ -576,18 +580,19 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm"
                       placeholder="contacto@empresa.com"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1 font-medium">
                       Ingresa el correo electrónico de contacto
                     </p>
                     {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                      <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
                     )}
                   </>
                 )}
 
                 {tipoAterrizaje === 'CALL_CENTER' && (
                   <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <Phone className="w-4 h-4" style={{ color: '#ef0000' }} />
                       Número de Teléfono *
                     </label>
                     <input
@@ -602,18 +607,19 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm"
                       placeholder="+51987654321"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1 font-medium">
                       Ingresa el número del call center con código de país
                     </p>
                     {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                      <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
                     )}
                   </>
                 )}
 
                 {tipoAterrizaje === 'OTRO' && (
                   <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                       Información de Aterrizaje (Opcional)
                     </label>
                     <input
@@ -622,11 +628,11 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium text-sm"
                       placeholder="Describe o ingresa la información del aterrizaje"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-600 mt-1 font-medium">
                       Ingresa cualquier información adicional sobre el aterrizaje
                     </p>
                     {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
+                      <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
                     )}
                   </>
                 )}
