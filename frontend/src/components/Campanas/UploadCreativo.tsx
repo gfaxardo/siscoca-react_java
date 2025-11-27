@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Campana, Creativo } from '../../types';
 import { creativoService } from '../../services/creativoService';
 import { campanaService } from '../../services/campanaService';
@@ -407,7 +408,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const activos = creativosExistentes.filter(c => c.activo);
   const descartados = creativosExistentes.filter(c => !c.activo);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fadeIn">
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col overflow-hidden">
         {/* Header moderno */}
@@ -963,6 +964,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
