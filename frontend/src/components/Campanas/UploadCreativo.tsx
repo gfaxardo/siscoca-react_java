@@ -47,7 +47,6 @@ interface UrlExterna {
 export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProps) {
   // Hooks
   const notify = useNotification();
-  const { obtenerCampanas } = useCampanaStore();
   
   // Estados
   const [archivosSeleccionados, setArchivosSeleccionados] = useState<ArchivoConVistaPrevia[]>([]);
@@ -105,22 +104,10 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       setCargandoCreativos(true);
       const creativos = await creativoService.obtenerCreativosPorCampana(campana.id);
       setCreativosExistentes(creativos);
-      
-      // Sincronizar estado automáticamente al cargar (para corregir estados desincronizados)
-      try {
-        await creativoService.sincronizarEstadoCampana(campana.id);
-        // Recargar la campaña para obtener el estado actualizado
-        const campanaActualizada = await campanaService.obtenerCampanaPorId(Number(campana.id));
-        if (campanaActualizada && campanaActualizada.estado !== campana.estado) {
-          // El estado fue corregido, actualizar en el store
-          console.log(`Estado de campaña sincronizado: ${campana.estado} → ${campanaActualizada.estado}`);
-          // Actualizar el store para refrescar la UI
-          await obtenerCampanas();
-        }
-      } catch (syncError) {
-        // Si falla la sincronización, no es crítico, solo loguear
-        console.warn('Error sincronizando estado (no crítico):', syncError);
-      }
+      // NOTA: NO llamamos sincronizarEstadoCampana aquí porque:
+      // 1. El backend ya sincroniza automáticamente al crear/descartar/activar creativos
+      // 2. Solo consultar creativos no debería cambiar el estado
+      // 3. Evitamos llamadas redundantes que ralentizan la app
     } catch (error) {
       console.error('Error cargando creativos:', error);
       // Si falla, usar los creativos del objeto campana si existen
@@ -356,20 +343,9 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
         itemsSubidos++;
       }
       
-      // Recargar creativos y verificar si cambió el estado
+      // Recargar creativos (el backend ya sincronizó el estado automáticamente)
       await cargarCreativosExistentes();
-      
-      // Recargar la campaña para verificar el estado actualizado
-      try {
-        const campanaActualizada = await campanaService.obtenerCampanaPorId(Number(campana.id));
-        if (campanaActualizada && campanaActualizada.estado !== estadoAnterior) {
-          notify.success(` ${itemsSubidos} creativo(s) agregado(s) exitosamente\n\n🎉 El estado de la campaña cambió a "${campanaActualizada.estado}"`);
-        } else {
-          notify.success(` ${itemsSubidos} creativo(s) agregado(s) exitosamente`);
-        }
-      } catch (error) {
-        notify.success(` ${itemsSubidos} creativo(s) agregado(s) exitosamente`);
-      }
+      notify.success(`${itemsSubidos} creativo(s) agregado(s) exitosamente`);
       
       // Limpiar todo
       archivosSeleccionados.forEach(item => {
@@ -416,7 +392,10 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       await creativoService.marcarComoActivo(creativo.id);
       notify.success('Creativo activado exitosamente');
       await cargarCreativosExistentes();
-      await obtenerCampanas(); // Auto-refresh
+      // NOTA: NO llamamos obtenerCampanas() porque:
+      // 1. El backend ya sincroniza el estado automáticamente
+      // 2. obtenerCampanas() recarga TODAS las campañas (muy pesado)
+      // 3. Solo necesitamos recargar los creativos de esta campaña
     } catch (error) {
       console.error('Error al activar:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
@@ -441,7 +420,10 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       notify.success('Creativo descartado exitosamente');
       setCreativoADescartar(null);
       await cargarCreativosExistentes();
-      await obtenerCampanas(); // Auto-refresh
+      // NOTA: NO llamamos obtenerCampanas() porque:
+      // 1. El backend ya sincroniza el estado automáticamente
+      // 2. obtenerCampanas() recarga TODAS las campañas (muy pesado)
+      // 3. Solo necesitamos recargar los creativos de esta campaña
     } catch (error) {
       console.error('Error al descartar:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
