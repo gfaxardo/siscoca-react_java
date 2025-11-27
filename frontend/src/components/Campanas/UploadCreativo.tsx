@@ -24,7 +24,8 @@ import {
   Maximize2,
   PlayCircle,
   Video,
-  AlertTriangle
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 
 interface UploadCreativoProps {
@@ -59,6 +60,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const [videoZoom, setVideoZoom] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [creativoAEliminar, setCreativoAEliminar] = useState<Creativo | null>(null);
+  const [creativoADescartar, setCreativoADescartar] = useState<Creativo | null>(null);
 
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
   const tamanoMaximo = 10 * 1024 * 1024; // 10MB
@@ -387,40 +389,67 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     }
   };
 
-  const manejarActivarDescartar = async (creativo: Creativo) => {
+  const manejarActivarDescartar = (creativo: Creativo) => {
     if (esSoloLectura) {
-      notify.warning(' Esta campaña está archivada. Solo puedes ver y descargar creativos.');
+      notify.warning('Esta campaña está archivada. Solo puedes ver y descargar creativos.');
+      return;
+    }
+    
+    if (creativo.activo) {
+      // Descartar - pedir confirmación
+      setCreativoADescartar(creativo);
+    } else {
+      // Activar - hacerlo directamente
+      activarCreativo(creativo);
+    }
+  };
+  
+  const activarCreativo = async (creativo: Creativo) => {
+    // Verificar límite
+    const activos = creativosExistentes.filter(c => c.activo);
+    if (activos.length >= maxArchivos) {
+      notify.error(`Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
       return;
     }
     
     try {
-      if (creativo.activo) {
-        // Descartar
-        await creativoService.marcarComoDescartado(creativo.id);
-        notify.success('Creativo descartado exitosamente');
-      } else {
-        // Activar - verificar límite
-        const activos = creativosExistentes.filter(c => c.activo);
-        if (activos.length >= maxArchivos) {
-          notify.error(`Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
-          return;
-        }
-        await creativoService.marcarComoActivo(creativo.id);
-        notify.success('Creativo activado exitosamente');
-      }
+      await creativoService.marcarComoActivo(creativo.id);
+      notify.success('Creativo activado exitosamente');
       await cargarCreativosExistentes();
-      await obtenerCampanas(); // Auto-refresh para actualizar estado de campaña
+      await obtenerCampanas(); // Auto-refresh
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
+      console.error('Error al activar:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
       
-      // Mensaje más específico según el error
       if (mensajeError.includes('Failed to fetch') || mensajeError.includes('ERR_FAILED')) {
         notify.error('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
       } else if (mensajeError.includes('404')) {
         notify.error('Creativo no encontrado. Intenta recargar la página.');
       } else if (mensajeError.includes('5 creativos')) {
         notify.error('Ya hay 5 creativos activos. Desactiva uno primero.');
+      } else {
+        notify.error(`Error: ${mensajeError}`);
+      }
+    }
+  };
+  
+  const confirmarDescartar = async () => {
+    if (!creativoADescartar) return;
+    
+    try {
+      await creativoService.marcarComoDescartado(creativoADescartar.id);
+      notify.success('Creativo descartado exitosamente');
+      setCreativoADescartar(null);
+      await cargarCreativosExistentes();
+      await obtenerCampanas(); // Auto-refresh
+    } catch (error) {
+      console.error('Error al descartar:', error);
+      const mensajeError = error instanceof Error ? error.message : String(error);
+      
+      if (mensajeError.includes('Failed to fetch') || mensajeError.includes('ERR_FAILED')) {
+        notify.error('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
+      } else if (mensajeError.includes('404')) {
+        notify.error('Creativo no encontrado. Intenta recargar la página.');
       } else {
         notify.error(`Error: ${mensajeError}`);
       }
@@ -1134,6 +1163,67 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             <p className="text-center text-white/70 mt-4 text-sm font-medium">
               Haz clic fuera del video para cerrar
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Descartar */}
+      {creativoADescartar && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setCreativoADescartar(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600">
+                <Archive className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Descartar Creativo</h3>
+            </div>
+            
+            {/* Contenido */}
+            <div className="mb-6">
+              <p className="text-gray-700 mb-3">
+                ¿Estás seguro de que quieres <span className="font-bold text-yellow-600">descartar</span> este creativo?
+              </p>
+              {creativoADescartar.nombreArchivoCreativo && (
+                <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
+                  {esVideo(creativoADescartar.urlCreativoExterno || creativoADescartar.archivoCreativo || '', creativoADescartar.nombreArchivoCreativo) ? (
+                    <Video className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  ) : (
+                    <ImageIcon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  )}
+                  <p className="font-semibold text-gray-900 truncate">
+                    {creativoADescartar.nombreArchivoCreativo}
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-blue-600 font-medium mt-3 flex items-center gap-2">
+                <Info className="w-4 h-4" />
+                Podrás reactivarlo más tarde si lo necesitas
+              </p>
+            </div>
+            
+            {/* Botones */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCreativoADescartar(null)}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarDescartar}
+                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 hover:shadow-lg"
+                style={{ background: 'linear-gradient(to right, #eab308, #ca8a04)' }}
+              >
+                Descartar
+              </button>
+            </div>
           </div>
         </div>
       )}
