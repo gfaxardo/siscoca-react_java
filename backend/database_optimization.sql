@@ -131,18 +131,21 @@ ON log_entries(usuario);
 CREATE INDEX IF NOT EXISTS idx_log_entidad 
 ON log_entries(entidad);
 
-CREATE INDEX IF NOT EXISTS idx_log_fecha 
-ON log_entries(fecha DESC);
+CREATE INDEX IF NOT EXISTS idx_log_timestamp 
+ON log_entries(timestamp DESC);
+
+CREATE INDEX IF NOT EXISTS idx_log_fecha_creacion 
+ON log_entries(fecha_creacion DESC);
 
 CREATE INDEX IF NOT EXISTS idx_log_entidad_id 
 ON log_entries(entidad_id);
 
-CREATE INDEX IF NOT EXISTS idx_log_entidad_fecha 
-ON log_entries(entidad, fecha DESC);
+CREATE INDEX IF NOT EXISTS idx_log_entidad_timestamp 
+ON log_entries(entidad, timestamp DESC);
 
--- Índice para búsqueda de texto en cambios
-CREATE INDEX IF NOT EXISTS idx_log_cambios_gin 
-ON log_entries USING gin(to_tsvector('spanish', COALESCE(cambios, '')));
+-- Índice para búsqueda de texto en detalles
+CREATE INDEX IF NOT EXISTS idx_log_detalles_gin 
+ON log_entries USING gin(to_tsvector('spanish', COALESCE(detalles, '')));
 
 -- 8. TABLA: historial_cambios
 -- Usado en: Historial de cambios de campañas
