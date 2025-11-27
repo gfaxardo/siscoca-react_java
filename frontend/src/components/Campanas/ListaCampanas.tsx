@@ -15,7 +15,7 @@ import FormularioEditarCampana from './FormularioEditarCampana';
 import ChatCampana from '../Chat/ChatCampana';
 import { chatService } from '../../services/chatService';
 import { useMenuActions } from '../../store/useMenuActions';
-import { AlertTriangle, Plus, MessageCircle } from 'lucide-react';
+import { AlertTriangle, Plus, MessageCircle, Target, User, Link2, BarChart3, DollarSign, FileText, Car, TrendingUp, Calendar, MapPin, Globe, Smartphone } from 'lucide-react';
 
 interface ListaCampanasProps {
   onCrearNueva: () => void;
@@ -502,36 +502,49 @@ export default function ListaCampanas({
   }
 
   return (
-      <div className="space-y-2 lg:space-y-3">
-        {/* Botón destacado de Nueva Campaña */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl shadow-lg p-4 lg:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="text-white">
-              <h2 className="text-xl lg:text-2xl font-bold mb-1">🎯 Gestión de Campañas</h2>
-              <p className="text-primary-100 text-sm lg:text-base">
-                {campanasActivas.length} campaña{campanasActivas.length !== 1 ? 's' : ''} {leyendaEstadoSeleccionado[estadoSeleccionado]}
-              </p>
+      <div className="space-y-4 lg:space-y-6">
+        {/* Header moderno con estadísticas */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl p-6 lg:p-8 border border-white/10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                  style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+                >
+                  <Target className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                    Gestión de Campañas
+                  </h1>
+                  <p className="text-gray-400 text-sm">
+                    {campanasActivas.length} campaña{campanasActivas.length !== 1 ? 's' : ''} {leyendaEstadoSeleccionado[estadoSeleccionado]}
+                  </p>
+                </div>
+              </div>
             </div>
             <button
               onClick={onCrearNueva}
-              className="text-white px-6 py-3 lg:px-8 lg:py-4 rounded-xl font-bold text-base lg:text-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap transform hover:-translate-y-0.5"
+              className="text-white px-6 py-3.5 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap transform hover:-translate-y-0.5 hover:scale-105"
               style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              <Plus className="w-5 h-5 lg:w-6 lg:h-6" />
+              <Plus className="w-5 h-5" />
               Nueva Campaña
             </button>
           </div>
         </div>
 
         {/* Selector de Ordenamiento */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-white rounded-lg border border-gray-200 p-3">
-          <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white rounded-xl shadow border border-gray-200 p-4">
+          <label className="text-sm font-semibold text-gray-900 flex items-center gap-2 whitespace-nowrap">
+            <BarChart3 className="w-4 h-4" style={{ color: '#ef0000' }} />
             Ordenar por:
           </label>
           <select
             value={ordenamiento}
             onChange={(e) => setOrdenamiento(e.target.value as typeof ordenamiento)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
+            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm font-medium bg-white hover:border-gray-400"
           >
             <option value="nueva-antigua">Más nueva a más antigua</option>
             <option value="antigua-nueva">Más antigua a más nueva</option>
@@ -543,15 +556,15 @@ export default function ListaCampanas({
         </div>
 
         {/* Filtro rápido por estado */}
-        <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="bg-white rounded-xl shadow border border-gray-200 p-4 lg:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div>
-              <p className="text-sm font-semibold text-gray-700">Filtrar por estado</p>
-              <p className="text-xs text-gray-500">Visualiza rápidamente campañas según su etapa</p>
+              <p className="text-base font-bold text-gray-900">Filtrar por estado</p>
+              <p className="text-sm text-gray-500">Visualiza rápidamente campañas según su etapa</p>
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-sm text-gray-600">
               <span className="hidden sm:inline">Mostrando:&nbsp;</span>
-              <span className="font-semibold text-gray-700">
+              <span className="font-bold text-gray-900">
                 {leyendaEstadoSeleccionado[estadoSeleccionado]}
               </span>
             </div>
@@ -586,18 +599,22 @@ export default function ListaCampanas({
         />
 
       {campanasActivas.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">🎯</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 lg:p-16 text-center">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
+            <Target className="w-12 h-12 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">
             No hay campañas activas
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-600 mb-8 text-lg">
             Comienza creando tu primera campaña
           </p>
           <button
             onClick={onCrearNueva}
-            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+            className="text-white px-8 py-4 rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2 transform hover:scale-105"
+            style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
           >
+            <Plus className="w-5 h-5" />
             Crear Primera Campaña
           </button>
         </div>
@@ -610,26 +627,28 @@ export default function ListaCampanas({
                 setCampanaParaDetalle(campana);
                 setMostrarVistaDetallada(true);
               }}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden cursor-pointer"
+              className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer transform hover:-translate-y-1"
               title="Doble clic para ver detalles completos"
             >
-              <div className="p-3 lg:p-4">
+              <div className="p-4 lg:p-5">
                 {/* Header con título y menú de acciones */}
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start mb-3">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm lg:text-base font-bold text-gray-900 mb-1 break-words">
+                    <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2 break-words">
                       {campana.nombre}
                     </h3>
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                         #{campana.id}
                       </span>
-                      <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
-                        👤 {campana.inicialesDueno}
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {campana.inicialesDueno}
                       </span>
                       {campana.idPlataformaExterna && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
-                          🔗 {campana.idPlataformaExterna}
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                          <Link2 className="w-3 h-3" />
+                          {campana.idPlataformaExterna}
                         </span>
                       )}
                     </div>
@@ -699,62 +718,65 @@ export default function ListaCampanas({
                 </div>
 
                 {/* Información básica de la campaña */}
-                <div className="bg-gray-50 rounded-lg p-2 mb-3">
-                  <h4 className="text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Información Básica</h4>
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mb-3 border border-gray-200">
+                  <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide flex items-center gap-1">
+                    <FileText className="w-3 h-3" style={{ color: '#ef0000' }} />
+                    Información Básica
+                  </h4>
                   
-                  <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs">
+                  <div className="grid grid-cols-3 gap-2 text-xs">
                     {/* País */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">🌍</span>
-                      <span className="ml-1 text-gray-900 truncate">{PAISES_LABELS[campana.pais] || campana.pais}</span>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <Globe className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{PAISES_LABELS[campana.pais] || campana.pais}</span>
                     </div>
                     
                     {/* Segmento */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">🎯</span>
-                      <span className="ml-1 text-gray-900 truncate">{campana.segmento}</span>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <Target className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{campana.segmento}</span>
                     </div>
                     
                     {/* Vertical */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">📊</span>
-                      <span className="ml-1 text-gray-900 truncate">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <BarChart3 className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
                     </div>
                     
                     {/* Dueño */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">👤</span>
-                      <span className="ml-1 text-gray-900 truncate">{campana.nombreDueno}</span>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <User className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{campana.nombreDueno}</span>
                     </div>
                     
                     {/* Plataforma */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">📱</span>
-                      <span className="ml-1 text-gray-900 truncate">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <Smartphone className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
                     </div>
                     
                     {/* Aterrizaje */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">🎯</span>
-                      <span className="ml-1 text-gray-900 truncate">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
+                    <div className="flex items-center gap-1 text-gray-700">
+                      <MapPin className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
                       {campana.urlAterrizaje && (
                         <a 
                           href={campana.urlAterrizaje} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="ml-1 text-blue-600 hover:text-blue-800"
+                          className="ml-1 text-blue-600 hover:text-blue-800 transition-colors"
                           title="Ver destino de aterrizaje"
                         >
-                          🔗
+                          <Link2 className="w-3 h-3" />
                         </a>
                       )}
                     </div>
                   </div>
                   
-                  {/* Descripción corta - Ocupa ambas columnas */}
-                  <div className="text-gray-700 pt-1.5 mt-1.5 border-t border-gray-200 col-span-3">
-                    <span className="text-gray-600">📝</span>
-                    <span className="ml-1 text-gray-900 text-xs">{campana.descripcionCorta}</span>
+                  {/* Descripción corta */}
+                  <div className="flex items-start gap-1 text-gray-700 pt-2 mt-2 border-t border-gray-300">
+                    <FileText className="w-3 h-3 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-900 text-xs font-medium leading-relaxed">{campana.descripcionCorta}</span>
                   </div>
                 </div>
 
@@ -772,9 +794,9 @@ export default function ListaCampanas({
                     } catch (err) {
                       console.error('Error renderizando gráficos:', err);
                       return (
-                        <div className="bg-gray-50 rounded-lg p-4 text-center">
-                          <div className="text-2xl mb-2">📊</div>
-                          <p className="text-sm text-gray-500">Error cargando gráficos</p>
+                        <div className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                          <BarChart3 className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500 font-medium">Error cargando gráficos</p>
                         </div>
                       );
                     }
@@ -782,8 +804,9 @@ export default function ListaCampanas({
                 </div>
 
                 {/* Información de actualización */}
-                <div className="text-xs text-gray-400">
-                  {format(campana.ultimaActualizacion, "dd/MM/yy HH:mm", { locale: es })}
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <Calendar className="w-3 h-3" />
+                  <span className="font-medium">{format(campana.ultimaActualizacion, "dd/MM/yy HH:mm", { locale: es })}</span>
                 </div>
               </div>
             </div>
