@@ -85,7 +85,7 @@ export default function Layout({
           onToggleSidebar={() => setSidebarAbierto(!sidebarAbierto)}
         />
         
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100" style={{ scrollBehavior: 'smooth' }}>
+        <main className="flex-1 overflow-y-scroll p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100" style={{ scrollBehavior: 'smooth' }}>
           {children}
         </main>
       </div>
