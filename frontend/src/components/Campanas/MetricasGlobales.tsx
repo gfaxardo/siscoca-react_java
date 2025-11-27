@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Campana, MetricasGlobales } from '../../types';
-import { metricasService } from '../../services/metricasService';
 import { 
   TrendingUp, 
   X, 
@@ -65,29 +64,13 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
     try {
       setCargando(true);
       setError(null);
-      // Intentar obtener desde el backend
-      try {
-        const datos = await metricasService.obtenerMetricasGlobales(campana.id);
-        if (datos) {
-          setMetricas(datos);
-        } else {
-          // Si no hay datos del backend, calcular localmente
-          setMetricas(calcularMetricasLocales());
-        }
-      } catch (backendError) {
-        // Si el backend falla, calcular localmente desde los datos de la campaña
-        console.warn('No se pudieron obtener métricas del backend, calculando localmente:', backendError);
-        setMetricas(calcularMetricasLocales());
-      }
+      
+      // Calcular métricas localmente desde los datos de la campaña
+      // (El endpoint del backend no está disponible actualmente)
+      setMetricas(calcularMetricasLocales());
     } catch (err) {
-      console.error('Error:', err);
-      // Intentar calcular localmente como último recurso
-      try {
-        setMetricas(calcularMetricasLocales());
-      } catch (calcError) {
-        setError('Error cargando métricas globales');
-        console.error('Error calculando métricas:', calcError);
-      }
+      console.error('Error calculando métricas:', err);
+      setError('Error cargando métricas globales');
     } finally {
       setCargando(false);
     }
