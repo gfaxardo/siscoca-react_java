@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MensajeChat } from '../../types/campana';
 import { chatService } from '../../services/chatService';
 import { useAuth } from '../../contexts/AuthContext';
+import { MessageCircle, X, Send, AlertCircle, Loader2 } from 'lucide-react';
 
 interface ChatCampanaProps {
   campanaId: string;
@@ -96,37 +97,55 @@ export default function ChatCampana({ campanaId, campanaNombre, onClose }: ChatC
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-lg border border-gray-200">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
+    <div className="flex flex-col h-full bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+      {/* Header moderno */}
+      <div className="px-6 py-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-white text-lg font-bold">
-              💬 Chat: {campanaNombre}
-            </h2>
+            <div 
+              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-md"
+              style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-white text-lg font-bold">
+                Chat de Campaña
+              </h2>
+              <p className="text-gray-400 text-sm truncate max-w-xs lg:max-w-md">
+                {campanaNombre}
+              </p>
+            </div>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+              title="Cerrar chat"
             >
-              ✖️
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
       </div>
 
       {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 bg-gradient-to-br from-gray-50 to-gray-100">
         {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="flex flex-col justify-center items-center h-full">
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-primary-500 mb-3"></div>
+            <p className="text-gray-600 text-sm font-medium">Cargando mensajes...</p>
           </div>
         ) : mensajes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <div className="text-6xl mb-4">💬</div>
-            <p className="text-lg font-medium">No hay mensajes</p>
-            <p className="text-sm">Sé el primero en escribir</p>
+            <div 
+              className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
+              style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+            >
+              <MessageCircle className="w-10 h-10 text-white" />
+            </div>
+            <p className="text-lg font-bold text-gray-900">No hay mensajes</p>
+            <p className="text-sm text-gray-600">Sé el primero en escribir</p>
           </div>
         ) : (
           mensajes.map((mensaje) => (
@@ -135,24 +154,32 @@ export default function ChatCampana({ campanaId, campanaNombre, onClose }: ChatC
               className={`flex ${isMiMensaje(mensaje.remitente) ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                className={`max-w-xs lg:max-w-md px-4 py-3 rounded-xl shadow-sm ${
                   isMiMensaje(mensaje.remitente)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white border border-gray-200 text-gray-800'
+                    ? 'text-white'
+                    : 'bg-white border border-gray-200 text-gray-900'
                 }`}
+                style={isMiMensaje(mensaje.remitente) ? { background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' } : {}}
               >
                 {!isMiMensaje(mensaje.remitente) && (
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-sm">{mensaje.remitente}</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-bold text-sm text-gray-900">{mensaje.remitente}</span>
                     {mensaje.urgente && (
-                      <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-md flex items-center gap-1" style={{ background: '#ef0000', color: 'white' }}>
+                        <AlertCircle className="w-3 h-3" />
                         URGENTE
                       </span>
                     )}
                   </div>
                 )}
-                <p className="text-sm break-words">{mensaje.mensaje}</p>
-                <p className={`text-xs mt-1 ${isMiMensaje(mensaje.remitente) ? 'text-blue-100' : 'text-gray-500'}`}>
+                {isMiMensaje(mensaje.remitente) && mensaje.urgente && (
+                  <div className="flex items-center gap-1 mb-2">
+                    <AlertCircle className="w-3 h-3" />
+                    <span className="text-xs font-bold">URGENTE</span>
+                  </div>
+                )}
+                <p className="text-sm break-words font-medium">{mensaje.mensaje}</p>
+                <p className={`text-xs mt-2 font-medium ${isMiMensaje(mensaje.remitente) ? 'text-white/80' : 'text-gray-500'}`}>
                   {formatearFecha(mensaje.fechaCreacion)}
                 </p>
               </div>
@@ -163,39 +190,63 @@ export default function ChatCampana({ campanaId, campanaNombre, onClose }: ChatC
       </div>
 
       {/* Input de mensaje */}
-      <form onSubmit={handleEnviarMensaje} className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex items-end gap-2">
+      <form onSubmit={handleEnviarMensaje} className="p-4 lg:p-6 border-t border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-end gap-3">
           <div className="flex-1">
             <textarea
               value={nuevoMensaje}
               onChange={(e) => setNuevoMensaje(e.target.value)}
               placeholder="Escribe un mensaje..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none font-medium text-sm hover:border-gray-400 transition-all"
               rows={2}
               disabled={enviando}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleEnviarMensaje(e);
+                }
+              }}
             />
           </div>
           
           <div className="flex flex-col gap-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg hover:bg-red-50 transition-colors">
               <input
                 type="checkbox"
                 checked={urgente}
                 onChange={(e) => setUrgente(e.target.checked)}
-                className="rounded"
+                className="w-4 h-4 rounded focus:ring-2 focus:ring-primary-500"
+                style={{ accentColor: '#ef0000' }}
               />
-              <span className="text-xs text-red-600 font-medium">⏹️ Urgente</span>
+              <span className="text-xs font-bold flex items-center gap-1" style={{ color: '#ef0000' }}>
+                <AlertCircle className="w-3 h-3" />
+                Urgente
+              </span>
             </label>
             
             <button
               type="submit"
               disabled={!nuevoMensaje.trim() || enviando}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+              className="px-6 py-3 text-white font-bold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2"
+              style={{ background: (!nuevoMensaje.trim() || enviando) ? '#9ca3af' : 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              {enviando ? '⏳' : '📤'}
+              {enviando ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="hidden sm:inline">Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">Enviar</span>
+                </>
+              )}
             </button>
           </div>
         </div>
+        <p className="text-xs text-gray-500 mt-2 font-medium">
+          Presiona <kbd className="px-2 py-0.5 bg-gray-100 border border-gray-300 rounded text-gray-700 font-mono">Enter</kbd> para enviar o <kbd className="px-2 py-0.5 bg-gray-100 border border-gray-300 rounded text-gray-700 font-mono">Shift+Enter</kbd> para nueva línea
+        </p>
       </form>
     </div>
   );
