@@ -1,6 +1,21 @@
 import { useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { Pais, Vertical, Plataforma, Segmento } from '../../types';
+import { 
+  Upload, 
+  X, 
+  FileSpreadsheet, 
+  Download, 
+  CheckCircle, 
+  AlertCircle, 
+  FileText, 
+  TrendingUp, 
+  Loader2,
+  PartyPopper,
+  ChevronLeft,
+  Info,
+  Table
+} from 'lucide-react';
 
 interface ImportarCampanasProps {
   onCerrar: () => void;
@@ -302,37 +317,68 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-xl">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">📊 Importar Campañas</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Importa campañas desde Google Sheets o archivos CSV
-            </p>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+        {/* Header moderno */}
+        <div className="px-6 py-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                <FileSpreadsheet className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-white text-xl font-bold">
+                  Importar Datos
+                </h2>
+                <p className="text-gray-400 text-sm font-medium">
+                  Importa campañas e histórico desde archivos CSV/Excel
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onCerrar}
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+              aria-label="Cerrar modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <button
-            onClick={onCerrar}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
 
-        <div className="p-6">
+        {/* Contenido con scroll */}
+        <div className="flex-1 overflow-y-auto p-6">
           {paso === 'seleccion' && (
             <div className="space-y-6">
               {/* Instrucciones */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2">📋 Instrucciones de Importación</h3>
-                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                  <li>Exporta tus campañas de Google Sheets como CSV</li>
-                  <li>Descarga la plantilla de ejemplo para ver el formato</li>
-                  <li>Sube el archivo CSV con tus campañas</li>
-                  <li>Revisa la vista previa antes de importar</li>
-                  <li>Confirma la importación</li>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 shadow-sm">
+                <h3 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
+                  <Info className="w-5 h-5" style={{ color: '#3b82f6' }} />
+                  Instrucciones de Importación
+                </h3>
+                <ol className="text-sm text-blue-800 space-y-3 list-none">
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</span>
+                    <span className="font-medium pt-0.5">Exporta tus campañas de Google Sheets como CSV</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</span>
+                    <span className="font-medium pt-0.5">Descarga la plantilla de ejemplo para ver el formato correcto</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</span>
+                    <span className="font-medium pt-0.5">Sube el archivo CSV con tus campañas o histórico</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">4</span>
+                    <span className="font-medium pt-0.5">Revisa la vista previa antes de importar</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">5</span>
+                    <span className="font-medium pt-0.5">Confirma la importación</span>
+                  </li>
                 </ol>
               </div>
 
@@ -340,14 +386,16 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
               <div className="text-center">
                 <button
                   onClick={descargarPlantilla}
-                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-3 transform hover:scale-105"
                 >
-                  📄 Descargar Plantilla CSV
+                  <Download className="w-5 h-5" />
+                  Descargar Plantilla CSV
                 </button>
+                <p className="text-xs text-gray-600 mt-3 font-medium">Usa esta plantilla como guía para estructurar tus datos</p>
               </div>
 
               {/* Upload */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <div className="border-2 border-dashed border-gray-300 hover:border-primary-400 rounded-2xl p-12 text-center transition-all duration-200 bg-gradient-to-br from-gray-50 to-gray-100">
                 <input
                   type="file"
                   accept=".csv,.xlsx,.xls"
@@ -359,12 +407,20 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
                   htmlFor="file-import"
                   className="cursor-pointer"
                 >
-                  <div className="text-4xl mb-4">📊</div>
-                  <p className="text-lg font-semibold text-gray-700 mb-2">
+                  <div 
+                    className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg"
+                    style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+                  >
+                    <Upload className="w-12 h-12 text-white" />
+                  </div>
+                  <p className="text-xl font-bold text-gray-900 mb-3">
                     Selecciona archivo CSV o Excel
                   </p>
-                  <p className="text-sm text-gray-500">
-                    Formatos: CSV, XLSX, XLS
+                  <p className="text-sm text-gray-600 font-medium">
+                    Formatos soportados: <span className="font-bold text-gray-900">CSV, XLSX, XLS</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    El sistema detectará automáticamente si es un archivo de campañas o histórico
                   </p>
                 </label>
               </div>
@@ -373,72 +429,98 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
 
           {paso === 'preview' && (
         <div className="space-y-6">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-semibold text-green-900 mb-2">✅ Archivo Procesado</h3>
-            <p className="text-sm text-green-800">
-              {tipoImportacion === 'historico' 
-                ? `Se encontraron ${historicoImportado.length} registros históricos para importar`
-                : `Se encontraron ${campanasImportadas.length} campañas para importar`
-              }
-            </p>
-            <p className="text-xs text-green-700 mt-1">
-              Tipo detectado: {tipoImportacion === 'historico' ? '📊 Histórico Semanal' : '🎯 Campañas'}
-            </p>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 border-l-4 border-green-500 rounded-xl p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-bold text-green-900 mb-2 text-lg">Archivo Procesado Correctamente</h3>
+                <p className="text-sm text-green-800 font-medium mb-2">
+                  {tipoImportacion === 'historico' 
+                    ? `Se encontraron ${historicoImportado.length} registros históricos para importar`
+                    : `Se encontraron ${campanasImportadas.length} campañas para importar`
+                  }
+                </p>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold">
+                  {tipoImportacion === 'historico' ? <TrendingUp className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
+                  Tipo detectado: {tipoImportacion === 'historico' ? 'Histórico Semanal' : 'Campañas'}
+                </div>
+              </div>
+            </div>
           </div>
 
               {errores.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-red-900 mb-2">❌ Errores Encontrados</h3>
-                  <ul className="text-sm text-red-800 space-y-1">
-                    {errores.map((error, index) => (
-                      <li key={index}>• {error}</li>
-                    ))}
-                  </ul>
+                <div className="bg-gradient-to-br from-red-50 to-red-100 border-l-4 border-red-500 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-red-900 mb-3 text-lg">Errores Encontrados</h3>
+                      <ul className="text-sm text-red-800 space-y-2 font-medium">
+                        {errores.map((error, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-red-600">•</span>
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {/* Vista previa */}
-              <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 sticky top-0">
-                    <tr>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="px-5 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 flex items-center gap-2">
+                  <Table className="w-5 h-5" style={{ color: '#ef0000' }} />
+                  <h3 className="font-bold text-gray-900 text-lg">Vista Previa de Datos</h3>
+                  <span className="ml-auto text-sm text-gray-600 font-medium">
+                    Mostrando primeros {Math.min(10, tipoImportacion === 'historico' ? historicoImportado.length : campanasImportadas.length)} de {tipoImportacion === 'historico' ? historicoImportado.length : campanasImportadas.length} registros
+                  </span>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10 border-b-2 border-gray-200">
+                      <tr>
                       {tipoImportacion === 'historico' ? (
                         <>
-                          <th className="px-3 py-2 text-left">ID</th>
-                          <th className="px-3 py-2 text-left">Campaña</th>
-                          <th className="px-3 py-2 text-left">Semana</th>
-                          <th className="px-3 py-2 text-left">Leads</th>
-                          <th className="px-3 py-2 text-left">Costo</th>
-                          <th className="px-3 py-2 text-left">Estado</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Campaña</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Semana</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Leads</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Costo</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Estado</th>
                         </>
                       ) : (
                         <>
-                          <th className="px-3 py-2 text-left">ID</th>
-                          <th className="px-3 py-2 text-left">Nombre</th>
-                          <th className="px-3 py-2 text-left">País</th>
-                          <th className="px-3 py-2 text-left">Vertical</th>
-                          <th className="px-3 py-2 text-left">Plataforma</th>
-                          <th className="px-3 py-2 text-left">Dueño</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Nombre</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">País</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Vertical</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Plataforma</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-gray-900 uppercase">Dueño</th>
                         </>
                       )}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-100">
                     {tipoImportacion === 'historico' ? (
                       <>
                         {historicoImportado.slice(0, 10).map((registro, index) => (
-                          <tr key={index} className="border-b border-gray-100">
-                            <td className="px-3 py-2">{registro.ID_CAMPANIA}</td>
-                            <td className="px-3 py-2 font-medium">{registro.NOMBRE_CAMPANIA}</td>
-                            <td className="px-3 py-2">{registro.SEMANA_ISO}</td>
-                            <td className="px-3 py-2">{registro.LEADS}</td>
-                            <td className="px-3 py-2">${registro.COSTO_SEMANAL} USD</td>
-                            <td className="px-3 py-2">{registro.ESTADO_METRICAS}</td>
+                          <tr key={index} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 text-gray-700 font-medium">{registro.ID_CAMPANIA}</td>
+                            <td className="px-4 py-3 font-bold text-gray-900">{registro.NOMBRE_CAMPANIA}</td>
+                            <td className="px-4 py-3 text-gray-700 font-medium">{registro.SEMANA_ISO}</td>
+                            <td className="px-4 py-3 text-gray-700 font-medium">{registro.LEADS}</td>
+                            <td className="px-4 py-3 font-bold text-gray-900">${registro.COSTO_SEMANAL} USD</td>
+                            <td className="px-4 py-3">
+                              <span className="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold">
+                                {registro.ESTADO_METRICAS}
+                              </span>
+                            </td>
                           </tr>
                         ))}
                         {historicoImportado.length > 10 && (
-                          <tr>
-                            <td colSpan={6} className="p-3 text-center text-gray-500 text-sm">
+                          <tr className="bg-gray-50">
+                            <td colSpan={6} className="p-4 text-center text-gray-600 text-sm font-medium">
                               ... y {historicoImportado.length - 10} registros más
                             </td>
                           </tr>
@@ -447,18 +529,18 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
                     ) : (
                       <>
                         {campanasImportadas.slice(0, 10).map((campana, index) => (
-                          <tr key={index} className="border-b border-gray-100">
-                            <td className="px-3 py-2">{campana.id}</td>
-                            <td className="px-3 py-2 font-medium">{campana.nombre}</td>
-                            <td className="px-3 py-2">{campana.pais}</td>
-                            <td className="px-3 py-2">{campana.vertical}</td>
-                            <td className="px-3 py-2">{campana.plataforma}</td>
-                            <td className="px-3 py-2">{campana.inicialesDueno}</td>
+                          <tr key={index} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 text-gray-700 font-medium">{campana.id}</td>
+                            <td className="px-4 py-3 font-bold text-gray-900">{campana.nombre}</td>
+                            <td className="px-4 py-3 text-gray-700 font-medium">{campana.pais}</td>
+                            <td className="px-4 py-3 text-gray-700 font-medium">{campana.vertical}</td>
+                            <td className="px-4 py-3 text-gray-700 font-medium">{campana.plataforma}</td>
+                            <td className="px-4 py-3 font-bold text-gray-900">{campana.inicialesDueno}</td>
                           </tr>
                         ))}
                         {campanasImportadas.length > 10 && (
-                          <tr>
-                            <td colSpan={6} className="p-3 text-center text-gray-500 text-sm">
+                          <tr className="bg-gray-50">
+                            <td colSpan={6} className="p-4 text-center text-gray-600 text-sm font-medium">
                               ... y {campanasImportadas.length - 10} campañas más
                             </td>
                           </tr>
@@ -467,73 +549,106 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row justify-between gap-3 pt-6 border-t border-gray-200">
                 <button
                   onClick={() => setPaso('seleccion')}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold transition-all duration-200 shadow hover:shadow-md flex items-center justify-center gap-2"
                 >
+                  <ChevronLeft className="w-4 h-4" />
                   Volver
                 </button>
                 <button
                   onClick={importarCampanas}
-                  className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors"
+                  className="px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                 >
-                  Importar {tipoImportacion === 'historico' ? historicoImportado.length : campanasImportadas.length} {tipoImportacion === 'historico' ? 'Registros Históricos' : 'Campañas'}
+                  <Upload className="w-5 h-5" />
+                  Importar {tipoImportacion === 'historico' ? historicoImportado.length : campanasImportadas.length} {tipoImportacion === 'historico' ? 'Registros' : 'Campañas'}
                 </button>
               </div>
             </div>
           )}
 
           {paso === 'importando' && (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">⏳</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                Importando Campañas...
+            <div className="text-center py-16">
+              <Loader2 className="w-20 h-20 animate-spin text-primary-500 mx-auto mb-6" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                Importando Datos...
               </h3>
-              <p className="text-gray-500">
-                Por favor espera mientras se procesan las campañas
+              <p className="text-gray-600 font-medium text-base">
+                Por favor espera mientras se procesan {tipoImportacion === 'historico' ? 'los registros históricos' : 'las campañas'}
               </p>
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
             </div>
           )}
 
           {paso === 'completado' && (
             <div className="space-y-6">
-              <div className="text-center py-8">
-                <div className="text-4xl mb-4">🎉</div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  Importación Completada
+              <div className="text-center py-12">
+                <div 
+                  className="w-28 h-28 rounded-full mx-auto mb-6 flex items-center justify-center shadow-2xl"
+                  style={{ background: 'linear-gradient(to bottom right, #22c55e, #16a34a)' }}
+                >
+                  <PartyPopper className="w-14 h-14 text-white" />
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  ¡Importación Completada!
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-gray-700 text-lg font-medium">
                   {mensajeResultado ??
                     (tipoImportacion === 'historico'
-                      ? `Se importaron ${historicoImportado.length - errores.length} de ${historicoImportado.length} registros históricos`
-                      : `Se importaron ${campanasImportadas.length - errores.length} de ${campanasImportadas.length} campañas`)}
+                      ? `Se importaron exitosamente ${historicoImportado.length - errores.length} de ${historicoImportado.length} registros históricos`
+                      : `Se importaron exitosamente ${campanasImportadas.length - errores.length} de ${campanasImportadas.length} campañas`)}
                 </p>
+                {errores.length === 0 && (
+                  <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg font-bold">
+                    <CheckCircle className="w-5 h-5" />
+                    Sin errores
+                  </div>
+                )}
               </div>
 
               {errores.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-red-900 mb-2">❌ Errores en Importación</h3>
-                  <ul className="text-sm text-red-800 space-y-1 max-h-40 overflow-y-auto">
-                    {errores.map((error, index) => (
-                      <li key={index}>• {error}</li>
-                    ))}
-                  </ul>
+                <div className="bg-gradient-to-br from-red-50 to-red-100 border-l-4 border-red-500 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-red-900 mb-3 text-lg">
+                        Errores en Importación ({errores.length})
+                      </h3>
+                      <ul className="text-sm text-red-800 space-y-2 max-h-48 overflow-y-auto font-medium">
+                        {errores.map((error, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-red-600">•</span>
+                            <span>{error}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div className="flex justify-center">
+              <div className="flex justify-center pt-6 border-t border-gray-200">
                 <button
                   onClick={onCerrar}
-                  className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors"
+                  className="px-10 py-4 text-white rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
+                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                 >
+                  <CheckCircle className="w-5 h-5" />
                   Cerrar
                 </button>
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
