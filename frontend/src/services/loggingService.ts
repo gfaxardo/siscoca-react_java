@@ -248,7 +248,25 @@ class LoggingService {
 
     let timestamp: Date | null = null;
     if (raw.timestamp) {
-      const parsed = new Date(raw.timestamp);
+      // El backend envía LocalDateTime sin zona horaria (ej: "2025-11-27T16:28:35")
+      // El servidor está en UTC-5 (Perú) y guarda las fechas en su hora local
+      // Necesitamos tratarla como UTC-5 y convertirla correctamente
+      let parsed: Date;
+      if (typeof raw.timestamp === 'string') {
+        const fechaStr = raw.timestamp.trim();
+        // Si no tiene zona horaria, asumimos que es hora local del servidor (UTC-5)
+        if (!fechaStr.includes('Z') && !fechaStr.includes('+') && !fechaStr.match(/[+-]\d{2}:\d{2}$/)) {
+          // El servidor guarda "16:28:35" en UTC-5
+          // Para convertir correctamente: tratamos la fecha como si fuera en UTC-5
+          // Agregamos el offset -05:00 para indicar que es UTC-5
+          // JavaScript automáticamente la convertirá a la zona horaria local del navegador
+          parsed = new Date(fechaStr + '-05:00');
+        } else {
+          parsed = new Date(raw.timestamp);
+        }
+      } else {
+        parsed = new Date(raw.timestamp);
+      }
       if (!Number.isNaN(parsed.getTime())) {
         timestamp = parsed;
       }

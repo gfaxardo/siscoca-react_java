@@ -45,7 +45,8 @@ export default function ListaCampanas({
     descargarCreativo, 
     archivarCampana,
     obtenerHistoricoSemanalCampana,
-    obtenerCampanas
+    obtenerCampanas,
+    isLoadingCampanas
   } = useCampanaStore();
   
   const [campanasFiltradas, setCampanasFiltradas] = useState<Campana[]>([]);
@@ -306,6 +307,11 @@ export default function ListaCampanas({
   const campanasActivas = useMemo(() => {
     return ordenarCampanas(campanasFiltradasPorEstado, ordenamiento);
   }, [campanasFiltradasPorEstado, ordenamiento]);
+
+  // Cargar campañas cuando se monta el componente
+  useEffect(() => {
+    obtenerCampanas();
+  }, []);
 
   // Inicializar campañas filtradas y manejar errores
   useEffect(() => {
@@ -633,7 +639,67 @@ export default function ListaCampanas({
           onFiltrar={manejarFiltros}
         />
 
-      {campanasActivas.length === 0 ? (
+      {isLoadingCampanas ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+          {[...Array(6)].map((_, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden animate-pulse"
+              style={{ minHeight: '580px' }}
+            >
+              <div className="p-5 lg:p-6 flex flex-col h-full">
+                {/* Header skeleton */}
+                <div className="mb-4" style={{ minHeight: '110px' }}>
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="flex-1 pr-3">
+                      <div className="h-7 bg-gray-200 rounded-lg mb-2"></div>
+                      <div className="h-7 bg-gray-200 rounded-lg w-3/4"></div>
+                    </div>
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded-lg"></div>
+                      <div className="h-9 w-9 bg-gray-200 rounded-lg"></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2" style={{ height: '32px' }}>
+                    <div className="h-6 w-16 bg-gray-200 rounded-lg"></div>
+                    <div className="h-6 w-16 bg-gray-200 rounded-lg"></div>
+                    <div className="h-6 w-20 bg-gray-200 rounded-lg"></div>
+                  </div>
+                </div>
+
+                {/* Información básica skeleton */}
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 border border-gray-200" style={{ minHeight: '170px' }}>
+                  <div className="h-4 w-32 bg-gray-200 rounded mb-3"></div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                    ))}
+                  </div>
+                  <div className="h-4 bg-gray-200 rounded mt-3 pt-3 border-t border-gray-300"></div>
+                </div>
+
+                {/* Gráficos skeleton */}
+                <div className="flex-1 flex items-end mb-4">
+                  <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm" style={{ minHeight: '280px' }}>
+                    <div className="p-6">
+                      <div className="h-4 w-24 bg-gray-200 rounded mb-4"></div>
+                      <div className="space-y-3">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="h-8 bg-gray-200 rounded"></div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fecha skeleton */}
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : campanasActivas.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 lg:p-16 text-center">
           <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
             <Target className="w-12 h-12 text-white" />

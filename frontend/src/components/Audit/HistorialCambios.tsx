@@ -55,6 +55,10 @@ export default function HistorialCambios({ entidadId, onCerrar }: HistorialCambi
 
   const formatearFecha = (fecha: Date | null, formato: string) => {
     if (!fecha) return '—';
+    // El backend envía LocalDateTime sin zona horaria, que JavaScript interpreta como hora local
+    // Pero si el servidor está en una zona horaria diferente, puede haber desajuste
+    // Asumimos que el backend envía la hora en la zona horaria del servidor
+    // y la mostramos tal cual (sin conversión adicional)
     return format(fecha, formato, { locale: es });
   };
 
