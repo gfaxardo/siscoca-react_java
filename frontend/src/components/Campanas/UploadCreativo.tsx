@@ -23,7 +23,8 @@ import {
   ZoomIn,
   Maximize2,
   PlayCircle,
-  Video
+  Video,
+  AlertTriangle
 } from 'lucide-react';
 
 interface UploadCreativoProps {
@@ -57,6 +58,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const [imagenZoom, setImagenZoom] = useState<string | null>(null);
   const [videoZoom, setVideoZoom] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [creativoAEliminar, setCreativoAEliminar] = useState<Creativo | null>(null);
 
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
   const tamanoMaximo = 10 * 1024 * 1024; // 10MB
@@ -414,24 +416,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     }
   };
 
-  const manejarEliminar = async (creativo: Creativo) => {
+  const manejarEliminar = (creativo: Creativo) => {
     if (esSoloLectura) {
-      notify.warning(' Esta campaña está archivada. Solo puedes ver y descargar creativos.');
+      notify.warning('Esta campaña está archivada. Solo puedes ver y descargar creativos.');
       return;
     }
     
-    if (!confirm(`¿Estás seguro de eliminar este creativo permanentemente?`)) {
-      return;
-    }
-
+    // Abrir modal de confirmación
+    setCreativoAEliminar(creativo);
+  };
+  
+  const confirmarEliminar = async () => {
+    if (!creativoAEliminar) return;
+    
     try {
-      await creativoService.eliminarCreativo(creativo.id);
-      notify.success(' Creativo eliminado');
+      await creativoService.eliminarCreativo(creativoAEliminar.id);
+      notify.success('Creativo eliminado exitosamente');
+      setCreativoAEliminar(null);
       await cargarCreativosExistentes();
     } catch (error) {
       console.error('Error al eliminar:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
-      notify.error(` Error: ${mensajeError}`);
+      notify.error(`Error: ${mensajeError}`);
     }
   };
 
@@ -1117,6 +1123,68 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             <p className="text-center text-white/70 mt-4 text-sm font-medium">
               Haz clic fuera del video para cerrar
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Eliminación */}
+      {creativoAEliminar && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setCreativoAEliminar(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-br from-red-500 to-red-600">
+                <Trash2 className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Eliminar Creativo</h3>
+            </div>
+            
+            {/* Contenido */}
+            <div className="mb-6">
+              <p className="text-gray-700 mb-3">
+                ¿Estás seguro de que quieres <span className="font-bold text-red-600">eliminar permanentemente</span> este creativo?
+              </p>
+              {creativoAEliminar.nombreArchivoCreativo && (
+                <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
+                  {esVideo(creativoAEliminar.urlCreativoExterno || creativoAEliminar.archivoCreativo || '', creativoAEliminar.nombreArchivoCreativo) ? (
+                    <Video className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  ) : (
+                    <ImageIcon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  )}
+                  <p className="font-semibold text-gray-900 truncate">
+                    {creativoAEliminar.nombreArchivoCreativo}
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-red-600 font-medium mt-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Esta acción no se puede deshacer
+              </p>
+            </div>
+            
+            {/* Botones */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCreativoAEliminar(null)}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarEliminar}
+                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
+              >
+                <Trash2 className="w-4 h-4" />
+                Eliminar
+              </button>
+            </div>
           </div>
         </div>
       )}
