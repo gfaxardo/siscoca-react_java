@@ -150,13 +150,13 @@ ON log_entries USING gin(to_tsvector('spanish', COALESCE(detalles, '')));
 -- 8. TABLA: historial_cambios
 -- Usado en: Historial de cambios de campañas
 CREATE INDEX IF NOT EXISTS idx_historial_campana_id 
-ON historial_cambios(campana_id);
+ON historial_cambios(id_campana);
 
 CREATE INDEX IF NOT EXISTS idx_historial_fecha 
 ON historial_cambios(fecha_cambio DESC);
 
 CREATE INDEX IF NOT EXISTS idx_historial_campana_fecha 
-ON historial_cambios(campana_id, fecha_cambio DESC);
+ON historial_cambios(id_campana, fecha_cambio DESC);
 
 CREATE INDEX IF NOT EXISTS idx_historial_tipo_cambio 
 ON historial_cambios(tipo_cambio);
