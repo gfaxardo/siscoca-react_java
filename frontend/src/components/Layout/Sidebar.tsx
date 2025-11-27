@@ -7,6 +7,7 @@ interface SidebarProps {
   onCrearNueva: () => void;
   onImportarCampanas: () => void;
   onVerHistorico: () => void;
+  onCerrar?: () => void;
 }
 
 type Vista = 'dashboard' | 'campanas' | 'historico' | 'auditoria' | 'administracion';
@@ -17,7 +18,8 @@ export default function Sidebar({
   onCambiarVista, 
   onCrearNueva, 
   onImportarCampanas, 
-  onVerHistorico 
+  onVerHistorico,
+  onCerrar 
 }: SidebarProps) {
 
   const menuItems = [
@@ -80,7 +82,7 @@ export default function Sidebar({
       {abierto && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden animate-fadeIn"
-          onClick={() => onCambiarVista(vistaActiva)}
+          onClick={onCerrar}
         />
       )}
       

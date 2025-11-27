@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { chatService } from '../../services/chatService';
 import CambiarContrasena from '../Auth/CambiarContrasena';
-import { Mail, ClipboardList, Lock, LogOut } from 'lucide-react';
+import { Mail, ClipboardList, Lock, LogOut, Menu } from 'lucide-react';
 
 interface HeaderProps {
   onAbrirTareas?: () => void;
   onAbrirInbox?: () => void;
   vistaActiva?: string;
   onCambiarVista?: (vista: string) => void;
+  onToggleSidebar?: () => void;
 }
 
-export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCambiarVista }: HeaderProps) {
+export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCambiarVista, onToggleSidebar }: HeaderProps) {
   const { user, logout } = useAuth();
   const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
   const [mostrarCambioContrasena, setMostrarCambioContrasena] = useState(false);
@@ -53,7 +54,16 @@ export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCam
     <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-lg border-b border-white/10">
       <div className="flex items-center justify-between px-4 py-3 lg:px-6 lg:py-4">
         <div className="flex items-center space-x-3 lg:space-x-4">
-          {/* Espacio para futuras acciones si se necesitan */}
+          {/* Botón hamburguesa para móviles */}
+          {onToggleSidebar && (
+            <button
+              onClick={onToggleSidebar}
+              className="lg:hidden p-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200"
+              title="Menú"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          )}
         </div>
         
         <div className="flex items-center space-x-2 lg:space-x-3">

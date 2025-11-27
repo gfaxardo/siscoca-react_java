@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import DashboardConfigurable from '../Dashboard/DashboardConfigurable';
@@ -28,7 +28,27 @@ export default function Layout({
   const [mostrarDashboard, setMostrarDashboard] = useState(false);
   const [mostrarTareas, setMostrarTareas] = useState(false);
   const [mostrarInbox, setMostrarInbox] = useState(false);
-  const [sidebarAbierto, setSidebarAbierto] = useState(true);
+  const [sidebarAbierto, setSidebarAbierto] = useState(false);
+
+  // Detectar tamaño de pantalla y ajustar sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // Desktop: sidebar siempre abierto
+        setSidebarAbierto(true);
+      } else {
+        // Móvil: sidebar cerrado por defecto
+        setSidebarAbierto(false);
+      }
+    };
+
+    // Ejecutar al montar
+    handleResize();
+
+    // Escuchar cambios de tamaño
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="flex h-screen bg-slate-100">
@@ -39,11 +59,20 @@ export default function Layout({
           vistaActiva={vistaActiva || 'dashboard'}
           onCambiarVista={(vista) => {
             onCambiarVista(vista);
-            setSidebarAbierto(false); // Cerrar en móviles después de seleccionar
+            // Cerrar sidebar solo en móviles después de seleccionar
+            if (window.innerWidth < 1024) {
+              setSidebarAbierto(false);
+            }
           }}
           onCrearNueva={onCrearNueva || (() => {})}
           onImportarCampanas={onImportarCampanas || (() => {})}
           onVerHistorico={onVerHistorico || (() => {})}
+          onCerrar={() => {
+            // Solo cerrar en móviles
+            if (window.innerWidth < 1024) {
+              setSidebarAbierto(false);
+            }
+          }}
         />
       )}
       
@@ -53,6 +82,7 @@ export default function Layout({
           onAbrirInbox={() => setMostrarInbox(true)}
           vistaActiva={vistaActiva}
           onCambiarVista={onCambiarVista}
+          onToggleSidebar={() => setSidebarAbierto(!sidebarAbierto)}
         />
         
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100">
