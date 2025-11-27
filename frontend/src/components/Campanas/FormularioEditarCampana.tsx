@@ -1,9 +1,29 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { FormularioCrearCampana, VERTICALES_LABELS, PLATAFORMAS_LABELS, PAISES_LABELS, DUENOS, TIPOS_ATERRIZAJE_LABELS, Campana } from '../../types';
 import { useState, useEffect, useRef } from 'react';
+import { 
+  Eye, 
+  Edit3, 
+  X, 
+  Save, 
+  FileText, 
+  Globe, 
+  Target, 
+  BarChart3, 
+  Users, 
+  User, 
+  MapPin, 
+  Link2, 
+  MessageSquare, 
+  Mail, 
+  Phone, 
+  Loader2,
+  Smartphone
+} from 'lucide-react';
 
 const esquemaFormulario = z.object({
   nombre: z.string().min(1, 'El nombre es requerido'),
@@ -211,35 +231,50 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-4">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Header Moderno */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 flex-shrink-0 border-b border-white/10">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold">{modoLectura ? '👁️ Ver Detalles de Campaña' : '✏️ Editar Campaña'}</h2>
-              <p className="text-primary-100 text-sm mt-1">{modoLectura ? 'Visualiza los detalles de la campaña' : 'Modifica los datos de la campaña'}</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                {modoLectura ? <Eye className="w-6 h-6 text-white" /> : <Edit3 className="w-6 h-6 text-white" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">
+                  {modoLectura ? 'Ver Detalles de Campaña' : 'Editar Campaña'}
+                </h2>
+                <p className="text-gray-400 text-sm">
+                  {modoLectura ? 'Visualiza los detalles de la campaña' : 'Modifica los datos de la campaña'}
+                </p>
+              </div>
             </div>
             <button
               onClick={onCerrar}
-              className="text-white hover:text-primary-200 transition-colors"
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
+              aria-label="Cerrar"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        <form onSubmit={modoLectura ? (e) => { e.preventDefault(); } : handleSubmit(onSubmit)} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <form onSubmit={modoLectura ? (e) => { e.preventDefault(); } : handleSubmit(onSubmit)} className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Sección 1: Identificación */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">🏷️ Identificación de la Campaña</h3>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+              <FileText className="w-5 h-5" style={{ color: '#ef0000' }} />
+              Identificación de la Campaña
+            </h3>
             
             {/* Nombre de la campaña */}
             <div className="mb-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Nombre de la Campaña *
               </label>
               <input
@@ -251,15 +286,15 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                 })}
                 type="text"
                 disabled={modoLectura}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white font-medium text-sm hover:border-gray-400"
                 placeholder="Ej: PE-MOTOPER-FB-ADQ-001-AC-BonoBienvenida"
               />
               {errors.nombre && (
-                <p className="text-red-500 text-sm mt-1">{errors.nombre.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.nombre.message}</p>
               )}
               {nombreSugerido && (
-                <div className="flex items-center justify-between mt-2 bg-gray-100 border border-dashed border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-600">
-                  <span>Sugerido: {nombreSugerido}</span>
+                <div className="flex items-center justify-between mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs">
+                  <span className="text-gray-700 font-medium">Sugerido: {nombreSugerido}</span>
                   {!modoLectura && (
                     <button
                       type="button"
@@ -267,7 +302,8 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                         nombreEditadoManualmenteRef.current = false;
                         setValue('nombre', nombreSugerido);
                       }}
-                      className="text-primary-600 hover:text-primary-700 font-semibold"
+                      className="text-white px-3 py-1 rounded-lg font-bold text-xs transition-all hover:shadow-md"
+                      style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                     >
                       Usar sugerido
                     </button>
@@ -276,42 +312,43 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
               )}
             </div>
 
-            {/* País */}
+            {/* País y Vertical */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Globe className="w-4 h-4" style={{ color: '#ef0000' }} />
                   País *
                 </label>
                 <select
                   {...register('pais')}
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 >
                   {Object.entries(PAISES_LABELS).map(([codigo, nombre]) => (
                     <option key={codigo} value={codigo}>{nombre}</option>
                   ))}
                 </select>
                 {errors.pais && (
-                  <p className="text-red-500 text-sm mt-1">{errors.pais.message}</p>
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.pais.message}</p>
                 )}
               </div>
 
-              {/* Vertical */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Vertical *
                 </label>
                 <select
                   {...register('vertical')}
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 >
                   {Object.entries(VERTICALES_LABELS).map(([codigo, nombre]) => (
                     <option key={codigo} value={codigo}>{nombre}</option>
                   ))}
                 </select>
                 {errors.vertical && (
-                  <p className="text-red-500 text-sm mt-1">{errors.vertical.message}</p>
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.vertical.message}</p>
                 )}
               </div>
             </div>
@@ -319,31 +356,33 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
             {/* Plataforma y Segmento */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Plataforma *
                 </label>
                 <select
                   {...register('plataforma')}
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 >
                   {Object.entries(PLATAFORMAS_LABELS).map(([codigo, nombre]) => (
                     <option key={codigo} value={codigo}>{nombre}</option>
                   ))}
                 </select>
                 {errors.plataforma && (
-                  <p className="text-red-500 text-sm mt-1">{errors.plataforma.message}</p>
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.plataforma.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Segmento *
                 </label>
                 <select
                   {...register('segmento')}
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 >
                   <option value="Adquisición">Adquisición</option>
                   <option value="Retención">Retención</option>
@@ -353,7 +392,7 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                   <option value="Más Vistas del Perfil">Más Vistas del Perfil</option>
                 </select>
                 {errors.segmento && (
-                  <p className="text-red-500 text-sm mt-1">{errors.segmento.message}</p>
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.segmento.message}</p>
                 )}
               </div>
             </div>
@@ -361,30 +400,32 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
             {/* ID Plataforma Externa y Nombre en Plataforma */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                   ID Plataforma Externa (Opcional)
                 </label>
                 <input
                   {...register('idPlataformaExterna')}
                   type="text"
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white font-medium text-sm hover:border-gray-400"
                   placeholder="Ej: 123456789"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Nombre en Plataforma (Opcional)
                 </label>
                 <input
                   {...register('nombrePlataforma')}
                   type="text"
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white font-medium text-sm hover:border-gray-400"
                   placeholder="Ej: Rayo - Bono Bienvenida"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-600 mt-2 font-medium">
                   Nombre que aparece en Facebook/TikTok/Google
                 </p>
               </div>
@@ -392,12 +433,16 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
           </div>
 
           {/* Sección 2: Dueño */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">👤 Dueño de la Campaña</h3>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+              <User className="w-5 h-5" style={{ color: '#ef0000' }} />
+              Dueño de la Campaña
+            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <User className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Dueño *
                 </label>
                 <select
@@ -407,19 +452,20 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                     manejarCambioDueno(e.target.value);
                   }}
                   disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 >
                   {DUENOS.map((dueno) => (
                     <option key={dueno.nombre} value={dueno.nombre}>{dueno.nombre}</option>
                   ))}
                 </select>
                 {errors.nombreDueno && (
-                  <p className="text-red-500 text-sm mt-1">{errors.nombreDueno.message}</p>
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.nombreDueno.message}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                   Iniciales *
                 </label>
                 <input
@@ -427,17 +473,18 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                   type="text"
                   maxLength={3}
                   disabled={modoLectura || !inicialesCustomManual}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                   placeholder="Ej: ABC"
                 />
                 {errors.inicialesDueno && (
-                  <p className="text-red-500 text-sm mt-1">{errors.inicialesDueno.message}</p>
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.inicialesDueno.message}</p>
                 )}
               </div>
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Descripción Corta *
               </label>
               <input
@@ -445,266 +492,293 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                 type="text"
                 maxLength={20}
                 disabled={modoLectura}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 placeholder="Ej: BonoBienvenida"
               />
               {errors.descripcionCorta && (
-                <p className="text-red-500 text-sm mt-1">{errors.descripcionCorta.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.descripcionCorta.message}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-600 mt-2 font-medium">
                 Sin espacios ni caracteres especiales (máximo 20 caracteres)
               </p>
             </div>
           </div>
 
           {/* Sección 3: Información de la Campaña */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">📄 Información de la Campaña</h3>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+              <FileText className="w-5 h-5" style={{ color: '#ef0000' }} />
+              Información de la Campaña
+            </h3>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Target className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Objetivo de la Campaña *
               </label>
               <textarea
                 {...register('objetivo')}
                 rows={3}
                 disabled={modoLectura}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 placeholder="Describe el objetivo principal de esta campaña..."
               />
               {errors.objetivo && (
-                <p className="text-red-500 text-sm mt-1">{errors.objetivo.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.objetivo.message}</p>
               )}
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Beneficio/Programa *
               </label>
               <input
                 {...register('beneficio')}
                 type="text"
                 disabled={modoLectura}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 placeholder="Ej: Bono de bienvenida $200 USD"
               />
               {errors.beneficio && (
-                <p className="text-red-500 text-sm mt-1">{errors.beneficio.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.beneficio.message}</p>
               )}
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Descripción Detallada *
               </label>
               <textarea
                 {...register('descripcion')}
                 rows={4}
                 disabled={modoLectura}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
                 placeholder="Describe detalladamente la campaña, incluyendo estrategia, público objetivo, etc..."
               />
               {errors.descripcion && (
-                <p className="text-red-500 text-sm mt-1">{errors.descripcion.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.descripcion.message}</p>
               )}
             </div>
           </div>
 
           {/* Sección 4: Aterrizaje de la Campaña */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">🎯 Aterrizaje de la Campaña</h3>
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+              <MapPin className="w-5 h-5" style={{ color: '#ef0000' }} />
+              Aterrizaje de la Campaña
+            </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Tipo de Aterrizaje *
-                </label>
-                <select
-                  {...register('tipoAterrizaje')}
-                  disabled={modoLectura}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                >
-                  {Object.entries(TIPOS_ATERRIZAJE_LABELS).map(([codigo, nombre]) => (
-                    <option key={codigo} value={codigo}>{nombre}</option>
-                  ))}
-                </select>
-                {errors.tipoAterrizaje && (
-                  <p className="text-red-500 text-sm mt-1">{errors.tipoAterrizaje.message}</p>
-                )}
-              </div>
-
-              {/* Campo dinámico según tipo de aterrizaje */}
-              <div>
-                {(['FORMS', 'URL', 'LANDING', 'APP'].includes(tipoAterrizaje)) && (
-                  <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      URL de Aterrizaje *
-                    </label>
-                    <input
-                      {...register('urlAterrizaje', {
-                        required: tipoAterrizaje === 'URL' || tipoAterrizaje === 'LANDING' || tipoAterrizaje === 'APP' ? 'La URL es requerida para este tipo de aterrizaje' : false,
-                        pattern: {
-                          value: /^https?:\/\/.+/,
-                          message: 'Debe ser una URL válida (https://...)'
-                        }
-                      })}
-                      type="url"
-                      disabled={modoLectura}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                      placeholder="https://ejemplo.com/landing"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ingresa la URL completa del formulario, landing page o app
-                    </p>
-                    {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
-                    )}
-                    {tipoAterrizaje === 'FORMS' && (
-                      <>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2 mt-4">
-                          Detalles de Campos del Formulario (Opcional)
-                        </label>
-                        <textarea
-                          {...register('detalleAterrizaje')}
-                          rows={3}
-                          disabled={modoLectura}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                          placeholder="Ej: Nombre, Email, Teléfono, Mensaje..."
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Describe qué campos tendrá el formulario de la landing de aterrizaje
-                        </p>
-                      </>
-                    )}
-                  </>
-                )}
-
-                {tipoAterrizaje === 'WHATSAPP' && (
-                  <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Número de WhatsApp *
-                    </label>
-                    <input
-                      {...register('urlAterrizaje', {
-                        required: 'El número de WhatsApp es requerido',
-                        pattern: {
-                          value: /^\+?[1-9]\d{1,14}$/,
-                          message: 'Debe ser un número de teléfono válido (ej: +51987654321)'
-                        }
-                      })}
-                      type="tel"
-                      disabled={modoLectura}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                      placeholder="+51987654321"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ingresa el número de WhatsApp con código de país (ej: +51987654321)
-                    </p>
-                    {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
-                    )}
-                  </>
-                )}
-
-                {tipoAterrizaje === 'EMAIL' && (
-                  <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Correo Electrónico *
-                    </label>
-                    <input
-                      {...register('urlAterrizaje', {
-                        required: 'El correo electrónico es requerido',
-                        pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: 'Debe ser un correo electrónico válido'
-                        }
-                      })}
-                      type="email"
-                      disabled={modoLectura}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                      placeholder="contacto@empresa.com"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ingresa el correo electrónico de contacto
-                    </p>
-                    {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
-                    )}
-                  </>
-                )}
-
-                {tipoAterrizaje === 'CALL_CENTER' && (
-                  <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Número de Teléfono *
-                    </label>
-                    <input
-                      {...register('urlAterrizaje', {
-                        required: 'El número de teléfono es requerido',
-                        pattern: {
-                          value: /^\+?[1-9]\d{1,14}$/,
-                          message: 'Debe ser un número de teléfono válido (ej: +51987654321)'
-                        }
-                      })}
-                      type="tel"
-                      disabled={modoLectura}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                      placeholder="+51987654321"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ingresa el número del call center con código de país
-                    </p>
-                    {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
-                    )}
-                  </>
-                )}
-
-                {tipoAterrizaje === 'OTRO' && (
-                  <>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Información de Aterrizaje (Opcional)
-                    </label>
-                    <input
-                      {...register('urlAterrizaje')}
-                      type="text"
-                      disabled={modoLectura}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gray-50"
-                      placeholder="Describe o ingresa la información del aterrizaje"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ingresa cualquier información adicional sobre el aterrizaje
-                    </p>
-                    {errors.urlAterrizaje && (
-                      <p className="text-red-500 text-sm mt-1">{errors.urlAterrizaje.message}</p>
-                    )}
-                  </>
-                )}
-              </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Tipo de Aterrizaje *
+              </label>
+              <select
+                {...register('tipoAterrizaje')}
+                disabled={modoLectura}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+              >
+                {Object.entries(TIPOS_ATERRIZAJE_LABELS).map(([codigo, nombre]) => (
+                  <option key={codigo} value={codigo}>{nombre}</option>
+                ))}
+              </select>
+              {errors.tipoAterrizaje && (
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.tipoAterrizaje.message}</p>
+              )}
             </div>
+
+            {/* URL de Aterrizaje (FORMS, URL, LANDING, APP) */}
+            {(['FORMS', 'URL', 'LANDING', 'APP'].includes(tipoAterrizaje)) && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Link2 className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  URL de Aterrizaje *
+                </label>
+                <input
+                  {...register('urlAterrizaje', {
+                    required: tipoAterrizaje === 'URL' || tipoAterrizaje === 'LANDING' || tipoAterrizaje === 'APP' ? 'La URL es requerida para este tipo de aterrizaje' : false,
+                    pattern: {
+                      value: /^https?:\/\/.+/,
+                      message: 'Debe ser una URL válida (https://...)'
+                    }
+                  })}
+                  type="url"
+                  disabled={modoLectura}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+                  placeholder="https://ejemplo.com/landing"
+                />
+                <p className="text-xs text-gray-600 mt-2 font-medium">
+                  Ingresa la URL completa del formulario, landing page o app
+                </p>
+                {errors.urlAterrizaje && (
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
+                )}
+                
+                {tipoAterrizaje === 'FORMS' && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
+                      Detalles de Campos del Formulario (Opcional)
+                    </label>
+                    <textarea
+                      {...register('detalleAterrizaje')}
+                      rows={3}
+                      disabled={modoLectura}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+                      placeholder="Ej: Nombre, Email, Teléfono, Mensaje..."
+                    />
+                    <p className="text-xs text-gray-600 mt-2 font-medium">
+                      Describe qué campos tendrá el formulario de la landing de aterrizaje
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* WhatsApp */}
+            {tipoAterrizaje === 'WHATSAPP' && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  Número de WhatsApp *
+                </label>
+                <input
+                  {...register('urlAterrizaje', {
+                    required: 'El número de WhatsApp es requerido',
+                    pattern: {
+                      value: /^\+?[1-9]\d{1,14}$/,
+                      message: 'Debe ser un número de teléfono válido (ej: +51987654321)'
+                    }
+                  })}
+                  type="tel"
+                  disabled={modoLectura}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+                  placeholder="+51987654321"
+                />
+                <p className="text-xs text-gray-600 mt-2 font-medium">
+                  Ingresa el número de WhatsApp con código de país (ej: +51987654321)
+                </p>
+                {errors.urlAterrizaje && (
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Email */}
+            {tipoAterrizaje === 'EMAIL' && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Mail className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  Correo Electrónico *
+                </label>
+                <input
+                  {...register('urlAterrizaje', {
+                    required: 'El correo electrónico es requerido',
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: 'Debe ser un correo electrónico válido'
+                    }
+                  })}
+                  type="email"
+                  disabled={modoLectura}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+                  placeholder="contacto@ejemplo.com"
+                />
+                <p className="text-xs text-gray-600 mt-2 font-medium">
+                  Ingresa el correo electrónico de contacto
+                </p>
+                {errors.urlAterrizaje && (
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Call Center */}
+            {tipoAterrizaje === 'CALL_CENTER' && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Phone className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  Número de Teléfono *
+                </label>
+                <input
+                  {...register('urlAterrizaje', {
+                    required: 'El número de teléfono es requerido',
+                    pattern: {
+                      value: /^\+?[1-9]\d{1,14}$/,
+                      message: 'Debe ser un número de teléfono válido (ej: +51987654321)'
+                    }
+                  })}
+                  type="tel"
+                  disabled={modoLectura}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+                  placeholder="+51987654321"
+                />
+                <p className="text-xs text-gray-600 mt-2 font-medium">
+                  Ingresa el número de teléfono del call center con código de país
+                </p>
+                {errors.urlAterrizaje && (
+                  <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlAterrizaje.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Otro */}
+            {tipoAterrizaje === 'OTRO' && (
+              <div className="mt-4">
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  Detalles del Aterrizaje (Opcional)
+                </label>
+                <textarea
+                  {...register('detalleAterrizaje')}
+                  rows={3}
+                  disabled={modoLectura}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white hover:border-gray-400 font-medium text-sm"
+                  placeholder="Describe cómo funciona el aterrizaje de esta campaña..."
+                />
+                <p className="text-xs text-gray-600 mt-2 font-medium">
+                  Proporciona detalles sobre cómo funciona el método de aterrizaje
+                </p>
+              </div>
+            )
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200 flex-shrink-0">
             <button
               type="button"
               onClick={onCerrar}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold transition-all duration-200 shadow hover:shadow-md flex items-center justify-center gap-2"
             >
+              <X className="w-4 h-4" />
               {modoLectura ? 'Cerrar' : 'Cancelar'}
             </button>
             {!modoLectura && (
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2"
+                style={{ background: isSubmitting ? '#9ca3af' : 'linear-gradient(to right, #ef0000, #dc0000)' }}
               >
-                {isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    Guardar Cambios
+                  </>
+                )}
               </button>
             )}
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
