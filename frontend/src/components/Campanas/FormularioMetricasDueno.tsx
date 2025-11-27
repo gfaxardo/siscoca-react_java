@@ -2,10 +2,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana, MetricasDueno } from '../../types';
 import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { 
+  Users, 
+  X, 
+  Save, 
+  Calendar, 
+  UserPlus, 
+  Car, 
+  DollarSign, 
+  Loader2,
+  Info
+} from 'lucide-react';
 
 const esquemaFormulario = z.object({
   idCampana: z.string(),
@@ -194,158 +206,215 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-xl">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">👥 Métricas del Dueño</h2>
-            <p className="text-sm text-gray-600 mt-1">Campaña: {campana.nombre} ({campana.id})</p>
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+        {/* Header moderno */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 flex justify-between items-center flex-shrink-0 border-b border-white/10">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+              style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+            >
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl lg:text-2xl font-bold text-white">
+                Métricas del Dueño
+              </h2>
+              <p className="text-sm text-gray-400 truncate">{campana.nombre}</p>
+            </div>
           </div>
           <button
             onClick={onCerrar}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
+            aria-label="Cerrar"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <input type="hidden" {...register('idCampana')} />
+        {/* Contenedor con scroll */}
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-6">
+            <input type="hidden" {...register('idCampana')} />
 
-          {/* Selector de Semana */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              📅 Seleccionar Semana
-            </label>
-            <select
-              value={semanaSeleccionada}
-              onChange={(e) => {
-                setSemanaSeleccionada(parseInt(e.target.value));
-                // Cargar datos de la semana seleccionada si existen
-                const datosSemana = historicoExistente.find(h => h.semanaISO === parseInt(e.target.value));
-                if (datosSemana) {
-                  setValue('conductoresRegistrados', datosSemana.conductoresRegistrados || campana.conductoresRegistrados || 0);
-                  setValue('conductoresPrimerViaje', datosSemana.conductoresPrimerViaje || campana.conductoresPrimerViaje || 0);
-                } else {
-                  // Si no hay datos, usar datos actuales de la campaña
-                  setValue('conductoresRegistrados', campana.conductoresRegistrados || 0);
-                  setValue('conductoresPrimerViaje', campana.conductoresPrimerViaje || 0);
-                }
-              }}
-              className="w-full px-4 py-3 border border-orange-300 rounded-lg bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all font-medium"
-            >
-              {opcionesSemanas.map((opcion) => (
-                <option key={opcion.valor} value={opcion.valor}>
-                  {opcion.label}
-                </option>
-              ))}
-            </select>
-            {semanaActualSeleccionada && (
-              <p className="text-xs text-orange-600 mt-2">
-                📆 Período: {semanaActualSeleccionada.rango}
-              </p>
-            )}
-          </div>
+            {/* Selector de Semana */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-5 shadow-sm">
+              <label className="block text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Calendar className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Seleccionar Semana
+              </label>
+              <select
+                value={semanaSeleccionada}
+                onChange={(e) => {
+                  setSemanaSeleccionada(parseInt(e.target.value));
+                  // Cargar datos de la semana seleccionada si existen
+                  const datosSemana = historicoExistente.find(h => h.semanaISO === parseInt(e.target.value));
+                  if (datosSemana) {
+                    setValue('conductoresRegistrados', datosSemana.conductoresRegistrados || campana.conductoresRegistrados || 0);
+                    setValue('conductoresPrimerViaje', datosSemana.conductoresPrimerViaje || campana.conductoresPrimerViaje || 0);
+                  } else {
+                    // Si no hay datos, usar datos actuales de la campaña
+                    setValue('conductoresRegistrados', campana.conductoresRegistrados || 0);
+                    setValue('conductoresPrimerViaje', campana.conductoresPrimerViaje || 0);
+                  }
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
+              >
+                {opcionesSemanas.map((opcion) => (
+                  <option key={opcion.valor} value={opcion.valor}>
+                    {opcion.label}
+                  </option>
+                ))}
+              </select>
+              {semanaActualSeleccionada && (
+                <p className="text-xs text-orange-700 mt-2 font-medium flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  Período: {semanaActualSeleccionada.rango}
+                </p>
+              )}
+            </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <UserPlus className="w-4 h-4" style={{ color: '#ef0000' }} />
               Registros (Personas que se registraron) *
             </label>
             <input
               {...register('conductoresRegistrados', { valueAsNumber: true })}
               type="number"
               min="0"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-warning-500 focus:border-transparent transition-all text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-lg font-bold hover:border-gray-400"
               placeholder="0"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-600 mt-2 font-medium">
               Personas que completaron el registro en la plataforma
             </p>
             {errors.conductoresRegistrados && (
-              <p className="text-red-500 text-sm mt-1">{errors.conductoresRegistrados.message}</p>
+              <p className="text-red-600 text-xs mt-1 font-medium">{errors.conductoresRegistrados.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <Car className="w-4 h-4" style={{ color: '#ef0000' }} />
               Conductores (Personas que ya hicieron viajes) *
             </label>
             <input
               {...register('conductoresPrimerViaje', { valueAsNumber: true })}
               type="number"
               min="0"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-warning-500 focus:border-transparent transition-all text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-lg font-bold hover:border-gray-400"
               placeholder="0"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-600 mt-2 font-medium">
               Personas que ya completaron su primer viaje (conductores activos)
             </p>
             {errors.conductoresPrimerViaje && (
-              <p className="text-red-500 text-sm mt-1">{errors.conductoresPrimerViaje.message}</p>
+              <p className="text-red-600 text-xs mt-1 font-medium">{errors.conductoresPrimerViaje.message}</p>
             )}
             {/* Mostrar cálculo automático en tiempo real */}
             {costoSemanalActual && conductoresPrimerViaje && conductoresPrimerViaje > 0 && (
-              <p className="text-xs text-green-600 mt-1 font-medium">
-                💰 Costo por Conductor: ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
-              </p>
+              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-xs text-green-700 font-bold flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" />
+                  Costo por Conductor: ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
+                </p>
+              </div>
             )}
           </div>
 
           {/* Cálculo automático de costo por conductor */}
           {costoSemanalActual && conductoresPrimerViaje && conductoresPrimerViaje > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-800 font-semibold mb-2">💰 Cálculo Automático</p>
-              <div className="text-sm text-green-700 space-y-1">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-5 shadow-sm">
+              <p className="text-sm text-green-900 font-bold mb-3 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Cálculo Automático
+              </p>
+              <div className="text-sm text-green-800 space-y-2 font-medium">
                 <p>
                   <strong>Costo por Conductor:</strong> ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
                 </p>
-                <p className="text-xs text-green-600 mt-1">
+                <p className="text-xs text-green-700">
                   Fórmula: Costo Semanal ({costoSemanalActual} USD) ÷ Conductores ({conductoresPrimerViaje}) = ${Math.round((costoSemanalActual / conductoresPrimerViaje) * 100) / 100} USD
                 </p>
               </div>
             </div>
           )}
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <span className="font-semibold">💡 Diferencia importante:</span>
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+            <p className="text-sm text-blue-900 font-bold mb-3 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Diferencia importante
             </p>
-            <ul className="mt-2 text-sm text-blue-700 space-y-1 ml-4">
-              <li>• <strong>Registros:</strong> Personas que se registraron en la plataforma</li>
-              <li>• <strong>Conductores:</strong> Personas que ya hicieron al menos un viaje</li>
-              <li className="mt-2">El sistema calculará automáticamente usando el costo semanal de la semana seleccionada:</li>
-              <li>• Costo por Registro (USD) = Costo Semanal ÷ Registros</li>
-              <li>• Costo por Conductor (USD) = Costo Semanal ÷ Conductores (usando conductoresPrimerViaje)</li>
+            <ul className="text-sm text-blue-800 space-y-2 font-medium">
+              <li className="flex items-start gap-2">
+                <UserPlus className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>Registros:</strong> Personas que se registraron en la plataforma
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <Car className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <div>
+                  <strong>Conductores:</strong> Personas que ya hicieron al menos un viaje
+                </div>
+              </li>
+              <li className="flex items-start gap-2 pt-2 border-t border-blue-200">
+                <DollarSign className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <div className="text-xs">
+                  El sistema calculará automáticamente:
+                  <div className="mt-1 space-y-1">
+                    <div>• Costo por Registro = Costo Semanal ÷ Registros</div>
+                    <div>• Costo por Conductor = Costo Semanal ÷ Conductores</div>
+                  </div>
+                </div>
+              </li>
               {costoSemanalActual > 0 && (
-                <li className="text-xs text-blue-600 mt-2 font-medium">
-                  💡 Costo semanal de la semana {semanaSeleccionada}: ${costoSemanalActual} USD
+                <li className="flex items-start gap-2 pt-2 border-t border-blue-200">
+                  <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div className="text-xs">
+                    Costo semanal de la semana {semanaSeleccionada}: <strong>${costoSemanalActual} USD</strong>
+                  </div>
                 </li>
               )}
             </ul>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onCerrar}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+              className="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold transition-all duration-200 shadow hover:shadow-md flex items-center justify-center gap-2"
             >
+              <X className="w-4 h-4" />
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-warning-500 hover:bg-warning-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2"
+              style={{ background: isSubmitting ? '#9ca3af' : 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              {isSubmitting ? 'Guardando...' : 'Completar Métricas'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Completar Métricas
+                </>
+              )}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
