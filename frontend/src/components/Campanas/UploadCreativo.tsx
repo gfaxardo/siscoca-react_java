@@ -397,22 +397,33 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       if (creativo.activo) {
         // Descartar
         await creativoService.marcarComoDescartado(creativo.id);
-        notify.success(' Creativo descartado');
+        notify.success('Creativo descartado exitosamente');
       } else {
         // Activar - verificar límite
         const activos = creativosExistentes.filter(c => c.activo);
         if (activos.length >= maxArchivos) {
-          notify.error(` Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
+          notify.error(`Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
           return;
         }
         await creativoService.marcarComoActivo(creativo.id);
-        notify.success(' Creativo activado');
+        notify.success('Creativo activado exitosamente');
       }
       await cargarCreativosExistentes();
+      await obtenerCampanas(); // Auto-refresh para actualizar estado de campaña
     } catch (error) {
       console.error('Error al cambiar estado:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
-      notify.error(` Error: ${mensajeError}`);
+      
+      // Mensaje más específico según el error
+      if (mensajeError.includes('Failed to fetch') || mensajeError.includes('ERR_FAILED')) {
+        notify.error('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
+      } else if (mensajeError.includes('404')) {
+        notify.error('Creativo no encontrado. Intenta recargar la página.');
+      } else if (mensajeError.includes('5 creativos')) {
+        notify.error('Ya hay 5 creativos activos. Desactiva uno primero.');
+      } else {
+        notify.error(`Error: ${mensajeError}`);
+      }
     }
   };
 
