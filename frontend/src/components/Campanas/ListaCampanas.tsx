@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana, TIPOS_ATERRIZAJE_LABELS, PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS } from '../../types';
 import { format } from 'date-fns';
@@ -860,7 +861,7 @@ export default function ListaCampanas({
       )}
 
       {/* Modal de Chat */}
-      {mostrarChat && campanaParaChat && (
+      {mostrarChat && campanaParaChat && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] shadow-2xl">
             <ChatCampana
@@ -869,7 +870,8 @@ export default function ListaCampanas({
               onClose={handleCerrarChat}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal de Vista Detallada */}
