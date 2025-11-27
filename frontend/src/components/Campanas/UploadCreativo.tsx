@@ -21,7 +21,9 @@ import {
   XCircle,
   Image as ImageIcon,
   ZoomIn,
-  Maximize2
+  Maximize2,
+  PlayCircle,
+  Video
 } from 'lucide-react';
 
 interface UploadCreativoProps {
@@ -53,6 +55,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const [creativosExistentes, setCreativosExistentes] = useState<Creativo[]>([]);
   const [cargandoCreativos, setCargandoCreativos] = useState(true);
   const [imagenZoom, setImagenZoom] = useState<string | null>(null);
+  const [videoZoom, setVideoZoom] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
@@ -61,6 +64,32 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   
   // Determinar si es solo lectura (campaña archivada)
   const esSoloLectura = campana.estado === 'Archivada';
+  
+  // Helper para detectar si es video
+  const esVideo = (url: string, nombreArchivo?: string): boolean => {
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.ogg'];
+    const lowerUrl = url.toLowerCase();
+    const lowerNombre = nombreArchivo?.toLowerCase() || '';
+    
+    // Verificar por data URL
+    if (lowerUrl.startsWith('data:video')) return true;
+    
+    // Verificar por extensión en URL o nombre
+    return videoExtensions.some(ext => lowerUrl.includes(ext) || lowerNombre.endsWith(ext));
+  };
+  
+  // Helper para detectar si es imagen
+  const esImagen = (url: string, nombreArchivo?: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const lowerUrl = url.toLowerCase();
+    const lowerNombre = nombreArchivo?.toLowerCase() || '';
+    
+    // Verificar por data URL
+    if (lowerUrl.startsWith('data:image')) return true;
+    
+    // Verificar por extensión en URL o nombre
+    return imageExtensions.some(ext => lowerUrl.includes(ext) || lowerNombre.endsWith(ext));
+  };
 
   // Cargar creativos existentes al abrir el modal
   useEffect(() => {
@@ -478,7 +507,11 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           <div className="flex-1 min-w-0">
                             {creativo.nombreArchivoCreativo && (
                               <p className="font-bold text-gray-900 truncate flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4" style={{ color: '#10b981' }} />
+                                {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
+                                  <Video className="w-4 h-4" style={{ color: '#10b981' }} />
+                                ) : (
+                                  <ImageIcon className="w-4 h-4" style={{ color: '#10b981' }} />
+                                )}
                                 {creativo.nombreArchivoCreativo}
                               </p>
                             )}
@@ -521,30 +554,60 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                             )}
                           </div>
                         </div>
-                        {/* Mostrar imagen desde URL externa o base64 */}
-                        {(creativo.urlCreativoExterno || (creativo.archivoCreativo && creativo.archivoCreativo.startsWith('data:image'))) && (
-                          <div 
-                            className="mt-2 border border-green-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
-                            onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
-                          >
-                            <img
-                              src={creativo.urlCreativoExterno || creativo.archivoCreativo}
-                              alt={creativo.nombreArchivoCreativo || "Preview"}
-                              className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
-                              onError={(e) => {
-                                // Si falla cargar la imagen, mostrar un placeholder
-                                const target = e.target as HTMLImageElement;
-                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZW4gbm8gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
-                                target.onerror = null; // Prevenir bucle infinito
-                              }}
-                            />
-                            {/* Overlay con lupa */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
-                              <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
-                                <ZoomIn className="w-6 h-6" style={{ color: '#ef0000' }} />
+                        {/* Mostrar video o imagen desde URL externa o base64 */}
+                        {(creativo.urlCreativoExterno || creativo.archivoCreativo) && (
+                          <>
+                            {/* Video */}
+                            {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
+                              <div className="mt-2 border border-green-300 rounded-lg p-2 bg-black relative group overflow-hidden">
+                                <video
+                                  src={creativo.urlCreativoExterno || creativo.archivoCreativo}
+                                  controls
+                                  className="max-w-full max-h-48 mx-auto rounded object-contain"
+                                  preload="metadata"
+                                >
+                                  Tu navegador no soporta el elemento de video.
+                                </video>
+                                {/* Botón para ver en pantalla completa */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '');
+                                  }}
+                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                                  title="Ver en pantalla completa"
+                                >
+                                  <Maximize2 className="w-5 h-5" />
+                                </button>
                               </div>
-                            </div>
-                          </div>
+                            )}
+                            
+                            {/* Imagen */}
+                            {esImagen(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
+                              <div 
+                                className="mt-2 border border-green-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
+                                onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                              >
+                                <img
+                                  src={creativo.urlCreativoExterno || creativo.archivoCreativo}
+                                  alt={creativo.nombreArchivoCreativo || "Preview"}
+                                  className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
+                                  onError={(e) => {
+                                    // Si falla cargar la imagen, mostrar un placeholder
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZW4gbm8gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
+                                    target.onerror = null; // Prevenir bucle infinito
+                                  }}
+                                />
+                                {/* Overlay con lupa */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                                  <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                                    <ZoomIn className="w-6 h-6" style={{ color: '#ef0000' }} />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     ))}
@@ -566,7 +629,11 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           <div className="flex-1 min-w-0">
                             {creativo.nombreArchivoCreativo && (
                               <p className="font-bold text-gray-700 truncate flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4 text-gray-500" />
+                                {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
+                                  <Video className="w-4 h-4 text-gray-500" />
+                                ) : (
+                                  <ImageIcon className="w-4 h-4 text-gray-500" />
+                                )}
                                 {creativo.nombreArchivoCreativo}
                               </p>
                             )}
@@ -609,30 +676,60 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                             )}
                           </div>
                         </div>
-                        {/* Mostrar imagen desde URL externa o base64 */}
-                        {(creativo.urlCreativoExterno || (creativo.archivoCreativo && creativo.archivoCreativo.startsWith('data:image'))) && (
-                          <div 
-                            className="mt-2 border border-gray-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
-                            onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
-                          >
-                            <img
-                              src={creativo.urlCreativoExterno || creativo.archivoCreativo}
-                              alt={creativo.nombreArchivoCreativo || "Preview"}
-                              className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
-                              onError={(e) => {
-                                // Si falla cargar la imagen, mostrar un placeholder
-                                const target = e.target as HTMLImageElement;
-                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZW4gbm8 ZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
-                                target.onerror = null; // Prevenir bucle infinito
-                              }}
-                            />
-                            {/* Overlay con lupa */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
-                              <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
-                                <ZoomIn className="w-6 h-6" style={{ color: '#ef0000' }} />
+                        {/* Mostrar video o imagen desde URL externa o base64 */}
+                        {(creativo.urlCreativoExterno || creativo.archivoCreativo) && (
+                          <>
+                            {/* Video */}
+                            {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
+                              <div className="mt-2 border border-gray-300 rounded-lg p-2 bg-black relative group overflow-hidden">
+                                <video
+                                  src={creativo.urlCreativoExterno || creativo.archivoCreativo}
+                                  controls
+                                  className="max-w-full max-h-48 mx-auto rounded object-contain"
+                                  preload="metadata"
+                                >
+                                  Tu navegador no soporta el elemento de video.
+                                </video>
+                                {/* Botón para ver en pantalla completa */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '');
+                                  }}
+                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                                  title="Ver en pantalla completa"
+                                >
+                                  <Maximize2 className="w-5 h-5" />
+                                </button>
                               </div>
-                            </div>
-                          </div>
+                            )}
+                            
+                            {/* Imagen */}
+                            {esImagen(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
+                              <div 
+                                className="mt-2 border border-gray-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
+                                onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                              >
+                                <img
+                                  src={creativo.urlCreativoExterno || creativo.archivoCreativo}
+                                  alt={creativo.nombreArchivoCreativo || "Preview"}
+                                  className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
+                                  onError={(e) => {
+                                    // Si falla cargar la imagen, mostrar un placeholder
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZW4gbm8gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
+                                    target.onerror = null; // Prevenir bucle infinito
+                                  }}
+                                />
+                                {/* Overlay con lupa */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                                  <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                                    <ZoomIn className="w-6 h-6" style={{ color: '#ef0000' }} />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     ))}
@@ -942,7 +1039,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2 text-white">
                 <Maximize2 className="w-5 h-5" />
-                <span className="font-bold">Vista Ampliada</span>
+                <span className="font-bold">Vista Ampliada - Imagen</span>
               </div>
               <button
                 onClick={() => setImagenZoom(null)}
@@ -969,6 +1066,52 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             {/* Indicación */}
             <p className="text-center text-white/70 mt-4 text-sm font-medium">
               Haz clic fuera de la imagen para cerrar
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Zoom de Video */}
+      {videoZoom && (
+        <div 
+          className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setVideoZoom(null)}
+        >
+          <div className="relative max-w-7xl max-h-[95vh] w-full h-full flex flex-col">
+            {/* Header del modal de zoom */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2 text-white">
+                <PlayCircle className="w-5 h-5" />
+                <span className="font-bold">Reproductor de Video</span>
+              </div>
+              <button
+                onClick={() => setVideoZoom(null)}
+                className="text-white hover:text-gray-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
+                title="Cerrar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            {/* Video ampliado */}
+            <div 
+              className="flex-1 flex items-center justify-center overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <video
+                src={videoZoom}
+                controls
+                autoPlay
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Tu navegador no soporta el elemento de video.
+              </video>
+            </div>
+            
+            {/* Indicación */}
+            <p className="text-center text-white/70 mt-4 text-sm font-medium">
+              Haz clic fuera del video para cerrar
             </p>
           </div>
         </div>
