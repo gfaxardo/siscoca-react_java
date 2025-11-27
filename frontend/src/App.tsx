@@ -60,9 +60,15 @@ function AppContent() {
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
       // Cargar datos según la vista activa inicial
-      if (vistaActiva === 'dashboard' || vistaActiva === 'campanas') {
+      if (vistaActiva === 'dashboard') {
+        // Dashboard necesita AMBOS: campanas y historico para métricas generales
+        obtenerCampanas();
+        obtenerHistorico();
+      } else if (vistaActiva === 'campanas') {
+        // Campanas solo necesita campanas activas
         obtenerCampanas();
       } else if (vistaActiva === 'historico') {
+        // Histórico solo necesita histórico
         obtenerHistorico();
       }
       // Para auditoria y administracion, esos componentes manejan sus propias APIs
@@ -90,9 +96,15 @@ function AppContent() {
     setVistaActiva(nuevaVista);
     
     // Cargar datos necesarios según la vista
-    if (nuevaVista === 'dashboard' || nuevaVista === 'campanas') {
+    if (nuevaVista === 'dashboard') {
+      // Dashboard necesita AMBOS: campanas y historico
+      obtenerCampanas();
+      obtenerHistorico();
+    } else if (nuevaVista === 'campanas') {
+      // Campanas solo necesita campanas activas
       obtenerCampanas();
     } else if (nuevaVista === 'historico') {
+      // Histórico solo necesita histórico
       obtenerHistorico();
     }
   };
