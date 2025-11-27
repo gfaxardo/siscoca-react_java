@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { Pais, Vertical, Plataforma, Segmento } from '../../types';
 import { 
   Upload, 
@@ -77,7 +78,9 @@ interface HistoricoImportado {
 }
 
 export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
-  const { crearCampana, importarHistorico } = useCampanaStore();
+  // Hooks
+  const notify = useNotification();
+  const { crearCampana, importarHistorico, obtenerCampanas, obtenerHistorico } = useCampanaStore();
   const [campanasImportadas, setCampanasImportadas] = useState<CampanaImportada[]>([]);
   const [historicoImportado, setHistoricoImportado] = useState<HistoricoImportado[]>([]);
   const [errores, setErrores] = useState<string[]>([]);
@@ -285,6 +288,16 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
     }
 
     setErrores(erroresImportacion);
+    
+    // Auto-refresh para mostrar los cambios
+    if (exitosas > 0) {
+      if (tipoImportacion === 'historico') {
+        await obtenerHistorico();
+      } else {
+        await obtenerCampanas();
+      }
+    }
+    
     setPaso('completado');
   };
 

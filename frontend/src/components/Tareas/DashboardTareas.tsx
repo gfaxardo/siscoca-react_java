@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { TareaPendiente, TipoTarea } from '../../types/campana';
 import { tareaService } from '../../services/tareaService';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotification } from '../../hooks/useNotification';
 import { 
   PlusCircle, 
   Paperclip, 
@@ -35,7 +36,11 @@ interface Usuario {
 }
 
 export default function DashboardTareas({ }: DashboardTareasProps) {
+  // Hooks
+  const notify = useNotification();
   const { user } = useAuth();
+  
+  // Estados
   const [tareas, setTareas] = useState<TareaPendiente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

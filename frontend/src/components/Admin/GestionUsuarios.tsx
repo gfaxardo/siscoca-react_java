@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usuarioService, CreateUsuarioRequest, UpdateUsuarioRequest, RolOption } from '../../services/usuarioService';
 import { Usuario, RolUsuario } from '../../types/campana';
+import { useNotification } from '../../hooks/useNotification';
 import { 
   UserPlus, 
   Edit, 
@@ -27,6 +28,10 @@ const ROLES_POR_DEFECTO: RolOption[] = [
 ];
 
 export default function GestionUsuarios() {
+  // Hooks
+  const notify = useNotification();
+  
+  // Estados
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);

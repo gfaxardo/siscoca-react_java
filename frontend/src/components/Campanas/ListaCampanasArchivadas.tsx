@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { Campana, TIPOS_ATERRIZAJE_LABELS, PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS } from '../../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -34,6 +35,10 @@ import {
 } from 'lucide-react';
 
 export default function ListaCampanasArchivadas() {
+  // Hooks
+  const notify = useNotification();
+  
+  // Estados
   const [error, setError] = useState<string | null>(null);
   
   const { 
@@ -43,7 +48,8 @@ export default function ListaCampanasArchivadas() {
     descargarCreativo,
     reactivarCampana,
     obtenerHistoricoSemanalCampana,
-    obtenerCampanas
+    obtenerCampanas,
+    obtenerHistorico
   } = useCampanaStore();
 
   // Cargar campañas cuando se monta el componente
@@ -241,9 +247,11 @@ export default function ListaCampanasArchivadas() {
       if (confirmar) {
         const resultado = await reactivarCampana(campana);
         if (resultado.exito) {
-          notify.success(` ${resultado.mensaje}\n\n📌 La campaña ahora está activa.\nPuedes verla en el menú "Campañas" → "Campañas Activas"`);
+          notify.success(`${resultado.mensaje}\n\n📌 La campaña ahora está activa.\nPuedes verla en el menú "Campañas" → "Campañas Activas"`);
+          await obtenerCampanas(); // Auto-refresh campanas
+          await obtenerHistorico(); // Auto-refresh histórico
         } else {
-          notify.error(` ${resultado.mensaje}`);
+          notify.error(resultado.mensaje);
         }
       }
     } catch (err) {

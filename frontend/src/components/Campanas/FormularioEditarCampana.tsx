@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { FormularioCrearCampana, VERTICALES_LABELS, PLATAFORMAS_LABELS, PAISES_LABELS, DUENOS, TIPOS_ATERRIZAJE_LABELS, Campana } from '../../types';
 import { useState, useEffect, useRef } from 'react';
 import { 
@@ -95,7 +96,9 @@ function generarNombreCampana(
 }
 
 export default function FormularioEditarCampanaComponent({ campana, onCerrar, modoLectura = false }: FormularioEditarCampanaProps) {
-  const { actualizarCampana } = useCampanaStore();
+  // Hooks
+  const notify = useNotification();
+  const { actualizarCampana, obtenerCampanas } = useCampanaStore();
   const nombreGeneradoInicial = generarNombreCampana(
     campana.pais,
     campana.vertical,
@@ -224,10 +227,11 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
     const resultado = await actualizarCampana(campana.id, datos);
     
     if (resultado.exito) {
-      notify.success(` ${resultado.mensaje}`);
+      notify.success(resultado.mensaje);
+      await obtenerCampanas(); // Auto-refresh
       onCerrar();
     } else {
-      notify.error(` ${resultado.mensaje}`);
+      notify.error(resultado.mensaje);
     }
   };
 
