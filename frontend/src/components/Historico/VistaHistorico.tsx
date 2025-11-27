@@ -4,6 +4,26 @@ import { HistoricoSemanal } from '../../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import ListaCampanasArchivadas from '../Campanas/ListaCampanasArchivadas';
+import { 
+  X, 
+  Download, 
+  LayoutGrid, 
+  List, 
+  TrendingUp, 
+  Search, 
+  Calendar, 
+  BarChart3,
+  MousePointer,
+  Target,
+  DollarSign,
+  Users,
+  Car,
+  RefreshCw,
+  Archive,
+  CheckCircle,
+  AlertTriangle,
+  XCircle
+} from 'lucide-react';
 
 interface VistaHistoricoProps {
   onCerrar: () => void;
@@ -29,36 +49,58 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
   // Si la vista es tarjetas, mostrar ListaCampanasArchivadas
   if (vistaActiva === 'tarjetas') {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-hidden">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-50 overflow-hidden animate-fadeIn">
         <div className="bg-white w-full h-full overflow-hidden flex flex-col">
-          <div className="flex justify-between items-center p-4 border-b border-gray-200">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-xl font-bold text-gray-900">Histórico - Campañas Archivadas</h2>
-              <div className="flex rounded-lg border border-gray-300 overflow-hidden">
-                <button
-                  onClick={() => setVistaActiva('tarjetas')}
-                  className="px-4 py-2 text-sm font-medium transition-colors bg-primary-600 text-white"
+          {/* Header modernizado */}
+          <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 border-b border-white/10 flex-shrink-0">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                  style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
                 >
-                  📋 Vista Tarjetas
-                </button>
+                  <Archive className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Histórico</h2>
+                  <p className="text-gray-400 text-sm">Campañas Archivadas</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                {/* Toggle de vista */}
+                <div className="flex rounded-xl border-2 border-white/20 overflow-hidden bg-white/10 backdrop-blur-sm">
+                  <button
+                    onClick={() => setVistaActiva('tarjetas')}
+                    className="px-4 py-2.5 text-sm font-bold transition-all text-white flex items-center gap-2"
+                    style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    Vista Tarjetas
+                  </button>
+                  <button
+                    onClick={() => setVistaActiva('lista')}
+                    className="px-4 py-2.5 text-sm font-bold transition-all text-white hover:bg-white/10 flex items-center gap-2"
+                  >
+                    <List className="w-4 h-4" />
+                    Vista Lista
+                  </button>
+                </div>
+
+                {/* Botón cerrar */}
                 <button
-                  onClick={() => setVistaActiva('lista')}
-                  className="px-4 py-2 text-sm font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50"
+                  onClick={onCerrar}
+                  className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+                  aria-label="Cerrar"
                 >
-                  📊 Vista Lista
+                  <X className="w-6 h-6" />
                 </button>
               </div>
             </div>
-            <button
-              onClick={onCerrar}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
-          <div className="flex-1 overflow-auto bg-gray-50">
+
+          {/* Contenido */}
+          <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
             <div className="p-4 lg:p-6">
               <ListaCampanasArchivadas />
             </div>
@@ -111,13 +153,13 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
   const obtenerColorEstado = (estado: string) => {
     switch (estado) {
       case 'COMPLETA':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border border-green-200';
       case 'INCOMPLETA':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'NO_ACTUALIZADA':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border border-red-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
@@ -168,67 +210,81 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <div>
-            <div className="flex items-center space-x-4">
-              <h2 className="text-2xl font-bold text-gray-900">📊 Histórico Semanal</h2>
-              <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Header modernizado */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 border-b border-white/10 flex-shrink-0">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div 
+                className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                <TrendingUp className="w-7 h-7 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl font-bold text-white">Histórico Semanal</h2>
+                <p className="text-gray-400 text-sm font-medium">
+                  {historicoFiltrado.length} registro{historicoFiltrado.length !== 1 ? 's' : ''} archivado{historicoFiltrado.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Toggle de vista */}
+              <div className="flex rounded-xl border-2 border-white/20 overflow-hidden bg-white/10 backdrop-blur-sm">
                 <button
                   onClick={() => setVistaActiva('tarjetas')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    (vistaActiva as 'lista' | 'tarjetas') === 'tarjetas'
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="px-4 py-2.5 text-sm font-bold transition-all text-white hover:bg-white/10 flex items-center gap-2"
                 >
-                  📋 Vista Tarjetas
+                  <LayoutGrid className="w-4 h-4" />
+                  Tarjetas
                 </button>
                 <button
                   onClick={() => setVistaActiva('lista')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    (vistaActiva as 'lista' | 'tarjetas') === 'lista'
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className="px-4 py-2.5 text-sm font-bold transition-all text-white flex items-center gap-2"
+                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                 >
-                  📊 Vista Lista
+                  <List className="w-4 h-4" />
+                  Lista
                 </button>
               </div>
+
+              {/* Botón exportar */}
+              <button
+                onClick={descargarHistorico}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
+              >
+                <Download className="w-5 h-5" />
+                <span className="hidden sm:inline">Exportar CSV</span>
+              </button>
+
+              {/* Botón cerrar */}
+              <button
+                onClick={onCerrar}
+                className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+                aria-label="Cerrar"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
-            <p className="text-sm text-gray-600 mt-1">
-              {historicoFiltrado.length} registro{historicoFiltrado.length !== 1 ? 's' : ''} archivado{historicoFiltrado.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={descargarHistorico}
-              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
-            >
-              📥 Exportar CSV
-            </button>
-            <button
-              onClick={onCerrar}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {/* Filtros */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        {/* Contenido con scroll */}
+        <div className="p-6 overflow-y-auto flex-1">
+          {/* Filtros modernizados */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 mb-6 border border-gray-200 shadow-sm">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Filtrar por Semana</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  Filtrar por Semana
+                </label>
                 <select
                   value={semanaFiltro}
                   onChange={(e) => setSemanaFiltro(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white hover:border-gray-400 font-medium text-sm"
                 >
                   <option value="">Todas las semanas</option>
                   {semanasDisponibles.map(semana => (
@@ -239,13 +295,16 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Buscar</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Search className="w-4 h-4" style={{ color: '#ef0000' }} />
+                  Buscar
+                </label>
                 <input
                   type="text"
                   placeholder="Buscar por nombre, ID, dueño..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white hover:border-gray-400 font-medium text-sm"
                 />
               </div>
             </div>
@@ -253,26 +312,32 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
 
           {/* Lista de histórico */}
           {historicoFiltrado.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <div className="text-center py-16">
+              <div 
+                className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg"
+                style={{ background: 'linear-gradient(to bottom right, #6b7280, #4b5563)' }}
+              >
+                <Archive className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
                 No hay registros históricos
               </h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-600 mb-4 font-medium">
                 Las campañas archivadas aparecerán aquí
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-500 mb-6">
                 Total en store: {historico.length} | Filtrados: {historicoFiltrado.length}
               </p>
               <button
                 onClick={() => obtenerHistorico()}
-                className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2 mx-auto"
               >
-                🔄 Recargar Histórico
+                <RefreshCw className="w-5 h-5" />
+                Recargar Histórico
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {Object.entries(
                 historicoFiltrado.reduce((acc, item) => {
                   const semana = item.semanaISO;
@@ -283,61 +348,122 @@ export default function VistaHistorico({ onCerrar }: VistaHistoricoProps) {
               )
                 .sort(([a], [b]) => Number(b) - Number(a))
                 .map(([semana, items]) => (
-                  <div key={semana} className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h3 className="font-semibold text-gray-900">
-                        Semana {semana} ({items.length} campaña{items.length !== 1 ? 's' : ''})
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {format(items[0].fechaArchivo, 'dd/MM/yyyy', { locale: es })}
-                      </p>
-                    </div>
-                    
-                    <div className="divide-y divide-gray-200">
-                      {items.map((item) => (
-                        <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <h4 className="font-semibold text-gray-900">{item.nombre}</h4>
-                              <p className="text-sm text-gray-600">ID: {item.idCampana} | Dueño: {item.nombreDueno}</p>
-                            </div>
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${obtenerColorEstado(item.estadoMetricas)}`}>
-                              {item.estadoMetricas}
-                            </span>
+                  <div key={semana} className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+                    {/* Header de semana */}
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 px-5 py-4 border-b-2 border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-md">
+                            <Calendar className="w-5 h-5 text-white" />
                           </div>
-                          
-                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
-                            <div>
-                              <p className="text-gray-500 text-xs">Alcance</p>
-                              <p className="font-semibold">{item.alcance?.toLocaleString() || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 text-xs">Clics</p>
-                              <p className="font-semibold">{item.clics?.toLocaleString() || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 text-xs">Leads</p>
-                              <p className="font-semibold">{item.leads?.toLocaleString() || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 text-xs">Costo Semanal</p>
-                              <p className="font-semibold">S/ {item.costoSemanal?.toFixed(2) || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 text-xs">Conductores</p>
-                              <p className="font-semibold">{item.conductoresRegistrados || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-gray-500 text-xs">Primer Viaje</p>
-                              <p className="font-semibold">{item.conductoresPrimerViaje || '-'}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-3 text-xs text-gray-500">
-                            Archivado: {format(item.fechaArchivo, 'dd/MM/yyyy HH:mm', { locale: es })}
+                          <div>
+                            <h3 className="font-bold text-blue-900 text-lg">
+                              Semana {semana}
+                            </h3>
+                            <p className="text-sm text-blue-700 font-medium">
+                              {items.length} campaña{items.length !== 1 ? 's' : ''} • {format(items[0].fechaArchivo, 'dd/MM/yyyy', { locale: es })}
+                            </p>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                    
+                    {/* Lista de campañas */}
+                    <div className="divide-y divide-gray-200">
+                      {items.map((item) => {
+                        const getEstadoIcon = (estado: string) => {
+                          switch (estado) {
+                            case 'COMPLETA':
+                              return <CheckCircle className="w-5 h-5 text-green-600" />;
+                            case 'INCOMPLETA':
+                              return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
+                            case 'NO_ACTUALIZADA':
+                              return <XCircle className="w-5 h-5 text-red-600" />;
+                            default:
+                              return <BarChart3 className="w-5 h-5 text-gray-600" />;
+                          }
+                        };
+
+                        return (
+                          <div key={item.id} className="p-5 hover:bg-gray-50 transition-colors duration-200">
+                            {/* Nombre y estado */}
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-gray-900 text-base mb-2">{item.nombre}</h4>
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  <span className="bg-gray-100 px-3 py-1 rounded-lg text-gray-900 font-bold">
+                                    ID: {item.idCampana}
+                                  </span>
+                                  <span className="bg-purple-100 px-3 py-1 rounded-lg text-purple-900 font-bold flex items-center gap-1">
+                                    <Users className="w-3 h-3" />
+                                    {item.nombreDueno}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold ${obtenerColorEstado(item.estadoMetricas)} flex-shrink-0`}>
+                                {getEstadoIcon(item.estadoMetricas)}
+                                {item.estadoMetricas}
+                              </div>
+                            </div>
+                            
+                            {/* Métricas */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <BarChart3 className="w-3.5 h-3.5 text-gray-600" />
+                                  <p className="text-gray-600 text-xs font-bold">Alcance</p>
+                                </div>
+                                <p className="font-bold text-gray-900">{item.alcance?.toLocaleString() || '-'}</p>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <MousePointer className="w-3.5 h-3.5 text-gray-600" />
+                                  <p className="text-gray-600 text-xs font-bold">Clics</p>
+                                </div>
+                                <p className="font-bold text-gray-900">{item.clics?.toLocaleString() || '-'}</p>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Target className="w-3.5 h-3.5 text-gray-600" />
+                                  <p className="text-gray-600 text-xs font-bold">Leads</p>
+                                </div>
+                                <p className="font-bold text-gray-900">{item.leads?.toLocaleString() || '-'}</p>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <DollarSign className="w-3.5 h-3.5 text-gray-600" />
+                                  <p className="text-gray-600 text-xs font-bold">Costo</p>
+                                </div>
+                                <p className="font-bold text-gray-900">S/ {item.costoSemanal?.toFixed(2) || '-'}</p>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Users className="w-3.5 h-3.5 text-gray-600" />
+                                  <p className="text-gray-600 text-xs font-bold">Registros</p>
+                                </div>
+                                <p className="font-bold text-gray-900">{item.conductoresRegistrados || '-'}</p>
+                              </div>
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Car className="w-3.5 h-3.5 text-gray-600" />
+                                  <p className="text-gray-600 text-xs font-bold">Conductores</p>
+                                </div>
+                                <p className="font-bold text-gray-900">{item.conductoresPrimerViaje || '-'}</p>
+                              </div>
+                            </div>
+                            
+                            {/* Fecha de archivado */}
+                            <div className="mt-4 pt-3 border-t border-gray-200">
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                <Archive className="w-3.5 h-3.5" />
+                                <span className="font-medium">
+                                  Archivado: {format(item.fechaArchivo, 'dd/MM/yyyy HH:mm', { locale: es })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
