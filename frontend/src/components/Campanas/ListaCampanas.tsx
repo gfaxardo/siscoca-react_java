@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { Campana, TIPOS_ATERRIZAJE_LABELS, PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS } from '../../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -30,6 +31,10 @@ export default function ListaCampanas({
   onEditarMetricasTrafficker,
   onEditarMetricasDueno 
 }: ListaCampanasProps) {
+  // Hooks
+  const notify = useNotification();
+  
+  // Estados
   const [error, setError] = useState<string | null>(null);
   
   const { 
@@ -39,7 +44,8 @@ export default function ListaCampanas({
     eliminarCampana, 
     descargarCreativo, 
     archivarCampana,
-    obtenerHistoricoSemanalCampana
+    obtenerHistoricoSemanalCampana,
+    obtenerCampanas
   } = useCampanaStore();
   
   const [campanasFiltradas, setCampanasFiltradas] = useState<Campana[]>([]);
@@ -206,10 +212,10 @@ export default function ListaCampanas({
       // Descargar archivo
       XLSX.writeFile(wb, nombreArchivo);
       
-      alert(`✅ Métricas exportadas exitosamente: ${nombreArchivo}`);
+      notify.success(` Métricas exportadas exitosamente: ${nombreArchivo}`);
     } catch (error) {
       console.error('Error exportando a Excel:', error);
-      alert('❌ Error al exportar métricas a Excel');
+      notify.error(' Error al exportar métricas a Excel');
     }
   };
 
@@ -384,13 +390,16 @@ export default function ListaCampanas({
       
       if (confirmar) {
         const resultado = await cambiarEstadoCampana(campana.id, 'Activa');
-        if (!resultado.exito) {
-          alert(resultado.mensaje);
+        if (resultado.exito) {
+          notify.success('Campaña activada exitosamente');
+          await obtenerCampanas(); // Auto-refresh
+        } else {
+          notify.error(resultado.mensaje);
         }
       }
     } catch (err) {
       console.error('Error activando campaña:', err);
-      setError('Error activando campaña');
+      notify.error('Error activando campaña');
     }
   };
 
@@ -421,14 +430,15 @@ export default function ListaCampanas({
       if (confirmar) {
         const resultado = await archivarCampana(campana);
         if (resultado.exito) {
-          alert(`✅ ${resultado.mensaje}\n\n📌 La campaña ahora está archivada.\nPuedes verla en el menú "Histórico" → "Ver Histórico"`);
+          notify.success(`${resultado.mensaje}\n\n📌 La campaña ahora está archivada.\nPuedes verla en el menú "Histórico"`);
+          await obtenerCampanas(); // Auto-refresh
         } else {
-          alert(`❌ ${resultado.mensaje}`);
+          notify.error(resultado.mensaje);
         }
       }
     } catch (err) {
       console.error('Error archivando campaña:', err);
-      setError('Error archivando campaña');
+      notify.error('Error archivando campaña');
     }
   };
 
@@ -439,14 +449,15 @@ export default function ListaCampanas({
     try {
       const resultado = await eliminarCampana(campanaParaEliminar.id);
       if (resultado.exito) {
+        notify.success(resultado.mensaje);
         setCampanaParaEliminar(null);
-        // Opcional: mostrar mensaje de éxito
+        await obtenerCampanas(); // Auto-refresh
       } else {
-        setError(resultado.mensaje);
+        notify.error(resultado.mensaje);
       }
     } catch (err) {
       console.error('Error eliminando campaña:', err);
-      setError('Error eliminando campaña');
+      notify.error('Error eliminando campaña');
     } finally {
       setEliminandoCampana(false);
     }
