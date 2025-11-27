@@ -633,29 +633,14 @@ export default function ListaCampanas({
             >
               <div className="p-5 lg:p-6 flex flex-col h-full">
                 {/* Header con título y menú de acciones */}
-                <div className="flex justify-between items-start mb-4" style={{ minHeight: '110px' }}>
-                  <div className="flex-1 min-w-0 pr-3">
-                    <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-3 line-clamp-2" style={{ height: '56px', lineHeight: '28px' }} title={campana.nombre}>
+                <div className="mb-4" style={{ minHeight: '110px' }}>
+                  {/* Título con botones alineados */}
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="flex-1 text-base lg:text-lg font-bold text-gray-900 line-clamp-2 pr-3" style={{ height: '56px', lineHeight: '28px' }} title={campana.nombre}>
                       {campana.nombre}
                     </h3>
-                    <div className="flex flex-wrap gap-2 overflow-hidden" style={{ height: '32px' }}>
-                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
-                        #{campana.id}
-                      </span>
-                      <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
-                        <User className="w-3 h-3" />
-                        {campana.inicialesDueno}
-                      </span>
-                      {campana.idPlataformaExterna && (
-                        <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
-                          <Link2 className="w-3 h-3" />
-                          {campana.idPlataformaExterna}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-2 flex-shrink-0">
+                    
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${obtenerColorEstado(campana.estado)}`}>
                       {campana.estado === 'Creativo Enviado' ? 'Creativo Enviado!' : campana.estado}
                     </span>
@@ -715,6 +700,24 @@ export default function ListaCampanas({
                         }
                       }}
                     />
+                  </div>
+                  </div>
+                  
+                  {/* Badges debajo del título */}
+                  <div className="flex flex-wrap gap-2 overflow-hidden" style={{ height: '32px' }}>
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
+                      #{campana.id}
+                    </span>
+                    <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
+                      <User className="w-3 h-3" />
+                      {campana.inicialesDueno}
+                    </span>
+                    {campana.idPlataformaExterna && (
+                      <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
+                        <Link2 className="w-3 h-3" />
+                        {campana.idPlataformaExterna}
+                      </span>
+                    )}
                   </div>
                 </div>
 
