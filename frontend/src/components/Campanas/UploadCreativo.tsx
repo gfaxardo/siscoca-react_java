@@ -559,27 +559,24 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           <>
                             {/* Video */}
                             {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
-                              <div className="mt-2 border border-green-300 rounded-lg p-2 bg-black relative group" style={{ maxHeight: '200px' }}>
+                              <div 
+                                className="mt-2 border border-green-300 rounded-lg p-2 bg-black relative group cursor-pointer overflow-hidden"
+                                onClick={() => setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                                style={{ height: '200px' }}
+                              >
                                 <video
                                   src={creativo.urlCreativoExterno || creativo.archivoCreativo}
-                                  controls
-                                  className="w-full h-48 mx-auto rounded object-contain"
+                                  className="w-full h-full mx-auto rounded object-contain pointer-events-none"
                                   preload="metadata"
-                                  style={{ maxHeight: '192px' }}
                                 >
                                   Tu navegador no soporta el elemento de video.
                                 </video>
-                                {/* Botón para ver en pantalla completa */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '');
-                                  }}
-                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-10"
-                                  title="Ver en pantalla completa"
-                                >
-                                  <Maximize2 className="w-5 h-5" />
-                                </button>
+                                {/* Overlay con icono de PLAY */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                                  <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 shadow-lg">
+                                    <PlayCircle className="w-10 h-10" style={{ color: '#ef0000' }} />
+                                  </div>
+                                </div>
                               </div>
                             )}
                             
@@ -682,27 +679,24 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           <>
                             {/* Video */}
                             {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
-                              <div className="mt-2 border border-gray-300 rounded-lg p-2 bg-black relative group" style={{ maxHeight: '200px' }}>
+                              <div 
+                                className="mt-2 border border-gray-300 rounded-lg p-2 bg-black relative group cursor-pointer overflow-hidden"
+                                onClick={() => setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                                style={{ height: '200px' }}
+                              >
                                 <video
                                   src={creativo.urlCreativoExterno || creativo.archivoCreativo}
-                                  controls
-                                  className="w-full h-48 mx-auto rounded object-contain"
+                                  className="w-full h-full mx-auto rounded object-contain pointer-events-none"
                                   preload="metadata"
-                                  style={{ maxHeight: '192px' }}
                                 >
                                   Tu navegador no soporta el elemento de video.
                                 </video>
-                                {/* Botón para ver en pantalla completa */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '');
-                                  }}
-                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-10"
-                                  title="Ver en pantalla completa"
-                                >
-                                  <Maximize2 className="w-5 h-5" />
-                                </button>
+                                {/* Overlay con icono de PLAY */}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                                  <div className="bg-white/90 backdrop-blur-sm rounded-full p-4 shadow-lg">
+                                    <PlayCircle className="w-10 h-10 text-gray-700" />
+                                  </div>
+                                </div>
                               </div>
                             )}
                             
