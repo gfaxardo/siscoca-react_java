@@ -24,7 +24,21 @@ type Vista = 'dashboard' | 'campanas' | 'historico' | 'auditoria' | 'administrac
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const { error, clearError } = useApiError();
-  const [vistaActiva, setVistaActiva] = useState<Vista>('dashboard');
+  
+  // Restaurar vista activa desde localStorage
+  const getVistaInicial = (): Vista => {
+    try {
+      const vistaGuardada = localStorage.getItem('vistaActiva');
+      if (vistaGuardada && ['dashboard', 'campanas', 'historico', 'auditoria', 'administracion'].includes(vistaGuardada)) {
+        return vistaGuardada as Vista;
+      }
+    } catch (error) {
+      console.error('Error leyendo vista guardada:', error);
+    }
+    return 'dashboard';
+  };
+  
+  const [vistaActiva, setVistaActiva] = useState<Vista>(getVistaInicial);
   const [mostrarFormularioCrear, setMostrarFormularioCrear] = useState(false);
   const [campanaParaTrafficker, setCampanaParaTrafficker] = useState<Campana | null>(null);
   const [campanaParaDueno, setCampanaParaDueno] = useState<Campana | null>(null);
@@ -33,13 +47,27 @@ function AppContent() {
   
   const { obtenerCampanas, obtenerHistorico } = useCampanaStore();
 
+  // Guardar vista activa en localStorage cuando cambie
   useEffect(() => {
-    // Solo cargar datos si el usuario está autenticado
-    if (isAuthenticated && !isLoading) {
-      obtenerCampanas();
-      obtenerHistorico();
+    try {
+      localStorage.setItem('vistaActiva', vistaActiva);
+    } catch (error) {
+      console.error('Error guardando vista activa:', error);
     }
-  }, [isAuthenticated, isLoading]); // Solo ejecutar cuando cambie el estado de autenticación
+  }, [vistaActiva]);
+
+  // Cargar datos iniciales solo una vez según la vista activa
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      // Cargar datos según la vista activa inicial
+      if (vistaActiva === 'dashboard' || vistaActiva === 'campanas') {
+        obtenerCampanas();
+      } else if (vistaActiva === 'historico') {
+        obtenerHistorico();
+      }
+      // Para auditoria y administracion, esos componentes manejan sus propias APIs
+    }
+  }, [isAuthenticated, isLoading]); // Solo ejecutar una vez al autenticarse
 
   // Mostrar loading mientras se verifica la autenticación
   if (isLoading) {
@@ -57,6 +85,17 @@ function AppContent() {
   if (!isAuthenticated) {
     return <Login />;
   }
+
+  const cambiarVista = (nuevaVista: Vista) => {
+    setVistaActiva(nuevaVista);
+    
+    // Cargar datos necesarios según la vista
+    if (nuevaVista === 'dashboard' || nuevaVista === 'campanas') {
+      obtenerCampanas();
+    } else if (nuevaVista === 'historico') {
+      obtenerHistorico();
+    }
+  };
 
   const renderizarVista = () => {
     switch (vistaActiva) {
@@ -91,7 +130,7 @@ function AppContent() {
       
       <Layout
         vistaActiva={vistaActiva}
-        onCambiarVista={(vista) => setVistaActiva(vista as Vista)}
+        onCambiarVista={(vista) => cambiarVista(vista as Vista)}
         onCrearNueva={() => setMostrarFormularioCrear(true)}
         onImportarCampanas={() => setMostrarImportacion(true)}
         onVerHistorico={() => setMostrarHistorico(true)}
