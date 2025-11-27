@@ -167,29 +167,15 @@ export default function Sidebar({
                     <button 
                       key={accion.id}
                       onClick={accion.onClick}
-                      className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition-all duration-200 group relative overflow-hidden border border-white/5 hover:border-white/20"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239, 0, 0, 0.15) 0%, rgba(220, 0, 0, 0.08) 100%)';
-                        e.currentTarget.style.transform = 'translateX(4px)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)';
-                        e.currentTarget.style.transform = 'translateX(0)';
-                      }}
+                      className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group"
                     >
                       <div 
-                        className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 shadow-lg group-hover:scale-110" 
+                        className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 shadow-md" 
                         style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
                       >
                         <Icon className="w-4.5 h-4.5 text-white" />
                       </div>
                       <span className="font-bold flex-1 text-left">{accion.texto}</span>
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center bg-white/10 group-hover:bg-white/20 transition-colors">
-                        <span className="text-xs text-white">→</span>
-                      </div>
                     </button>
                   );
                 })}
