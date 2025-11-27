@@ -2,10 +2,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { Campana, MetricasTrafficker } from '../../types';
 import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { 
+  BarChart3, 
+  X, 
+  Save, 
+  Calendar, 
+  Link2, 
+  MousePointer, 
+  Target, 
+  DollarSign, 
+  Loader2 
+} from 'lucide-react';
 
 const esquemaFormulario = z.object({
   idCampana: z.string(),
@@ -226,32 +238,45 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">📊 Métricas del Trafficker</h2>
-            <p className="text-sm text-gray-600 mt-1">Campaña: {campana.nombre} ({campana.id})</p>
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+        {/* Header moderno */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 flex justify-between items-center flex-shrink-0 border-b border-white/10">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+              style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+            >
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl lg:text-2xl font-bold text-white">
+                Métricas del Trafficker
+              </h2>
+              <p className="text-sm text-gray-400 truncate">{campana.nombre}</p>
+            </div>
           </div>
           <button
             onClick={onCerrar}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
+            aria-label="Cerrar"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <input type="hidden" {...register('idCampana')} />
+        {/* Contenedor con scroll */}
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 space-y-6">
+            <input type="hidden" {...register('idCampana')} />
 
-          {/* Selector de Semana */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              📅 Seleccionar Semana
-            </label>
+            {/* Selector de Semana */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+              <label className="block text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Calendar className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Seleccionar Semana
+              </label>
             <select
               value={semanaSeleccionada}
               onChange={(e) => {
@@ -286,7 +311,7 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
                   setValue('urlInforme', campana.urlInforme || '');
                 }
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
             >
               {opcionesSemanas.map((opcion) => (
                 <option key={opcion.valor} value={opcion.valor}>
@@ -295,78 +320,84 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
               ))}
             </select>
             {semanaActualSeleccionada && (
-              <p className="text-xs text-blue-600 mt-2">
-                📆 Período: {semanaActualSeleccionada.rango}
+              <p className="text-xs text-blue-700 mt-2 font-medium flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                Período: {semanaActualSeleccionada.rango}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <Link2 className="w-4 h-4" style={{ color: '#ef0000' }} />
               URL del Informe (opcional)
             </label>
             <input
               {...register('urlInforme')}
               type="url"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
               placeholder="https://..."
             />
             {errors.urlInforme && (
-              <p className="text-red-500 text-sm mt-1">{errors.urlInforme.message}</p>
+              <p className="text-red-600 text-xs mt-1 font-medium">{errors.urlInforme.message}</p>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Alcance *
               </label>
               <input
                 {...register('alcance', { valueAsNumber: true })}
                 type="number"
                 min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
                 placeholder="10000"
               />
               {errors.alcance && (
-                <p className="text-red-500 text-sm mt-1">{errors.alcance.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.alcance.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <MousePointer className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Clics *
               </label>
               <input
                 {...register('clics', { valueAsNumber: true })}
                 type="number"
                 min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
                 placeholder="500"
               />
               {errors.clics && (
-                <p className="text-red-500 text-sm mt-1">{errors.clics.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.clics.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Target className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Leads *
               </label>
               <input
                 {...register('leads', { valueAsNumber: true })}
                 type="number"
                 min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
                 placeholder="50"
               />
               {errors.leads && (
-                <p className="text-red-500 text-sm mt-1">{errors.leads.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.leads.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <DollarSign className="w-4 h-4" style={{ color: '#ef0000' }} />
                 Costo Semanal (USD) *
               </label>
               <input
@@ -374,18 +405,19 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
                 type="number"
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium hover:border-gray-400"
                 placeholder="2500.00"
               />
               {errors.costoSemanal && (
-                <p className="text-red-500 text-sm mt-1">{errors.costoSemanal.message}</p>
+                <p className="text-red-600 text-xs mt-1 font-medium">{errors.costoSemanal.message}</p>
               )}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Costo/Lead (USD) <span className="text-xs text-gray-500 font-normal">(Calculado automáticamente)</span>
+            <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <DollarSign className="w-4 h-4" style={{ color: '#ef0000' }} />
+              Costo/Lead (USD) <span className="text-xs text-gray-500 font-normal ml-auto">(Calculado automáticamente)</span>
             </label>
             <input
               {...register('costoLead', { valueAsNumber: true })}
@@ -393,42 +425,59 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
               readOnly
               min="0"
               step="0.01"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed transition-all"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-100 text-gray-700 cursor-not-allowed transition-all font-medium"
               placeholder="Se calcula automáticamente"
               title="Este valor se calcula automáticamente basado en el costo semanal y los leads"
             />
-            <p className="text-gray-500 text-sm mt-1">
-              Si no se especifica, se calculará automáticamente: Costo Semanal (USD) ÷ Leads
+            <p className="text-gray-600 text-xs mt-2 font-medium">
+              Fórmula: Costo Semanal (USD) ÷ Leads
             </p>
             {semanaSeleccionada !== obtenerSemanaActual() && costoSemanalParaCalculo > 0 && (
-              <p className="text-xs text-blue-600 mt-1 font-medium">
-                💡 El cálculo usa el costo semanal de la semana {semanaSeleccionada}: ${costoSemanalParaCalculo} USD
-              </p>
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-700 font-bold flex items-center gap-1">
+                  <BarChart3 className="w-3 h-3" />
+                  El cálculo usa el costo semanal de la semana {semanaSeleccionada}: ${costoSemanalParaCalculo} USD
+                </p>
+              </div>
             )}
             {errors.costoLead && (
-              <p className="text-red-500 text-sm mt-1">{errors.costoLead.message}</p>
+              <p className="text-red-600 text-xs mt-1 font-medium">{errors.costoLead.message}</p>
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onCerrar}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+              className="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold transition-all duration-200 shadow hover:shadow-md flex items-center justify-center gap-2"
             >
+              <X className="w-4 h-4" />
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-success-500 hover:bg-success-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2"
+              style={{ background: isSubmitting ? '#9ca3af' : 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              {isSubmitting ? 'Guardando...' : 'Subir Métricas'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5" />
+                  Subir Métricas
+                </>
+              )}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
