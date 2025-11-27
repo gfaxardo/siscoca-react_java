@@ -627,10 +627,11 @@ export default function ListaCampanas({
                 setCampanaParaDetalle(campana);
                 setMostrarVistaDetallada(true);
               }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer transform hover:-translate-y-1"
+              className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer transform hover:-translate-y-1 flex flex-col"
+              style={{ minHeight: '580px' }}
               title="Doble clic para ver detalles completos"
             >
-              <div className="p-5 lg:p-6">
+              <div className="p-5 lg:p-6 flex flex-col h-full">
                 {/* Header con título y menú de acciones */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1 min-w-0 pr-3">
@@ -781,26 +782,31 @@ export default function ListaCampanas({
                 </div>
 
                 {/* Gráficos de evolución en lugar de métricas estáticas */}
-                <div className="mb-4">
-                  {(() => {
-                    try {
-                      return (
-                        <GraficosBarrasAvanzados 
-                          campana={campana} 
-                          historico={historico}
-                          historicoSemanas={obtenerHistoricoSemanalCampana(campana.id)}
-                        />
-                      );
-                    } catch (err) {
-                      console.error('Error renderizando gráficos:', err);
-                      return (
-                        <div className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                          <BarChart3 className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-500 font-medium">Error cargando gráficos</p>
-                        </div>
-                      );
-                    }
-                  })()}
+                <div className="flex-1 flex items-end mb-4">
+                  <div className="w-full">
+                    {(() => {
+                      try {
+                        return (
+                          <GraficosBarrasAvanzados 
+                            campana={campana} 
+                            historico={historico}
+                            historicoSemanas={obtenerHistoricoSemanalCampana(campana.id)}
+                          />
+                        );
+                      } catch (err) {
+                        console.error('Error renderizando gráficos:', err);
+                        return (
+                          <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex items-center justify-center" style={{ minHeight: '280px' }}>
+                            <div className="text-center p-6">
+                              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                              <p className="text-sm text-gray-900 font-bold mb-1">Error cargando gráficos</p>
+                              <p className="text-xs text-gray-500">Intenta recargar la página</p>
+                            </div>
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
                 </div>
 
                 {/* Información de actualización */}

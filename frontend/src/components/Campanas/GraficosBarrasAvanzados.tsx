@@ -226,16 +226,22 @@ export default function GraficosBarrasAvanzados({ campana, historico, historicoS
 
   if (!tieneDatos) {
     return (
-      <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
-        <div className="text-2xl mb-2">📊</div>
-        <p className="text-xs text-gray-600 font-medium">Sin datos de evolución</p>
-        <p className="text-xs text-gray-400 mt-1">Los gráficos aparecerán cuando se suban métricas</p>
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm" style={{ minHeight: '280px' }}>
+        <div className="h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <p className="text-sm font-bold text-gray-900 mb-1">Sin datos de evolución</p>
+          <p className="text-xs text-gray-500 text-center max-w-xs">Los gráficos aparecerán cuando se suban métricas</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg p-3 space-y-3 border border-gray-200 shadow-sm">
+    <div className="bg-white rounded-lg p-3 space-y-3 border border-gray-200 shadow-sm" style={{ minHeight: '280px' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold text-gray-800">📊 Evolución (Últimas 5 semanas)</h3>
         <div className="text-xs text-gray-500">
