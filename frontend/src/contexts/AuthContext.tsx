@@ -48,7 +48,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const login = async (username: string, password: string) => {
-    setIsLoading(true);
     try {
       console.log('AuthContext: Iniciando login...');
       const result = await authService.login({ username, password });
@@ -67,8 +66,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('AuthContext: Error en login:', error);
       return { success: false, message: 'Error de conexión' };
-    } finally {
-      setIsLoading(false);
     }
   };
 

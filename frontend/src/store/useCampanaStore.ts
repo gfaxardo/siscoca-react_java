@@ -235,6 +235,8 @@ interface CampanaStore {
   historico: HistoricoSemanal[];
   historicoSemanasCampanas: HistoricoSemanalCampana[];
   campanaSeleccionada: Campana | null;
+  isLoadingCampanas: boolean;
+  isLoadingHistorico: boolean;
   
   crearCampana: (datos: FormularioCrearCampana, idPersonalizado?: string) => Promise<{ exito: boolean; mensaje: string }>;
   actualizarCampana: (idCampana: string, datos: Partial<FormularioCampanaConNombre>) => Promise<{ exito: boolean; mensaje: string }>;
@@ -261,6 +263,8 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
   historico: [],
   historicoSemanasCampanas: [],
   campanaSeleccionada: null,
+  isLoadingCampanas: true,
+  isLoadingHistorico: true,
 
   crearCampana: async (datos: FormularioCrearCampana, nombreGenerado?: string) => {
     try {
@@ -678,10 +682,11 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
   },
 
   obtenerCampanas: async () => {
+    set({ isLoadingCampanas: true });
     try {
       const campanasApi = await campanaService.obtenerCampanas();
       const campanas = campanasApi.map(convertirApiACampana);
-      set({ campanas });
+      set({ campanas, isLoadingCampanas: false });
     } catch (error) {
       console.error('Error obteniendo campañas:', error);
       // Fallback a localStorage si hay error
@@ -696,17 +701,20 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
           });
           return campanaNormalizada;
         });
-        set({ campanas });
+        set({ campanas, isLoadingCampanas: false });
+        } else {
+          set({ campanas: [], isLoadingCampanas: false });
         }
       } catch (localStorageError) {
         console.error('Error cargando datos de localStorage:', localStorageError);
         // Si no hay datos, inicializar con array vacío
-        set({ campanas: [] });
+        set({ campanas: [], isLoadingCampanas: false });
       }
     }
   },
 
   obtenerHistorico: async () => {
+    set({ isLoadingHistorico: true });
     try {
       // Intentar obtener desde el backend primero
       try {
@@ -772,7 +780,7 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
           });
           
           console.log('Histórico convertido:', historico);
-          set({ historico });
+          set({ historico, isLoadingHistorico: false });
           localStorage.setItem('historico', JSON.stringify(historico));
           return;
         } else {
@@ -790,9 +798,9 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
         historico.forEach((h: HistoricoSemanal) => {
           h.fechaArchivo = new Date(h.fechaArchivo);
         });
-        set({ historico });
+        set({ historico, isLoadingHistorico: false });
       } else {
-        set({ historico: [] });
+        set({ historico: [], isLoadingHistorico: false });
       }
       
       // Cargar histórico semanal de campañas
@@ -809,7 +817,7 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
       }
     } catch (error) {
       console.error('Error cargando histórico:', error);
-      set({ historico: [], historicoSemanasCampanas: [] });
+      set({ historico: [], historicoSemanasCampanas: [], isLoadingHistorico: false });
     }
   },
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -6,36 +6,50 @@ import { Target, CheckCircle, Clock, Send, Users, MousePointer, FileText, Dollar
 
 type FiltroDashboard = 'todas' | 'activas' | 'archivadas' | 'pendientes';
 
-// Skeleton Loader Component
+// Skeleton Components
 const SkeletonCard = () => (
-  <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 animate-pulse">
+  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 animate-pulse">
     <div className="flex items-center justify-between">
       <div className="flex-1">
         <div className="h-3 bg-gray-200 rounded w-24 mb-3"></div>
-        <div className="h-8 bg-gray-300 rounded w-16"></div>
+        <div className="h-10 bg-gray-300 rounded w-16"></div>
       </div>
-      <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
+      <div className="w-14 h-14 bg-gray-200 rounded-lg"></div>
     </div>
   </div>
 );
 
 const SkeletonMetricCard = () => (
-  <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 animate-pulse">
+  <div className="bg-white rounded-lg shadow border border-gray-200 p-6 animate-pulse">
     <div className="flex items-center space-x-4">
-      <div className="w-16 h-16 bg-gray-200 rounded-xl flex-shrink-0"></div>
+      <div className="w-14 h-14 bg-gray-200 rounded-lg flex-shrink-0"></div>
       <div className="flex-1">
         <div className="h-3 bg-gray-200 rounded w-28 mb-2"></div>
-        <div className="h-6 bg-gray-300 rounded w-20"></div>
+        <div className="h-8 bg-gray-300 rounded w-20"></div>
       </div>
     </div>
   </div>
 );
 
+const SkeletonWeekCard = () => (
+  <div className="bg-white rounded-lg p-6 border-2 border-gray-200 animate-pulse">
+    <div className="text-center mb-6">
+      <div className="w-14 h-14 bg-gray-200 rounded-lg mb-3 mx-auto"></div>
+      <div className="h-4 bg-gray-200 rounded w-20 mx-auto mb-2"></div>
+      <div className="h-3 bg-gray-200 rounded w-16 mx-auto"></div>
+    </div>
+    <div className="space-y-3">
+      <div className="h-12 bg-gray-100 rounded-lg"></div>
+      <div className="h-12 bg-gray-100 rounded-lg"></div>
+      <div className="h-12 bg-gray-100 rounded-lg"></div>
+      <div className="h-12 bg-gray-100 rounded-lg"></div>
+    </div>
+  </div>
+);
+
 export default function Dashboard() {
-  const { campanas, historico } = useCampanaStore();
+  const { campanas, historico, isLoadingCampanas, isLoadingHistorico } = useCampanaStore();
   const [filtroActivo, setFiltroActivo] = useState<FiltroDashboard>('todas');
-  const [isLoading, setIsLoading] = useState(true);
-  const [metricsLoaded, setMetricsLoaded] = useState(false);
 
   // Función para obtener campañas según el filtro
   const obtenerCampanasFiltradas = () => {
@@ -116,27 +130,6 @@ export default function Dashboard() {
 
   const evolucionSemanal = obtenerEvolucionSemanal();
 
-  // Simular carga de datos
-  useEffect(() => {
-    setIsLoading(true);
-    setMetricsLoaded(false);
-    
-    // Simular delay de carga inicial
-    const timer1 = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-
-    // Simular delay de métricas
-    const timer2 = setTimeout(() => {
-      setMetricsLoaded(true);
-    }, 1200);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, [filtroActivo]);
-
   // Calcular tendencia vs semana anterior
   const calcularTendencia = (metricaActual: number, metricaAnterior: number) => {
     if (metricaAnterior === 0) return { porcentaje: 0, tipo: 'neutral' as const };
@@ -165,33 +158,27 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header con Loading Indicator */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
           Dashboard
         </h1>
-        {isLoading && (
-          <div className="flex items-center gap-2 text-gray-500">
-            <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#ef0000' }} />
-            <span className="text-sm font-medium">Cargando datos...</span>
-          </div>
-        )}
       </div>
 
-      {/* Filtros Modernos */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+      {/* Filtros */}
+      <div className="bg-white rounded-lg shadow border border-gray-200 p-4">
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => setFiltroActivo('todas')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-md flex items-center gap-2 relative overflow-hidden group ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
               filtroActivo === 'todas'
-                ? 'text-white shadow-xl transform scale-105'
-                : 'bg-gradient-to-br from-gray-50 to-white text-gray-700 hover:shadow-xl hover:scale-105 border border-gray-200'
+                ? 'text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
             }`}
-            style={filtroActivo === 'todas' ? { background: 'linear-gradient(135deg, #ef0000, #dc0000)' } : {}}
+            style={filtroActivo === 'todas' ? { background: '#ef0000' } : {}}
           >
             <BarChart3 className="w-5 h-5" />
-            <span className="font-bold">Todas</span>
+            <span>Todas</span>
             <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
               filtroActivo === 'todas' ? 'bg-white/20' : 'bg-gray-200'
             }`}>
@@ -200,15 +187,15 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setFiltroActivo('activas')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-md flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
               filtroActivo === 'activas'
-                ? 'text-white shadow-xl transform scale-105'
-                : 'bg-gradient-to-br from-gray-50 to-white text-gray-700 hover:shadow-xl hover:scale-105 border border-gray-200'
+                ? 'text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
             }`}
-            style={filtroActivo === 'activas' ? { background: 'linear-gradient(135deg, #ef0000, #dc0000)' } : {}}
+            style={filtroActivo === 'activas' ? { background: '#ef0000' } : {}}
           >
             <CheckCircle className="w-5 h-5" />
-            <span className="font-bold">Activas</span>
+            <span>Activas</span>
             <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
               filtroActivo === 'activas' ? 'bg-white/20' : 'bg-gray-200'
             }`}>
@@ -217,15 +204,15 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setFiltroActivo('pendientes')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-md flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
               filtroActivo === 'pendientes'
-                ? 'text-white shadow-xl transform scale-105'
-                : 'bg-gradient-to-br from-gray-50 to-white text-gray-700 hover:shadow-xl hover:scale-105 border border-gray-200'
+                ? 'text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
             }`}
-            style={filtroActivo === 'pendientes' ? { background: 'linear-gradient(135deg, #ef0000, #dc0000)' } : {}}
+            style={filtroActivo === 'pendientes' ? { background: '#ef0000' } : {}}
           >
             <Clock className="w-5 h-5" />
-            <span className="font-bold">Pendientes</span>
+            <span>Pendientes</span>
             <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
               filtroActivo === 'pendientes' ? 'bg-white/20' : 'bg-gray-200'
             }`}>
@@ -234,15 +221,15 @@ export default function Dashboard() {
           </button>
           <button
             onClick={() => setFiltroActivo('archivadas')}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-md flex items-center gap-2 ${
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
               filtroActivo === 'archivadas'
-                ? 'text-white shadow-xl transform scale-105'
-                : 'bg-gradient-to-br from-gray-50 to-white text-gray-700 hover:shadow-xl hover:scale-105 border border-gray-200'
+                ? 'text-white shadow-lg'
+                : 'bg-white text-gray-700 hover:shadow-md border border-gray-200'
             }`}
-            style={filtroActivo === 'archivadas' ? { background: 'linear-gradient(135deg, #ef0000, #dc0000)' } : {}}
+            style={filtroActivo === 'archivadas' ? { background: '#ef0000' } : {}}
           >
             <FileText className="w-5 h-5" />
-            <span className="font-bold">Archivadas</span>
+            <span>Archivadas</span>
             <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
               filtroActivo === 'archivadas' ? 'bg-white/20' : 'bg-gray-200'
             }`}>
@@ -259,7 +246,7 @@ export default function Dashboard() {
           Estadísticas Generales
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading ? (
+          {isLoadingCampanas ? (
             <>
               <SkeletonCard />
               <SkeletonCard />
@@ -272,22 +259,21 @@ export default function Dashboard() {
               return (
                 <div
                   key={index}
-                  className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-2xl hover:border-gray-300 transition-all duration-300 transform hover:-translate-y-2 hover:scale-105 animate-fadeIn"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                         {tarjeta.titulo}
                       </p>
-                      <p className="text-5xl font-black text-gray-900 mb-1 group-hover:scale-110 transition-transform duration-300">
+                      <p className="text-4xl font-bold text-gray-900">
                         {tarjeta.valor}
                       </p>
                     </div>
                     <div 
-                      className={`${tarjeta.colorClass} w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300`}
+                      className={`${tarjeta.colorClass} w-14 h-14 rounded-lg flex items-center justify-center shadow`}
                     >
-                      <Icon className="w-9 h-9 text-white" />
+                      <Icon className="w-8 h-8 text-white" />
                     </div>
                   </div>
                 </div>
@@ -304,7 +290,7 @@ export default function Dashboard() {
           Métricas {filtroActivo === 'todas' ? 'Generales' : filtroActivo === 'activas' ? 'Campañas Activas' : filtroActivo === 'archivadas' ? 'Campañas Archivadas' : 'Campañas Pendientes'}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {!metricsLoaded ? (
+          {isLoadingCampanas || isLoadingHistorico ? (
             <>
               <SkeletonMetricCard />
               <SkeletonMetricCard />
@@ -319,31 +305,27 @@ export default function Dashboard() {
               return (
                 <div
                   key={index}
-                  className="group relative bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-2xl hover:border-gray-300 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden animate-fadeIn"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200"
                 >
-                  {/* Gradient Background Effect */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-100 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
-                  
-                  <div className="relative flex items-center space-x-4">
+                  <div className="flex items-center space-x-4">
                     <div 
-                      className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
+                      className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 shadow"
                       style={{ 
-                        background: index === 0 ? 'linear-gradient(135deg, #ef0000, #dc0000)' : 
-                                   index === 1 ? 'linear-gradient(135deg, #4f46e5, #3730a3)' : 
-                                   index === 2 ? 'linear-gradient(135deg, #ec4899, #be185d)' : 
-                                   index === 3 ? 'linear-gradient(135deg, #10b981, #047857)' : 
-                                   index === 4 ? 'linear-gradient(135deg, #f97316, #ea580c)' : 
-                                   'linear-gradient(135deg, #ef0000, #b91c1c)' 
+                        background: index === 0 ? '#ef0000' : 
+                                   index === 1 ? '#4f46e5' : 
+                                   index === 2 ? '#ec4899' : 
+                                   index === 3 ? '#10b981' : 
+                                   index === 4 ? '#f97316' : 
+                                   '#ef0000' 
                       }}
                     >
-                      <Icon className="w-8 h-8 text-white" />
+                      <Icon className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
                         {tarjeta.titulo}
                       </p>
-                      <p className="text-3xl font-black text-gray-900 truncate group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-gray-900 group-hover:to-gray-600 transition-all duration-300">
+                      <p className="text-2xl font-bold text-gray-900 truncate">
                         {tarjeta.valor}
                       </p>
                     </div>
@@ -361,27 +343,17 @@ export default function Dashboard() {
           <TrendingUp className="w-5 h-5" style={{ color: '#ef0000' }} />
           Evolución Semanal (Últimas 4 Semanas)
         </h2>
-        <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-8">
-          {!metricsLoaded ? (
-            // Loading state - mostrar skeletons
+        <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
+          {isLoadingHistorico ? (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-xl shadow-md border border-gray-100 p-6 animate-pulse">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
-                    <div className="h-6 w-16 bg-gray-200 rounded"></div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                  </div>
-                </div>
-              ))}
+              <SkeletonWeekCard />
+              <SkeletonWeekCard />
+              <SkeletonWeekCard />
+              <SkeletonWeekCard />
             </div>
           ) : evolucionSemanal.every(s => s.campañas === 0) ? (
             <div className="text-center py-16">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                 <BarChart3 className="w-10 h-10 text-gray-400" />
               </div>
               <p className="text-xl font-bold text-gray-700 mb-2">No hay datos de evolución semanal</p>
@@ -394,60 +366,59 @@ export default function Dashboard() {
                 return (
                   <div 
                     key={index} 
-                    className="group relative animate-fadeIn"
-                    style={{ animationDelay: `${index * 150}ms` }}
-                  >
-                    <div className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 ${
+                    className={`bg-white rounded-lg p-6 border-2 ${
                       tieneDatos 
-                        ? 'border-gray-200 hover:border-gray-300 hover:shadow-2xl hover:-translate-y-2' 
+                        ? 'border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200' 
                         : 'border-gray-100 opacity-50'
-                    }`}>
-                      {/* Header de Semana */}
-                      <div className="text-center mb-6">
-                        <div 
-                          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 shadow-lg"
-                          style={{ background: 'linear-gradient(135deg, #ef0000, #dc0000)' }}
-                        >
-                          <span className="text-2xl font-black text-white">{semana.numeroSemana}</span>
-                        </div>
-                        <p className="text-sm font-bold text-gray-600">{semana.semana}</p>
+                    }`}
+                  >
+                    {/* Header de Semana */}
+                    <div className="text-center mb-6">
+                      <div 
+                        className="inline-flex items-center justify-center w-14 h-14 rounded-lg mb-3 shadow"
+                        style={{ background: '#ef0000' }}
+                      >
+                        <span className="text-2xl font-bold text-white">{semana.numeroSemana}</span>
                       </div>
-                      
-                      {/* Métricas */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
-                          <span className="text-xs font-bold text-blue-900 uppercase">Leads</span>
-                          <span className="text-lg font-black text-blue-700">{semana.leads.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
-                          <span className="text-xs font-bold text-green-900 uppercase">Costo</span>
-                          <span className="text-lg font-black text-green-700">${semana.costo.toFixed(0)}</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
-                          <span className="text-xs font-bold text-orange-900 uppercase">Conductores</span>
-                          <span className="text-lg font-black text-orange-700">{semana.conductores}</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
-                          <span className="text-xs font-bold text-purple-900 uppercase">Campañas</span>
-                          <span className="text-lg font-black text-purple-700">{semana.campañas}</span>
-                        </div>
-                      </div>
-
-                      {/* Indicador de Tendencia */}
-                      {index > 0 && tieneDatos && evolucionSemanal[index - 1].campañas > 0 && (
-                        <div className="absolute -top-3 -right-3">
-                          {semana.leads > evolucionSemanal[index - 1].leads ? (
-                            <div className="bg-green-500 text-white rounded-full p-2 shadow-lg">
-                              <TrendingUp className="w-4 h-4" />
-                            </div>
-                          ) : semana.leads < evolucionSemanal[index - 1].leads ? (
-                            <div className="bg-red-500 text-white rounded-full p-2 shadow-lg">
-                              <TrendingDown className="w-4 h-4" />
-                            </div>
-                          ) : null}
-                        </div>
-                      )}
+                      <p className="text-sm font-bold text-gray-600">{semana.semana}</p>
                     </div>
+                    
+                    {/* Métricas */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <span className="text-xs font-semibold text-blue-900 uppercase">Leads</span>
+                        <span className="text-lg font-bold text-blue-700">{semana.leads.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <span className="text-xs font-semibold text-green-900 uppercase">Costo</span>
+                        <span className="text-lg font-bold text-green-700">${semana.costo.toFixed(0)}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                        <span className="text-xs font-semibold text-orange-900 uppercase">Conductores</span>
+                        <span className="text-lg font-bold text-orange-700">{semana.conductores}</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <span className="text-xs font-semibold text-purple-900 uppercase">Campañas</span>
+                        <span className="text-lg font-bold text-purple-700">{semana.campañas}</span>
+                      </div>
+                    </div>
+
+                    {/* Indicador de Tendencia */}
+                    {index > 0 && tieneDatos && evolucionSemanal[index - 1].campañas > 0 && (
+                      <div className="mt-4 flex items-center justify-center gap-2">
+                        {semana.leads > evolucionSemanal[index - 1].leads ? (
+                          <>
+                            <TrendingUp className="w-4 h-4 text-green-600" />
+                            <span className="text-xs font-semibold text-green-600">Mejorando</span>
+                          </>
+                        ) : semana.leads < evolucionSemanal[index - 1].leads ? (
+                          <>
+                            <TrendingDown className="w-4 h-4 text-red-600" />
+                            <span className="text-xs font-semibold text-red-600">Bajando</span>
+                          </>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -463,33 +434,33 @@ export default function Dashboard() {
             <Flag className="w-5 h-5" style={{ color: '#ef0000' }} />
             Top 5 Campañas por Rendimiento
           </h2>
-          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-gray-700">
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                  <tr className="bg-gray-800 border-b border-gray-700">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                       <div className="flex items-center gap-2">
                         <Target className="w-4 h-4" />
                         Campaña
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                       Segmento
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <FileText className="w-4 h-4" />
                         Leads
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <DollarSign className="w-4 h-4" />
                         Costo/Lead
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider">
                       <div className="flex items-center justify-end gap-2">
                         <Car className="w-4 h-4" />
                         Conductores
@@ -497,7 +468,7 @@ export default function Dashboard() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {campanasFiltradas
                     .filter(c => c.leads && c.leads > 0)
                     .sort((a, b) => (b.leads || 0) - (a.leads || 0))
@@ -505,43 +476,42 @@ export default function Dashboard() {
                     .map((campana, index) => (
                       <tr 
                         key={campana.id} 
-                        className="group hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-200 animate-fadeIn"
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        className="hover:bg-gray-50 transition-colors duration-200"
                       >
-                        <td className="px-6 py-5">
+                        <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div 
-                              className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg group-hover:scale-110 transition-transform duration-200"
-                              style={{ background: 'linear-gradient(135deg, #ef0000, #dc0000)' }}
+                              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow"
+                              style={{ background: '#ef0000' }}
                             >
                               {index + 1}
                             </div>
                             <div>
-                              <div className="text-sm font-bold text-gray-900 group-hover:text-gray-800">
+                              <div className="text-sm font-semibold text-gray-900">
                                 {campana.nombre}
                               </div>
-                              <div className="text-xs text-gray-500 font-medium">{campana.id}</div>
+                              <div className="text-xs text-gray-500">{campana.id}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5">
-                          <span className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md">
+                        <td className="px-6 py-4">
+                          <span className="px-3 py-1 text-xs font-semibold rounded-lg bg-blue-500 text-white">
                             {campana.segmento}
                           </span>
                         </td>
-                        <td className="px-6 py-5 text-right">
-                          <span className="text-xl font-black text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-blue-800">
+                        <td className="px-6 py-4 text-right">
+                          <span className="text-lg font-bold text-gray-900">
                             {campana.leads?.toLocaleString()}
                           </span>
                         </td>
-                        <td className="px-6 py-5 text-right">
-                          <span className="text-lg font-bold text-green-700 group-hover:text-green-800">
+                        <td className="px-6 py-4 text-right">
+                          <span className="text-base font-semibold text-green-700">
                             ${campana.costoLead?.toFixed(2)}
                           </span>
                           <span className="text-xs text-gray-500 ml-1">USD</span>
                         </td>
-                        <td className="px-6 py-5 text-right">
-                          <span className="inline-flex items-center px-3 py-1 rounded-lg bg-orange-100 text-orange-800 font-bold text-sm">
+                        <td className="px-6 py-4 text-right">
+                          <span className="inline-flex items-center px-3 py-1 rounded-lg bg-orange-100 text-orange-800 font-semibold text-sm">
                             {campana.conductoresRegistrados || 0}
                           </span>
                         </td>
