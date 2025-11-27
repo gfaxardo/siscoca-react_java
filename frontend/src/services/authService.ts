@@ -29,10 +29,6 @@ class AuthService {
 
   async login(credentials: LoginRequest): Promise<{ success: boolean; user?: Usuario; message?: string }> {
     try {
-      console.log('=== DEBUG LOGIN ===');
-      console.log('API URL:', `${API_BASE_URL}/auth/login`);
-      console.log('Credenciales enviadas:', credentials);
-
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -44,12 +40,9 @@ class AuthService {
         body: JSON.stringify(credentials)
       });
 
-      console.log('Response status:', response.status);
-
       let data;
       try {
         data = await response.json();
-        console.log('Response data:', data);
       } catch (error) {
         console.error('Error parsing JSON response:', error);
         return {
@@ -59,10 +52,6 @@ class AuthService {
       }
 
       if (!response.ok) {
-        console.error('=== ERROR EN RESPUESTA ===');
-        console.error('Status:', response.status);
-        console.error('Data recibida:', data);
-
         return {
           success: false,
           message: data?.message || `Error del servidor (${response.status})`
@@ -83,22 +72,6 @@ class AuthService {
 
         // Guardar en localStorage
         this.saveUser(usuario);
-
-        // Verificar que se guardó correctamente
-        const userVerificado = this.getUser();
-        const tokenVerificado = this.getToken();
-        
-        console.log('=== LOGIN EXITOSO ===');
-        console.log('Usuario creado:', usuario);
-        console.log('Token recibido del backend:', data.accessToken || data.token);
-        console.log('Token guardado en usuario:', usuario.token);
-        console.log('Usuario recuperado después de guardar:', userVerificado);
-        console.log('Token recuperado después de guardar:', tokenVerificado);
-        console.log('Verificación localStorage:');
-        console.log('  - siscoca_user:', localStorage.getItem('siscoca_user'));
-        console.log('  - token:', localStorage.getItem('token'));
-        console.log('  - siscoca_token:', localStorage.getItem('siscoca_token'));
-        console.log('========================');
 
         return {
           success: true,
@@ -210,12 +183,6 @@ class AuthService {
         localStorage.setItem('token', user.token);
         localStorage.setItem('siscoca_token', user.token);
       }
-      
-      console.log('✅ Usuario guardado en localStorage:', {
-        key: this.USER_KEY,
-        hasToken: !!user.token,
-        tokenLength: user.token?.length || 0
-      });
     } catch (error) {
       console.error('Error al guardar usuario en localStorage:', error);
       

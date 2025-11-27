@@ -131,25 +131,13 @@ class CampanaService {
     // Solo agregar Authorization si hay un token válido
     if (token && token !== 'null' && token !== 'undefined' && token.trim() !== '') {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('✅ Token encontrado y agregado a headers. Longitud:', token.length);
     } else {
-      console.error('❌ NO SE ENCONTRÓ TOKEN DE AUTENTICACIÓN');
-      console.error('Debug completo:');
-      console.error('  - localStorage keys:', Object.keys(localStorage));
-      console.error('  - siscoca_user:', localStorage.getItem('siscoca_user'));
-      console.error('  - token:', localStorage.getItem('token'));
-      console.error('  - siscoca_token:', localStorage.getItem('siscoca_token'));
-      console.error('  - Intentando obtener desde authService...');
-      
       // Último intento: obtener desde authService directamente
       try {
         const lastToken = authService.getToken();
         if (lastToken && lastToken !== 'null' && lastToken.trim() !== '') {
           token = lastToken;
           headers['Authorization'] = `Bearer ${token}`;
-          console.log('✅ Token recuperado desde authService');
-        } else {
-          console.error('  - authService.getToken() también devolvió null o inválido');
         }
       } catch (error) {
         console.error('  - Error obteniendo token desde authService:', error);

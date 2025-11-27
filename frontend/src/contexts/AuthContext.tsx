@@ -49,22 +49,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (username: string, password: string) => {
     try {
-      console.log('AuthContext: Iniciando login...');
       const result = await authService.login({ username, password });
-      console.log('AuthContext: Resultado del authService:', result);
       
       if (result.success && result.user) {
-        console.log('AuthContext: Login exitoso, actualizando estado del usuario');
-        // Actualizar el estado del usuario
         setUser(result.user);
-        console.log('AuthContext: Usuario actualizado en el estado');
         return { success: true };
       } else {
-        console.log('AuthContext: Login falló:', result.message);
         return { success: false, message: result.message || 'Error de autenticación' };
       }
     } catch (error) {
-      console.error('AuthContext: Error en login:', error);
+      console.error('Error en login:', error);
       return { success: false, message: 'Error de conexión' };
     }
   };

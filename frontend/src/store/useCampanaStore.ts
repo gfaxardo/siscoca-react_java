@@ -733,7 +733,6 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
         
         if (response.ok) {
           const historicoBackend = await response.json();
-          console.log('Histórico recibido del backend:', historicoBackend);
           
           // Convertir el formato del backend al formato del frontend
           const historico = historicoBackend.map((h: any) => {
@@ -779,7 +778,6 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
             };
           });
           
-          console.log('Histórico convertido:', historico);
           set({ historico, isLoadingHistorico: false });
           localStorage.setItem('historico', JSON.stringify(historico));
           return;
