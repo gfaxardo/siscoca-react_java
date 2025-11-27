@@ -161,7 +161,7 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
 
       {/* Filtros avanzados */}
       {mostrarFiltros && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200 animate-fadeIn">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Estado */}
             <div>

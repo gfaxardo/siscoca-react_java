@@ -304,7 +304,7 @@ export default function ListaCampanasArchivadas() {
   }
 
   return (
-      <div className="space-y-6 w-full min-h-full">
+      <div className="space-y-4 lg:space-y-6 w-full min-h-full">
         {/* Header moderno con estadísticas */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl p-6 lg:p-8 border border-white/10">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
