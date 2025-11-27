@@ -18,25 +18,18 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<Usuario | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Verificar autenticación de forma síncrona al inicializar
+  const getInitialUser = () => {
+    try {
+      return authService.getUser();
+    } catch (error) {
+      console.error('Error verificando autenticación:', error);
+      return null;
+    }
+  };
 
-  // Verificar autenticación al cargar la app
-  useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const currentUser = authService.getUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Error verificando autenticación:', error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
+  const [user, setUser] = useState<Usuario | null>(getInitialUser);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Actualizar usuario cuando cambie en localStorage
   useEffect(() => {

@@ -362,7 +362,24 @@ export default function Dashboard() {
           Evolución Semanal (Últimas 4 Semanas)
         </h2>
         <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-8">
-          {evolucionSemanal.every(s => s.campañas === 0) ? (
+          {!metricsLoaded ? (
+            // Loading state - mostrar skeletons
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-md border border-gray-100 p-6 animate-pulse">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+                    <div className="h-6 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : evolucionSemanal.every(s => s.campañas === 0) ? (
             <div className="text-center py-16">
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
                 <BarChart3 className="w-10 h-10 text-gray-400" />
