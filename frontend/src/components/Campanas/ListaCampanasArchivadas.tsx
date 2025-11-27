@@ -13,7 +13,22 @@ import HistorialCambios from './HistorialCambios';
 import FormularioEditarCampana from './FormularioEditarCampana';
 import ModalEliminarCampana from './ModalEliminarCampana';
 import { useMenuActions } from '../../store/useMenuActions';
-import { AlertTriangle } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  Archive, 
+  User, 
+  Flag, 
+  Target, 
+  BarChart3, 
+  MousePointer, 
+  DollarSign, 
+  Users, 
+  Car,
+  Globe,
+  Smartphone,
+  MapPin,
+  Link2
+} from 'lucide-react';
 
 export default function ListaCampanasArchivadas() {
   const [error, setError] = useState<string | null>(null);
@@ -286,11 +301,27 @@ export default function ListaCampanasArchivadas() {
   }
 
   return (
-      <div className="space-y-2 lg:space-y-3 w-full min-h-full">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <p className="text-gray-600 text-xs lg:text-sm">
-            {campanasArchivadas.length} campaña{campanasArchivadas.length !== 1 ? 's' : ''} archivada{campanasArchivadas.length !== 1 ? 's' : ''}
-          </p>
+      <div className="space-y-6 w-full min-h-full">
+        {/* Header moderno con estadísticas */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl p-6 lg:p-8 border border-white/10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div
+                className="w-16 h-16 rounded-xl flex items-center justify-center shadow-lg"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                <Archive className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                  Histórico de Campañas
+                </h1>
+                <p className="text-gray-400 text-sm lg:text-base font-medium">
+                  {campanasArchivadas.length} campaña{campanasArchivadas.length !== 1 ? 's' : ''} archivada{campanasArchivadas.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Filtros */}
@@ -300,12 +331,17 @@ export default function ListaCampanasArchivadas() {
         />
 
       {campanasArchivadas.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="text-6xl mb-4">📁</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-200 p-16 text-center">
+          <div 
+            className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg"
+            style={{ background: 'linear-gradient(to bottom right, #6b7280, #4b5563)' }}
+          >
+            <Archive className="w-12 h-12 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">
             No hay campañas archivadas
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-600 text-base font-medium">
             Las campañas archivadas aparecerán aquí
           </p>
         </div>
@@ -324,15 +360,18 @@ export default function ListaCampanasArchivadas() {
                       {campana.nombre}
                     </h3>
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-semibold">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <Flag className="w-3 h-3" />
                         #{campana.id}
                       </span>
-                      <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">
-                        👤 {campana.inicialesDueno}
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {campana.inicialesDueno}
                       </span>
                       {campana.idPlataformaExterna && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
-                          🔗 {campana.idPlataformaExterna}
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold flex items-center gap-1">
+                          <BarChart3 className="w-3 h-3" />
+                          {campana.idPlataformaExterna}
                         </span>
                       )}
                     </div>
@@ -362,53 +401,51 @@ export default function ListaCampanasArchivadas() {
                 </div>
 
                 {/* Información básica de la campaña */}
-                <div className="bg-gray-50 rounded-lg p-2 mb-3">
-                  <h4 className="text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Información Básica</h4>
-                  
-                  <div className="grid grid-cols-3 gap-x-2 gap-y-1 text-xs">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mb-3 border border-gray-200">
+                  <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-xs">
                     {/* País */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">🌍</span>
-                      <span className="ml-1 text-gray-900 truncate">{PAISES_LABELS[campana.pais] || campana.pais}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-900 font-bold truncate">{PAISES_LABELS[campana.pais] || campana.pais}</span>
                     </div>
                     
                     {/* Segmento */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">🎯</span>
-                      <span className="ml-1 text-gray-900 truncate">{campana.segmento}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-900 font-bold truncate">{campana.segmento}</span>
                     </div>
                     
                     {/* Vertical */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">📊</span>
-                      <span className="ml-1 text-gray-900 truncate">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Target className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-900 font-bold truncate">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
                     </div>
                     
                     {/* Dueño */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">👤</span>
-                      <span className="ml-1 text-gray-900 truncate">{campana.nombreDueno}</span>
+                    <div className="flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-900 font-bold truncate">{campana.nombreDueno}</span>
                     </div>
                     
                     {/* Plataforma */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">📱</span>
-                      <span className="ml-1 text-gray-900 truncate">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Smartphone className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-900 font-bold truncate">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
                     </div>
                     
                     {/* Aterrizaje */}
-                    <div className="text-gray-700">
-                      <span className="text-gray-600">🎯</span>
-                      <span className="ml-1 text-gray-900 truncate">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
+                      <span className="text-gray-900 font-bold truncate">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
                       {campana.urlAterrizaje && (
                         <a 
                           href={campana.urlAterrizaje} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="ml-1 text-blue-600 hover:text-blue-800"
+                          className="text-blue-600 hover:text-blue-800 transition-colors"
                           title="Ver destino de aterrizaje"
                         >
-                          🔗
+                          <Link2 className="w-3.5 h-3.5" />
                         </a>
                       )}
                     </div>
