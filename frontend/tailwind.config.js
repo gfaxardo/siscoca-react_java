@@ -9,6 +9,12 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      ringColor: {
+        DEFAULT: '#ef0000',
+      },
+      ringOffsetColor: {
+        DEFAULT: '#ffffff',
+      },
       colors: {
         primary: {
           50: '#fef2f2',

@@ -76,8 +76,8 @@ export default function ListaCampanas({
       inactivo: 'bg-yellow-50 border-yellow-200 text-yellow-700 hover:border-yellow-400 focus:ring-yellow-200'
     },
     'Creativo Enviado': {
-      activo: 'bg-blue-500 border-blue-600 text-white focus:ring-blue-400',
-      inactivo: 'bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-400 focus:ring-blue-200'
+      activo: 'bg-blue-500 border-blue-600 text-white focus:ring-primary-400',
+      inactivo: 'bg-blue-50 border-blue-200 text-blue-700 hover:border-blue-400 focus:ring-primary-200'
     },
     Activa: {
       activo: 'bg-green-500 border-green-600 text-white focus:ring-green-400',

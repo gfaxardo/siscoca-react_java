@@ -88,7 +88,7 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
                 <select
                   value={filtros.vertical}
                   onChange={(e) => setFiltros(prev => ({ ...prev, vertical: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Todas</option>
                   <option value="MOTO_PERSONA">Moto Persona</option>
@@ -102,7 +102,7 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
                 <select
                   value={filtros.pais}
                   onChange={(e) => setFiltros(prev => ({ ...prev, pais: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Todos</option>
                   <option value="PERU">Perú</option>
@@ -117,7 +117,7 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
                 <select
                   value={filtros.plataforma}
                   onChange={(e) => setFiltros(prev => ({ ...prev, plataforma: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Todas</option>
                   <option value="FACEBOOK">Facebook</option>
@@ -132,7 +132,7 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
                 <select
                   value={filtros.segmento}
                   onChange={(e) => setFiltros(prev => ({ ...prev, segmento: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Todos</option>
                   <option value="ADQUISICION">Adquisición</option>
@@ -146,7 +146,7 @@ export default function DashboardConfigurable({ onCerrar }: DashboardConfigurabl
                 <select
                   value={filtros.estado}
                   onChange={(e) => setFiltros(prev => ({ ...prev, estado: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="">Todos</option>
                   <option value="Pendiente">Pendiente</option>

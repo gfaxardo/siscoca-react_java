@@ -297,7 +297,7 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
                     <button
                       type="button"
                       onClick={() => setSelectorSemanasAbierto(prev => !prev)}
-                      className="w-full sm:w-72 px-4 py-2 border border-blue-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                      className="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm"
                     >
                       {semanasSeleccionadas.length === 0
                         ? 'Selecciona semanas'
@@ -314,7 +314,7 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
                             >
                               <input
                                 type="checkbox"
-                                className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
+                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 checked={seleccionado}
                                 onChange={() => toggleSemana(semana)}
                               />

@@ -449,7 +449,7 @@ export default function HistoricoSemanasCampana({
                         type="number"
                         value={metricasTrafficker.alcance}
                         onChange={(e) => setMetricasTrafficker(prev => ({ ...prev, alcance: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Ej: 50000"
                       />
                     </div>
@@ -459,7 +459,7 @@ export default function HistoricoSemanasCampana({
                         type="number"
                         value={metricasTrafficker.clics}
                         onChange={(e) => setMetricasTrafficker(prev => ({ ...prev, clics: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Ej: 2500"
                       />
                     </div>
@@ -469,7 +469,7 @@ export default function HistoricoSemanasCampana({
                         type="number"
                         value={metricasTrafficker.leads}
                         onChange={(e) => setMetricasTrafficker(prev => ({ ...prev, leads: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Ej: 500"
                       />
                     </div>
@@ -480,7 +480,7 @@ export default function HistoricoSemanasCampana({
                         step="0.01"
                         value={metricasTrafficker.costoSemanal}
                         onChange={(e) => setMetricasTrafficker(prev => ({ ...prev, costoSemanal: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Ej: 5000.00"
                       />
                     </div>
@@ -491,7 +491,7 @@ export default function HistoricoSemanasCampana({
                         step="0.01"
                         value={metricasTrafficker.costoLead}
                         onChange={(e) => setMetricasTrafficker(prev => ({ ...prev, costoLead: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         placeholder="Ej: 10.00"
                       />
                     </div>

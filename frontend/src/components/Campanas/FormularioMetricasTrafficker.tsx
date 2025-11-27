@@ -286,7 +286,7 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
                   setValue('urlInforme', campana.urlInforme || '');
                 }
               }}
-              className="w-full px-4 py-3 border border-blue-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all font-medium"
             >
               {opcionesSemanas.map((opcion) => (
                 <option key={opcion.valor} value={opcion.valor}>
