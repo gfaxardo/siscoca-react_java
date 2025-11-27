@@ -2,6 +2,22 @@ import { useState, useEffect } from 'react';
 import { Campana, Creativo } from '../../types';
 import { creativoService } from '../../services/creativoService';
 import { campanaService } from '../../services/campanaService';
+import { 
+  FileText, 
+  X, 
+  Upload, 
+  Download, 
+  Trash2, 
+  Archive, 
+  RotateCcw, 
+  Link2, 
+  Plus, 
+  Eye, 
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Image as ImageIcon
+} from 'lucide-react';
 
 interface UploadCreativoProps {
   campana: Campana;
@@ -357,64 +373,75 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const descartados = creativosExistentes.filter(c => !c.activo);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-start sm:items-center rounded-t-xl flex-shrink-0">
-          <div className="flex-1 min-w-0 pr-2">
-            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-              {esSoloLectura ? '👁️ Ver Creativos' : '📎 Gestión de Creativos'}
-            </h2>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">Campaña: {campana.nombre}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {activos.length} / {maxArchivos} creativos activos
-              {esSoloLectura && (
-                <span className="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-semibold">
-                  (Solo lectura)
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+        {/* Header moderno */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-5 flex justify-between items-center flex-shrink-0 border-b border-white/10">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div 
+              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+              style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+            >
+              {esSoloLectura ? <Eye className="w-6 h-6 text-white" /> : <FileText className="w-6 h-6 text-white" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl lg:text-2xl font-bold text-white">
+                {esSoloLectura ? 'Ver Creativos' : 'Gestión de Creativos'}
+              </h2>
+              <p className="text-sm text-gray-400 truncate">{campana.nombre}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs text-gray-400 font-medium">
+                  {activos.length} / {maxArchivos} creativos activos
                 </span>
-              )}
-            </p>
+                {esSoloLectura && (
+                  <span className="px-2 py-0.5 bg-white/10 text-gray-300 rounded-lg text-xs font-bold">
+                    Solo lectura
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
           <button
             onClick={onCerrar}
-            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
             aria-label="Cerrar"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Contenido con scroll */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-gradient-to-br from-gray-50 to-gray-100">
           {/* Creativos existentes - Activos */}
           {cargandoCreativos ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Cargando creativos...</p>
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-10 h-10 animate-spin mb-3" style={{ color: '#ef0000' }} />
+              <p className="text-gray-700 font-medium">Cargando creativos...</p>
             </div>
           ) : (
             <>
               {activos.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                    <span className="text-green-500 mr-2">✓</span>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" style={{ color: '#10b981' }} />
                     Creativos Activos ({activos.length})
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {activos.map((creativo) => (
-                      <div key={creativo.id} className="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={creativo.id} className="bg-white border border-green-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="flex-1 min-w-0">
                             {creativo.nombreArchivoCreativo && (
-                              <p className="font-semibold text-green-900 truncate">{creativo.nombreArchivoCreativo}</p>
+                              <p className="font-bold text-gray-900 truncate flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4" style={{ color: '#10b981' }} />
+                                {creativo.nombreArchivoCreativo}
+                              </p>
                             )}
-                            <p className="text-xs text-green-700 mt-1">
+                            <p className="text-xs text-gray-600 mt-1 font-medium">
                               Creado: {new Date(creativo.fechaCreacion).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="flex gap-2 ml-2">
+                          <div className="flex gap-1.5 ml-2">
                             <button
                               onClick={async () => {
                                 try {
@@ -423,26 +450,27 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                   alert(`❌ Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
                                 }
                               }}
-                              className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors"
+                              className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
                               title="Descargar"
                             >
-                              ⬇️
+                              <Download className="w-4 h-4" />
                             </button>
                             {!esSoloLectura && (
                               <>
                                 <button
                                   onClick={() => manejarActivarDescartar(creativo)}
-                                  className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs rounded transition-colors"
+                                  className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
                                   title="Descartar"
                                 >
-                                  🗑️
+                                  <Archive className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => manejarEliminar(creativo)}
-                                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition-colors"
+                                  className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                                   title="Eliminar"
                                 >
-                                  ✕
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </>
                             )}
@@ -473,23 +501,26 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
               {/* Creativos descartados */}
               {descartados.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                    <span className="text-gray-500 mr-2">⊘</span>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <XCircle className="w-5 h-5 text-gray-500" />
                     Creativos Descartados ({descartados.length})
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {descartados.map((creativo) => (
-                      <div key={creativo.id} className="bg-gray-50 border border-gray-300 rounded-lg p-4 opacity-75">
-                        <div className="flex items-start justify-between mb-2">
+                      <div key={creativo.id} className="bg-white border border-gray-300 rounded-xl p-4 opacity-75 hover:opacity-100 transition-opacity shadow-sm">
+                        <div className="flex items-start justify-between mb-3">
                           <div className="flex-1 min-w-0">
                             {creativo.nombreArchivoCreativo && (
-                              <p className="font-semibold text-gray-700 truncate">{creativo.nombreArchivoCreativo}</p>
+                              <p className="font-bold text-gray-700 truncate flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4 text-gray-500" />
+                                {creativo.nombreArchivoCreativo}
+                              </p>
                             )}
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 mt-1 font-medium">
                               Creado: {new Date(creativo.fechaCreacion).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="flex gap-2 ml-2">
+                          <div className="flex gap-1.5 ml-2">
                             <button
                               onClick={async () => {
                                 try {
@@ -498,26 +529,27 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                   alert(`❌ Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
                                 }
                               }}
-                              className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors"
+                              className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
                               title="Descargar"
                             >
-                              ⬇️
+                              <Download className="w-4 h-4" />
                             </button>
                             {!esSoloLectura && (
                               <>
                                 <button
                                   onClick={() => manejarActivarDescartar(creativo)}
-                                  className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors"
+                                  className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
                                   title="Activar"
                                 >
-                                  ✓
+                                  <RotateCcw className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => manejarEliminar(creativo)}
-                                  className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition-colors"
+                                  className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                                   title="Eliminar"
                                 >
-                                  ✕
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </>
                             )}
@@ -547,14 +579,27 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
               {/* Sección de Subida Unificada - Solo si no es solo lectura */}
               {!esSoloLectura && (
-                <div className="space-y-6 pt-4">
+                <div className="space-y-6 pt-6 border-t border-gray-200">
                   {/* Subir Archivos */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      📎 Subir Archivos (máximo {maxArchivos - activos.length} disponibles)
+                    <label className="block text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <Upload className="w-4 h-4" style={{ color: '#ef0000' }} />
+                      Subir Archivos (máximo {maxArchivos - activos.length} disponibles)
                     </label>
                     
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-primary-400 transition-colors">
+                    <div className="border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-200" 
+                         style={{ borderColor: (subiendo || activos.length >= maxArchivos) ? '#d1d5db' : '#e5e7eb' }}
+                         onMouseEnter={(e) => {
+                           if (!subiendo && activos.length < maxArchivos) {
+                             e.currentTarget.style.borderColor = '#ef0000';
+                             e.currentTarget.style.backgroundColor = '#fef2f2';
+                           }
+                         }}
+                         onMouseLeave={(e) => {
+                           e.currentTarget.style.borderColor = '#e5e7eb';
+                           e.currentTarget.style.backgroundColor = 'white';
+                         }}
+                    >
                       <input
                         type="file"
                         accept=".jpg,.jpeg,.png,.gif,.mp4,.avi,.mov"
@@ -569,40 +614,50 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                         htmlFor="file-upload-multiple"
                         className={`cursor-pointer block ${subiendo || activos.length >= maxArchivos ? 'pointer-events-none opacity-50' : ''}`}
                       >
-                        <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📎</div>
-                        <p className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
+                        <div 
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg"
+                          style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+                        >
+                          <Upload className="w-8 h-8 text-white" />
+                        </div>
+                        <p className="text-lg font-bold text-gray-900 mb-2">
                           Haz clic para seleccionar archivos
                         </p>
-                        <p className="text-xs sm:text-sm text-gray-500">
+                        <p className="text-sm text-gray-600 font-medium">
                           Puedes seleccionar hasta {maxArchivos - activos.length} archivo(s) más
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Máximo 10MB por archivo
+                        <p className="text-xs text-gray-500 mt-2">
+                          Máximo 10MB por archivo • Formatos: JPG, PNG, GIF, MP4, AVI, MOV
                         </p>
                       </label>
                     </div>
 
                     {/* Lista de archivos seleccionados */}
                     {archivosSeleccionados.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <h4 className="font-semibold text-gray-900 text-sm">Archivos Seleccionados:</h4>
+                      <div className="mt-4 space-y-3">
+                        <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" style={{ color: '#10b981' }} />
+                          Archivos Seleccionados:
+                        </h4>
                         {archivosSeleccionados.map((item, index) => (
-                          <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+                          <div key={index} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-center space-x-3 flex-1 min-w-0">
                               {item.preview && (
-                                <img src={item.preview} alt="Preview" className="w-16 h-16 object-cover rounded" />
+                                <img src={item.preview} alt="Preview" className="w-16 h-16 object-cover rounded-lg shadow-sm" />
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 truncate text-sm">{item.file.name}</p>
-                                <p className="text-xs text-gray-600">{formatearTamano(item.file.size)}</p>
+                                <p className="font-bold text-gray-900 truncate text-sm">{item.file.name}</p>
+                                <p className="text-xs text-gray-600 font-medium">{formatearTamano(item.file.size)}</p>
                               </div>
                             </div>
                             <button
                               onClick={() => eliminarArchivoSeleccionado(index)}
-                              className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors ml-2 text-sm"
+                              className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md ml-2"
+                              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                               disabled={subiendo}
+                              title="Eliminar"
                             >
-                              ✕
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -616,14 +671,15 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                       <div className="w-full border-t border-gray-300"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">O</span>
+                      <span className="px-3 py-1 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 font-bold rounded-lg shadow-sm">O</span>
                     </div>
                   </div>
 
                   {/* Agregar URLs Externas */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      🔗 Agregar URLs Externas
+                    <label className="block text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <Link2 className="w-4 h-4" style={{ color: '#ef0000' }} />
+                      Agregar URLs Externas
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -637,37 +693,47 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           }
                         }}
                         placeholder="https://ejemplo.com/creativo.mp4"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                        className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm font-medium hover:border-gray-400 transition-all"
                         disabled={subiendo || activos.length >= maxArchivos}
                       />
                       <button
                         onClick={agregarUrl}
                         disabled={!urlInputTemporal || !urlInputTemporal.trim() || subiendo || activos.length >= maxArchivos}
-                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
+                        className="px-6 py-3 text-white rounded-xl font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center gap-2 whitespace-nowrap"
+                        style={{ background: (!urlInputTemporal || !urlInputTemporal.trim() || subiendo || activos.length >= maxArchivos) ? '#9ca3af' : 'linear-gradient(to right, #ef0000, #dc0000)' }}
                       >
+                        <Plus className="w-4 h-4" />
                         Agregar
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ingresa la URL completa donde está alojado el creativo
+                    <p className="text-xs text-gray-600 mt-2 font-medium">
+                      Ingresa la URL completa donde está alojado el creativo (imagen o video)
                     </p>
 
                     {/* Lista de URLs agregadas */}
                     {urlsExternas.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <h4 className="font-semibold text-gray-900 text-sm">URLs Agregadas:</h4>
+                      <div className="mt-4 space-y-3">
+                        <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" style={{ color: '#10b981' }} />
+                          URLs Agregadas:
+                        </h4>
                         {urlsExternas.map((urlItem, index) => (
-                          <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 truncate text-sm">{urlItem.url}</p>
-                              <p className="text-xs text-gray-600 mt-1">URL Externa</p>
+                          <div key={index} className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                              <Link2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 truncate text-sm">{urlItem.url}</p>
+                                <p className="text-xs text-gray-600 font-medium">URL Externa</p>
+                              </div>
                             </div>
                             <button
                               onClick={() => eliminarUrl(index)}
-                              className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors ml-2 text-sm"
+                              className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md ml-2"
+                              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                               disabled={subiendo}
+                              title="Eliminar"
                             >
-                              ✕
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -677,19 +743,22 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
                   {/* Resumen de items a subir */}
                   {(archivosSeleccionados.length > 0 || urlsExternas.length > 0) && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-900 mb-2 text-sm">
-                        📋 Items a Subir ({archivosSeleccionados.length + urlsExternas.length})
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+                      <h4 className="font-bold text-blue-900 mb-3 text-sm flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Items a Subir ({archivosSeleccionados.length + urlsExternas.length})
                       </h4>
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-2 text-sm">
                         {archivosSeleccionados.map((item, index) => (
-                          <div key={`file-${index}`} className="text-blue-800">
-                            • 📎 {item.file.name}
+                          <div key={`file-${index}`} className="text-blue-800 font-medium flex items-center gap-2">
+                            <Upload className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{item.file.name}</span>
                           </div>
                         ))}
                         {urlsExternas.map((urlItem, index) => (
-                          <div key={`url-${index}`} className="text-blue-800 truncate">
-                            • 🔗 {urlItem.url}
+                          <div key={`url-${index}`} className="text-blue-800 font-medium flex items-center gap-2">
+                            <Link2 className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{urlItem.url}</span>
                           </div>
                         ))}
                       </div>
@@ -700,9 +769,12 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
               {/* Mensaje informativo para solo lectura */}
               {esSoloLectura && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                  <h4 className="font-semibold text-blue-900 mb-2">ℹ️ Información</h4>
-                  <p className="text-sm text-blue-800">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+                  <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                    <Eye className="w-4 h-4" />
+                    Información
+                  </h4>
+                  <p className="text-sm text-blue-800 font-medium">
                     Esta campaña está archivada. Solo puedes ver y descargar los creativos. 
                     Para modificar o agregar creativos, primero debes reactivar la campaña.
                   </p>
@@ -711,13 +783,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
 
               {/* Instrucciones - Solo si no es solo lectura */}
               {!esSoloLectura && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-yellow-900 mb-2">📋 Instrucciones</h4>
-                  <ul className="text-sm text-yellow-800 space-y-1">
-                    <li>• Puedes tener hasta {maxArchivos} creativos activos por campaña</li>
-                    <li>• Los creativos descartados pueden reactivarse más tarde</li>
-                    <li>• Puedes eliminar creativos incluso cuando la campaña está activa</li>
-                    <li>• Los creativos se ordenan por fecha de creación</li>
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-5 shadow-sm">
+                  <h4 className="font-bold text-yellow-900 mb-3 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Instrucciones
+                  </h4>
+                  <ul className="text-sm text-yellow-800 space-y-2 font-medium">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      Puedes tener hasta {maxArchivos} creativos activos por campaña
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <RotateCcw className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      Los creativos descartados pueden reactivarse más tarde
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Trash2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      Puedes eliminar creativos incluso cuando la campaña está activa
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      Los creativos se ordenan por fecha de creación
+                    </li>
                   </ul>
                 </div>
               )}
@@ -726,22 +813,34 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
         </div>
 
         {/* Botones fijos */}
-        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-white rounded-b-xl flex-shrink-0">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white flex-shrink-0">
           <button
             type="button"
             onClick={onCerrar}
             disabled={subiendo}
-            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors disabled:opacity-50 text-sm sm:text-base"
+            className="w-full sm:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-bold transition-all duration-200 disabled:opacity-50 shadow hover:shadow-md flex items-center justify-center gap-2"
           >
+            <X className="w-4 h-4" />
             Cerrar
           </button>
           {(archivosSeleccionados.length > 0 || urlsExternas.length > 0) && (
             <button
               onClick={manejarSubirTodo}
               disabled={subiendo || activos.length + archivosSeleccionados.length + urlsExternas.length > maxArchivos}
-              className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="w-full sm:w-auto px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none flex items-center justify-center gap-2"
+              style={{ background: (subiendo || activos.length + archivosSeleccionados.length + urlsExternas.length > maxArchivos) ? '#9ca3af' : 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              {subiendo ? 'Guardando...' : `Subir ${archivosSeleccionados.length + urlsExternas.length} Item(s)`}
+              {subiendo ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-5 h-5" />
+                  Subir {archivosSeleccionados.length + urlsExternas.length} Item(s)
+                </>
+              )}
             </button>
           )}
         </div>
