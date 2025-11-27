@@ -569,11 +569,12 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                               <div 
                                 className="mt-2 border border-green-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
                                 onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                                style={{ height: '200px' }}
                               >
                                 <img
                                   src={creativo.urlCreativoExterno || creativo.archivoCreativo}
                                   alt={creativo.nombreArchivoCreativo || "Preview"}
-                                  className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
+                                  className="w-full h-full mx-auto rounded object-contain"
                                   onError={(e) => {
                                     // Si falla cargar la imagen, mostrar un placeholder
                                     const target = e.target as HTMLImageElement;
@@ -593,7 +594,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                         )}
                         
                         {/* Información del creativo abajo del preview */}
-                        <div className="mt-3 pt-3 border-t border-green-200">
+                        <div className="mt-3 pt-3 border-t border-green-200" style={{ minHeight: '60px' }}>
                           <div className="flex items-center gap-2 mb-1">
                             {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
                               <Video className="w-5 h-5 flex-shrink-0" style={{ color: '#10b981' }} />
@@ -692,11 +693,12 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                               <div 
                                 className="mt-2 border border-gray-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
                                 onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                                style={{ height: '200px' }}
                               >
                                 <img
                                   src={creativo.urlCreativoExterno || creativo.archivoCreativo}
                                   alt={creativo.nombreArchivoCreativo || "Preview"}
-                                  className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
+                                  className="w-full h-full mx-auto rounded object-contain"
                                   onError={(e) => {
                                     // Si falla cargar la imagen, mostrar un placeholder
                                     const target = e.target as HTMLImageElement;
@@ -716,7 +718,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                         )}
                         
                         {/* Información del creativo abajo del preview */}
-                        <div className="mt-3 pt-3 border-t border-gray-300">
+                        <div className="mt-3 pt-3 border-t border-gray-300" style={{ minHeight: '60px' }}>
                           <div className="flex items-center gap-2 mb-1">
                             {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
                               <Video className="w-5 h-5 flex-shrink-0 text-gray-500" />
