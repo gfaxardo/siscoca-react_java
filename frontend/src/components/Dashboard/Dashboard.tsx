@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Target, CheckCircle, Clock, Send, Users, MousePointer, FileText, DollarSign, Car, Flag, BarChart3, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { Target, CheckCircle, Clock, Send, Users, MousePointer, FileText, DollarSign, Car, Flag, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 
 type FiltroDashboard = 'todas' | 'activas' | 'archivadas' | 'pendientes';
 
@@ -129,16 +129,6 @@ export default function Dashboard() {
   };
 
   const evolucionSemanal = obtenerEvolucionSemanal();
-
-  // Calcular tendencia vs semana anterior
-  const calcularTendencia = (metricaActual: number, metricaAnterior: number) => {
-    if (metricaAnterior === 0) return { porcentaje: 0, tipo: 'neutral' as const };
-    const cambio = ((metricaActual - metricaAnterior) / metricaAnterior) * 100;
-    return {
-      porcentaje: Math.abs(cambio),
-      tipo: cambio > 0 ? 'up' as const : cambio < 0 ? 'down' as const : 'neutral' as const
-    };
-  };
 
   const tarjetas = [
     { titulo: 'Total Campañas', valor: estadisticas.total, Icon: Target, colorClass: 'bg-gradient-to-br from-blue-500 to-blue-600' },

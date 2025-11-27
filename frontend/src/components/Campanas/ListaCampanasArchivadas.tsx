@@ -18,20 +18,14 @@ import {
   AlertTriangle, 
   Archive, 
   User, 
-  Flag, 
   Target, 
   BarChart3, 
-  MousePointer, 
-  DollarSign, 
-  Users, 
-  Car,
   Globe,
   Smartphone,
   MapPin,
   Link2,
   FileText,
-  Calendar,
-  Plus
+  Calendar
 } from 'lucide-react';
 
 export default function ListaCampanasArchivadas() {

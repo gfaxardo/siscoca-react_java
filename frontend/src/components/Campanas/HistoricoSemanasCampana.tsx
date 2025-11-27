@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { Campana } from '../../types';
 import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -58,6 +59,7 @@ export default function HistoricoSemanasCampana({
   onGuardarHistorico,
   historicoExistente 
 }: HistoricoSemanasCampanaProps) {
+  const notify = useNotification();
   const { eliminarHistoricoSemanal } = useCampanaStore();
   // Inicializar con la semana anterior por defecto
   const obtenerSemanaAnterior = (): number => {

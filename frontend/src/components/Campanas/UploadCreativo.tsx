@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Campana, Creativo } from '../../types';
 import { creativoService } from '../../services/creativoService';
-import { campanaService } from '../../services/campanaService';
-import { useCampanaStore } from '../../store/useCampanaStore';
 import { useNotification } from '../../hooks/useNotification';
 import { 
   FileText, 
@@ -308,8 +306,6 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
         return;
       }
 
-      // Guardar estado anterior de la campaña
-      const estadoAnterior = campana.estado;
       let ordenBase = creativosExistentes.length;
       let itemsSubidos = 0;
 

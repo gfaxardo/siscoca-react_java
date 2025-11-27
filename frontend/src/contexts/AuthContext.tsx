@@ -29,7 +29,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const [user, setUser] = useState<Usuario | null>(getInitialUser);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   // Actualizar usuario cuando cambie en localStorage
   useEffect(() => {

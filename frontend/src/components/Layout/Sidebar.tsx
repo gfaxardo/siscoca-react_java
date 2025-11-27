@@ -1,4 +1,4 @@
-import { BarChart3, Zap, TrendingUp, FileText, Settings, Plus, Upload, X } from 'lucide-react';
+import { BarChart3, Zap, TrendingUp, FileText, Settings, Plus, Upload } from 'lucide-react';
 
 interface SidebarProps {
   abierto: boolean;
@@ -18,7 +18,6 @@ export default function Sidebar({
   onCambiarVista, 
   onCrearNueva, 
   onImportarCampanas, 
-  onVerHistorico,
   onCerrar 
 }: SidebarProps) {
 

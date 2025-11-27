@@ -18,7 +18,7 @@ import ModalEliminarCampana from './ModalEliminarCampana';
 import ChatCampana from '../Chat/ChatCampana';
 import { chatService } from '../../services/chatService';
 import { useMenuActions } from '../../store/useMenuActions';
-import { AlertTriangle, Plus, MessageCircle, Target, User, Link2, BarChart3, DollarSign, FileText, Car, TrendingUp, Calendar, MapPin, Globe, Smartphone } from 'lucide-react';
+import { AlertTriangle, Plus, MessageCircle, Target, User, Link2, BarChart3, FileText, Calendar, MapPin, Globe, Smartphone } from 'lucide-react';
 
 interface ListaCampanasProps {
   onCrearNueva: () => void;

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { MensajeChat } from '../../types/campana';
 import { chatService } from '../../services/chatService';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNotification } from '../../hooks/useNotification';
 import { MessageCircle, X, Send, AlertCircle, Loader2 } from 'lucide-react';
 
 interface ChatCampanaProps {
@@ -13,7 +12,6 @@ interface ChatCampanaProps {
 
 export default function ChatCampana({ campanaId, campanaNombre, onClose }: ChatCampanaProps) {
   // Hooks
-  const notify = useNotification();
   const { user } = useAuth();
   
   // Estados

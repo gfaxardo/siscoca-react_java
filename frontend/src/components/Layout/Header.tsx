@@ -12,7 +12,7 @@ interface HeaderProps {
   onToggleSidebar?: () => void;
 }
 
-export default function Header({ onAbrirTareas, onAbrirInbox, vistaActiva, onCambiarVista, onToggleSidebar }: HeaderProps) {
+export default function Header({ onAbrirTareas, onAbrirInbox, onToggleSidebar }: HeaderProps) {
   const { user, logout } = useAuth();
   const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
   const [mostrarCambioContrasena, setMostrarCambioContrasena] = useState(false);

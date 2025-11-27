@@ -22,8 +22,7 @@ import {
   MessageSquare, 
   Mail, 
   Phone, 
-  Loader2,
-  Smartphone
+  Loader2
 } from 'lucide-react';
 
 const esquemaFormulario = z.object({

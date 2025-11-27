@@ -24,7 +24,6 @@ import {
   UserPlus,
   Loader2,
   PlusCircle,
-  Edit3,
   Archive as ArchiveIcon,
   CheckCircle,
   Paperclip
