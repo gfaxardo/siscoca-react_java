@@ -649,7 +649,6 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
             </div>
           )}
         </div>
-        </div>
       </div>
     </div>
   );
