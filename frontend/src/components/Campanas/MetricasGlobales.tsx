@@ -1,6 +1,22 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Campana, MetricasGlobales } from '../../types';
 import { metricasService } from '../../services/metricasService';
+import { 
+  TrendingUp, 
+  X, 
+  DollarSign, 
+  Users, 
+  Target, 
+  Car, 
+  Loader2, 
+  AlertCircle,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Zap,
+  Award
+} from 'lucide-react';
 
 interface MetricasGlobalesProps {
   campana: Campana;
@@ -90,12 +106,22 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
 
   const getEstadoIcono = (estado: string) => {
     switch (estado) {
-      case 'EXCELENTE': return '🟢';
-      case 'BUENO': return '🟡';
-      case 'REGULAR': return '🟠';
-      case 'MALO': return '🔴';
-      case 'CRITICO': return '⚫';
-      default: return '⚪';
+      case 'EXCELENTE': return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case 'BUENO': return <CheckCircle className="w-5 h-5 text-yellow-600" />;
+      case 'REGULAR': return <AlertTriangle className="w-5 h-5 text-orange-600" />;
+      case 'MALO': return <AlertCircle className="w-5 h-5 text-red-600" />;
+      case 'CRITICO': return <AlertCircle className="w-5 h-5 text-red-800" />;
+      default: return <Info className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  const getRecomendacionIcono = (tipo: string) => {
+    switch (tipo) {
+      case 'success': return <Award className="w-6 h-6 text-green-600" />;
+      case 'warning': return <AlertTriangle className="w-6 h-6 text-yellow-600" />;
+      case 'critical': return <AlertCircle className="w-6 h-6 text-red-600" />;
+      case 'info': return <Info className="w-6 h-6 text-blue-600" />;
+      default: return <Zap className="w-6 h-6 text-purple-600" />;
     }
   };
 
@@ -202,214 +228,263 @@ export default function MetricasGlobalesComponent({ campana, onCerrar }: Metrica
   const recomendacionesMarketing = generarRecomendacionesMarketing();
 
   if (cargando) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8">
-          <div className="flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span>Cargando métricas...</span>
+    return createPortal(
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] animate-fadeIn">
+        <div className="bg-white rounded-2xl p-8 shadow-2xl">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="w-12 h-12 animate-spin text-primary-500" />
+            <span className="text-lg font-bold text-gray-900">Cargando métricas...</span>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
   if (error) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8 max-w-md">
+    return createPortal(
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fadeIn">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
           <div className="text-center">
-            <div className="text-red-500 text-4xl mb-4">❌</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
+              <AlertCircle className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Error</h3>
+            <p className="text-gray-700 mb-6 font-medium">{error}</p>
             <button
               onClick={onCerrar}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              className="w-full px-6 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
               Cerrar
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white px-4 py-3 lg:px-6 lg:py-4">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Header Moderno */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 py-4 lg:px-6 lg:py-5 flex-shrink-0 border-b border-white/10">
           <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-lg lg:text-2xl font-bold">📊 Métricas Globales</h2>
-              <p className="text-blue-100 text-xs lg:text-sm mt-1">{campana.nombre}</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">
+                  Métricas Globales
+                </h2>
+                <p className="text-gray-400 text-sm truncate">{campana.nombre}</p>
+              </div>
             </div>
             <button
               onClick={onCerrar}
-              className="text-white hover:text-blue-200 transition-colors"
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
+              aria-label="Cerrar"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        <div className="p-4 lg:p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
+        <div className="p-4 lg:p-6 overflow-y-auto flex-1">
           {metricas ? (
             <>
               {/* Resumen Global */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 lg:mb-6">
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs lg:text-sm text-blue-600 font-medium">Costo Total</p>
-                      <p className="text-lg lg:text-2xl font-bold text-blue-900">
-                        ${(metricas.costoTotal || 0).toLocaleString()}
-                      </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                      <DollarSign className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-3xl">💰</div>
                   </div>
+                  <p className="text-sm text-blue-700 font-bold mb-1">Costo Total</p>
+                  <p className="text-2xl lg:text-3xl font-extrabold text-blue-900">
+                    ${(metricas.costoTotal || 0).toLocaleString()}
+                  </p>
                 </div>
 
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-green-600 font-medium">Alcance Total</p>
-                      <p className="text-2xl font-bold text-green-900">
-                        {(metricas.alcanceTotal || 0).toLocaleString()}
-                      </p>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
+                      <Users className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-3xl">👥</div>
                   </div>
+                  <p className="text-sm text-green-700 font-bold mb-1">Alcance Total</p>
+                  <p className="text-2xl lg:text-3xl font-extrabold text-green-900">
+                    {(metricas.alcanceTotal || 0).toLocaleString()}
+                  </p>
                 </div>
 
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-purple-600 font-medium">Leads Totales</p>
-                      <p className="text-2xl font-bold text-purple-900">
-                        {(metricas.leadsTotales || 0).toLocaleString()}
-                      </p>
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-md">
+                      <Target className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-3xl">🎯</div>
                   </div>
+                  <p className="text-sm text-purple-700 font-bold mb-1">Leads Totales</p>
+                  <p className="text-2xl lg:text-3xl font-extrabold text-purple-900">
+                    {(metricas.leadsTotales || 0).toLocaleString()}
+                  </p>
                 </div>
 
-                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-orange-600 font-medium">Conductores</p>
-                      <p className="text-2xl font-bold text-orange-900">
-                        {(metricas.conductoresTotales || 0).toLocaleString()}
-                      </p>
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-5 border border-orange-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md">
+                      <Car className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-3xl">🚗</div>
                   </div>
+                  <p className="text-sm text-orange-700 font-bold mb-1">Conductores</p>
+                  <p className="text-2xl lg:text-3xl font-extrabold text-orange-900">
+                    {(metricas.conductoresTotales || 0).toLocaleString()}
+                  </p>
                 </div>
               </div>
 
               {/* Métricas de Eficiencia */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Promedio por Lead</h3>
-                  <p className="text-2xl font-bold text-gray-900">
-                    ${metricas.costoPromedioLead?.toFixed(2) || '0.00'}
-                  </p>
-                </div>
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5" style={{ color: '#ef0000' }} />
+                  Métricas de Eficiencia
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="w-4 h-4 text-gray-600" />
+                      <h4 className="text-sm font-bold text-gray-700">Costo Promedio por Lead</h4>
+                    </div>
+                    <p className="text-3xl font-extrabold text-gray-900">
+                      ${metricas.costoPromedioLead?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Costo Promedio por Conductor</h3>
-                  <p className="text-2xl font-bold text-gray-900">
-                    ${metricas.costoPromedioConductor?.toFixed(2) || '0.00'}
-                  </p>
-                </div>
+                  <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Car className="w-4 h-4 text-gray-600" />
+                      <h4 className="text-sm font-bold text-gray-700">Costo Promedio por Conductor</h4>
+                    </div>
+                    <p className="text-3xl font-extrabold text-gray-900">
+                      ${metricas.costoPromedioConductor?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">ROI</h3>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {metricas.roi?.toFixed(1) || '0.0'}%
-                  </p>
+                  <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-4 h-4 text-gray-600" />
+                      <h4 className="text-sm font-bold text-gray-700">ROI</h4>
+                    </div>
+                    <p className="text-3xl font-extrabold text-gray-900">
+                      {metricas.roi?.toFixed(1) || '0.0'}%
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Evaluaciones de Métricas */}
               {metricas.evaluaciones && metricas.evaluaciones.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Evaluación vs Métricas Ideales</h3>
-                  <div className="space-y-3">
-                    {metricas.evaluaciones.map((evaluacion, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">{getEstadoIcono(evaluacion.estado)}</span>
-                          <div>
-                            <p className="font-medium text-gray-900">{evaluacion.metrica}</p>
-                            <p className="text-sm text-gray-600">
-                              {evaluacion.valorActual.toLocaleString()} / {evaluacion.valorIdeal.toLocaleString()}
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" style={{ color: '#ef0000' }} />
+                    Evaluación vs Métricas Ideales
+                  </h3>
+                  <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <div className="space-y-3">
+                      {metricas.evaluaciones.map((evaluacion, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                          <div className="flex items-center space-x-3">
+                            <div>{getEstadoIcono(evaluacion.estado)}</div>
+                            <div>
+                              <p className="font-bold text-gray-900">{evaluacion.metrica}</p>
+                              <p className="text-sm text-gray-600 font-medium">
+                                {evaluacion.valorActual.toLocaleString()} / {evaluacion.valorIdeal.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className={`px-3 py-1.5 rounded-full text-sm font-bold ${getEstadoColor(evaluacion.estado)}`}>
+                              {evaluacion.estado}
+                            </span>
+                            <p className="text-xs text-gray-600 mt-2 font-medium">
+                              {evaluacion.porcentajeDesviacion.toFixed(1)}% del ideal
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getEstadoColor(evaluacion.estado)}`}>
-                            {evaluacion.estado}
-                          </span>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {evaluacion.porcentajeDesviacion.toFixed(1)}% del ideal
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* Recomendaciones de Marketing Experto */}
               {recomendacionesMarketing && recomendacionesMarketing.length > 0 && (
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <span className="text-2xl mr-2">💡</span>
+                <div className="mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5" style={{ color: '#ef0000' }} />
                     Recomendaciones de Marketing Experto
                   </h3>
-                  <div className="space-y-4">
-                    {recomendacionesMarketing.map((recomendacion, index) => (
-                      <div key={index} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                        <div className="flex items-start space-x-3">
-                          <span className="text-2xl mt-1">{recomendacion.icono}</span>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-1">{recomendacion.titulo}</h4>
-                            <p className="text-sm text-gray-700 mb-2">{recomendacion.mensaje}</p>
-                            <div className="bg-blue-50 border-l-4 border-blue-500 pl-3 py-2 rounded-r">
-                              <p className="text-sm text-blue-900">
-                                <span className="font-semibold">💼 Acción recomendada:</span> {recomendacion.accion}
-                              </p>
+                  <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-5 shadow-sm">
+                    <div className="space-y-4">
+                      {recomendacionesMarketing.map((recomendacion, index) => (
+                        <div key={index} className="bg-white rounded-xl p-5 shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+                          <div className="flex items-start space-x-4">
+                            <div className="flex-shrink-0 mt-1">
+                              {getRecomendacionIcono(recomendacion.tipo)}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-gray-900 mb-2 text-base">{recomendacion.titulo}</h4>
+                              <p className="text-sm text-gray-700 mb-3 font-medium">{recomendacion.mensaje}</p>
+                              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 pl-4 py-3 rounded-r-lg">
+                                <p className="text-sm text-blue-900 font-bold">
+                                  <Zap className="w-4 h-4 inline mr-1" />
+                                  Acción recomendada:
+                                </p>
+                                <p className="text-sm text-blue-800 mt-1 font-medium">
+                                  {recomendacion.accion}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No hay métricas disponibles para esta campaña</p>
+            <div className="text-center py-16">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
+                <TrendingUp className="w-10 h-10 text-white" />
+              </div>
+              <p className="text-lg font-bold text-gray-900 mb-1">No hay métricas disponibles</p>
+              <p className="text-sm text-gray-600">Esta campaña aún no tiene métricas globales</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+        <div className="bg-gradient-to-r from-gray-50 to-white px-4 py-4 lg:px-6 border-t border-gray-200 flex-shrink-0">
           <div className="flex justify-end">
             <button
               onClick={onCerrar}
-              className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
+              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
+              <X className="w-4 h-4" />
               Cerrar
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
