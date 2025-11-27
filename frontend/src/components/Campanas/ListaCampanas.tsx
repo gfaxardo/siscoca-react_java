@@ -630,23 +630,23 @@ export default function ListaCampanas({
               className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer transform hover:-translate-y-1"
               title="Doble clic para ver detalles completos"
             >
-              <div className="p-4 lg:p-5">
+              <div className="p-5 lg:p-6">
                 {/* Header con título y menú de acciones */}
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1 min-w-0 pr-3">
                     <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2 break-words">
                       {campana.nombre}
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                         #{campana.id}
                       </span>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                      <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                         <User className="w-3 h-3" />
                         {campana.inicialesDueno}
                       </span>
                       {campana.idPlataformaExterna && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
+                        <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                           <Link2 className="w-3 h-3" />
                           {campana.idPlataformaExterna}
                         </span>
@@ -654,7 +654,7 @@ export default function ListaCampanas({
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 flex-shrink-0">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${obtenerColorEstado(campana.estado)}`}>
                       {campana.estado === 'Creativo Enviado' ? 'Creativo Enviado!' : campana.estado}
                     </span>
@@ -718,46 +718,46 @@ export default function ListaCampanas({
                 </div>
 
                 {/* Información básica de la campaña */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mb-3 border border-gray-200">
-                  <h4 className="text-xs font-bold text-gray-900 mb-2 uppercase tracking-wide flex items-center gap-1">
-                    <FileText className="w-3 h-3" style={{ color: '#ef0000' }} />
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 border border-gray-200">
+                  <h4 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wide flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                     Información Básica
                   </h4>
                   
-                  <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-3 gap-3 text-xs">
                     {/* País */}
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <Globe className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <Globe className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       <span className="text-gray-900 truncate font-medium">{PAISES_LABELS[campana.pais] || campana.pais}</span>
                     </div>
                     
                     {/* Segmento */}
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <Target className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <Target className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       <span className="text-gray-900 truncate font-medium">{campana.segmento}</span>
                     </div>
                     
                     {/* Vertical */}
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <BarChart3 className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <BarChart3 className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       <span className="text-gray-900 truncate font-medium">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
                     </div>
                     
                     {/* Dueño */}
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <User className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <User className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       <span className="text-gray-900 truncate font-medium">{campana.nombreDueno}</span>
                     </div>
                     
                     {/* Plataforma */}
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <Smartphone className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <Smartphone className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       <span className="text-gray-900 truncate font-medium">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
                     </div>
                     
                     {/* Aterrizaje */}
-                    <div className="flex items-center gap-1 text-gray-700">
-                      <MapPin className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       <span className="text-gray-900 truncate font-medium">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
                       {campana.urlAterrizaje && (
                         <a 
@@ -767,21 +767,21 @@ export default function ListaCampanas({
                           className="ml-1 text-blue-600 hover:text-blue-800 transition-colors"
                           title="Ver destino de aterrizaje"
                         >
-                          <Link2 className="w-3 h-3" />
+                          <Link2 className="w-3.5 h-3.5" />
                         </a>
                       )}
                     </div>
                   </div>
                   
                   {/* Descripción corta */}
-                  <div className="flex items-start gap-1 text-gray-700 pt-2 mt-2 border-t border-gray-300">
-                    <FileText className="w-3 h-3 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-1.5 text-gray-700 pt-3 mt-3 border-t border-gray-300">
+                    <FileText className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 mt-0.5" />
                     <span className="text-gray-900 text-xs font-medium leading-relaxed">{campana.descripcionCorta}</span>
                   </div>
                 </div>
 
                 {/* Gráficos de evolución en lugar de métricas estáticas */}
-                <div className="mb-2">
+                <div className="mb-4">
                   {(() => {
                     try {
                       return (
