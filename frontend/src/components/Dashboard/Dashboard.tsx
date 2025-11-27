@@ -157,12 +157,29 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Dashboard
-        </h1>
+    <div className="space-y-6">
+      {/* Header moderno con estadísticas */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl p-6 lg:p-8 border border-white/10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <div 
+                className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                <BarChart3 className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                  Dashboard
+                </h1>
+                <p className="text-gray-400 text-sm">
+                  Vista general de {campanasFiltradas.length} campaña{campanasFiltradas.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Filtros */}
