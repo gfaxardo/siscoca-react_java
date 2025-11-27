@@ -1,9 +1,34 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Campana, TareaPendiente } from '../../types';
 import { useCampanaStore, HistoricoSemanalCampana } from '../../store/useCampanaStore';
 import { getISOWeek } from 'date-fns';
 import { PAISES_LABELS, VERTICALES_LABELS, PLATAFORMAS_LABELS, TIPOS_ATERRIZAJE_LABELS } from '../../types';
 import { tareaService } from '../../services/tareaService';
+import { 
+  Eye, 
+  X, 
+  Info, 
+  Globe, 
+  Target as TargetIcon, 
+  Flag, 
+  Users, 
+  Calendar, 
+  MapPin, 
+  FileText, 
+  Link2,
+  BarChart3,
+  MousePointer,
+  DollarSign,
+  Car,
+  UserPlus,
+  Loader2,
+  PlusCircle,
+  Edit3,
+  Archive as ArchiveIcon,
+  CheckCircle,
+  Paperclip
+} from 'lucide-react';
 
 interface VistaDetalladaCampanaProps {
   campana: Campana;
@@ -71,19 +96,19 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
   const getIconoTarea = (tipo: string) => {
     switch (tipo) {
       case 'Crear Campaña':
-        return '➕';
+        return <PlusCircle className="w-5 h-5" />;
       case 'Enviar Creativo':
-        return '📎';
+        return <Paperclip className="w-5 h-5" />;
       case 'Activar Campaña':
-        return '✅';
+        return <CheckCircle className="w-5 h-5" />;
       case 'Subir Métricas Trafficker':
-        return '📊';
+        return <BarChart3 className="w-5 h-5" />;
       case 'Subir Métricas Dueño':
-        return '👥';
+        return <Users className="w-5 h-5" />;
       case 'Archivar Campaña':
-        return '📁';
+        return <ArchiveIcon className="w-5 h-5" />;
       default:
-        return '📋';
+        return <FileText className="w-5 h-5" />;
     }
   };
 
@@ -194,24 +219,32 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
     ? datosSemanasSeleccionadas.find(h => h.semanaISO === semanaPrincipal) || null
     : null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-3 lg:px-6 lg:py-4 flex-shrink-0">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-2 sm:p-4 animate-fadeIn">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+        {/* Header Moderno */}
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 py-4 lg:px-6 lg:py-5 flex-shrink-0 border-b border-white/10">
           <div className="flex justify-between items-center">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg lg:text-2xl font-bold">📊 Vista Detallada de Campaña</h2>
-              <p className="text-primary-100 text-xs lg:text-sm mt-1 truncate">{campana.nombre}</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div 
+                className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
+                style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+              >
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl lg:text-2xl font-bold text-white">
+                  Vista Detallada de Campaña
+                </h2>
+                <p className="text-gray-400 text-sm truncate">{campana.nombre}</p>
+              </div>
             </div>
             <button
               onClick={onCerrar}
-              className="text-white hover:text-primary-200 transition-colors flex-shrink-0 ml-4"
+              className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg flex-shrink-0"
               aria-label="Cerrar"
             >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -219,78 +252,115 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
         {/* Contenido con scroll */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {cargando ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <span className="ml-3 text-gray-600">Cargando detalles...</span>
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="w-12 h-12 animate-spin text-primary-500 mb-4" />
+              <span className="text-lg font-bold text-gray-900">Cargando detalles...</span>
             </div>
           ) : (
             <>
               {/* Información General de la Campaña */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">📋 Información General</h3>
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 mb-6 border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Info className="w-5 h-5" style={{ color: '#ef0000' }} />
+                  Información General
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">ID</p>
-                    <p className="text-sm font-semibold text-gray-900">#{campana.id}</p>
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">ID</p>
+                      <p className="text-sm font-bold text-gray-900">#{campana.id}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">País</p>
-                    <p className="text-sm font-semibold text-gray-900">{PAISES_LABELS[campana.pais] || campana.pais}</p>
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">País</p>
+                      <p className="text-sm font-bold text-gray-900">{PAISES_LABELS[campana.pais] || campana.pais}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Vertical</p>
-                    <p className="text-sm font-semibold text-gray-900">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</p>
+                  <div className="flex items-center gap-2">
+                    <TargetIcon className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Vertical</p>
+                      <p className="text-sm font-bold text-gray-900">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Plataforma</p>
-                    <p className="text-sm font-semibold text-gray-900">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</p>
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Plataforma</p>
+                      <p className="text-sm font-bold text-gray-900">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Segmento</p>
-                    <p className="text-sm font-semibold text-gray-900">{campana.segmento}</p>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Segmento</p>
+                      <p className="text-sm font-bold text-gray-900">{campana.segmento}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Dueño</p>
-                    <p className="text-sm font-semibold text-gray-900">{campana.nombreDueno}</p>
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Dueño</p>
+                      <p className="text-sm font-bold text-gray-900">{campana.nombreDueno}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Tipo de Aterrizaje</p>
-                    <p className="text-sm font-semibold text-gray-900">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Tipo de Aterrizaje</p>
+                      <p className="text-sm font-bold text-gray-900">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Estado</p>
-                    <p className="text-sm font-semibold text-gray-900">{campana.estado}</p>
+                  <div className="flex items-center gap-2">
+                    <Flag className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Estado</p>
+                      <p className="text-sm font-bold text-gray-900">{campana.estado}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Fecha de Creación</p>
-                    <p className="text-sm font-semibold text-gray-900">{new Date(campana.fechaCreacion).toLocaleDateString('es-ES')}</p>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <div>
+                      <p className="text-xs text-gray-600">Fecha de Creación</p>
+                      <p className="text-sm font-bold text-gray-900">{new Date(campana.fechaCreacion).toLocaleDateString('es-ES')}</p>
+                    </div>
                   </div>
                 </div>
                 {campana.urlAterrizaje && (
-                  <div className="mt-4">
-                    <p className="text-xs text-gray-600 mb-1">Aterrizaje</p>
-                    <a 
-                      href={campana.urlAterrizaje} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-800 break-all"
-                    >
-                      {campana.urlAterrizaje}
-                    </a>
+                  <div className="mt-4 flex items-start gap-2">
+                    <Link2 className="w-4 h-4 text-gray-500 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Aterrizaje</p>
+                      <a 
+                        href={campana.urlAterrizaje} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 break-all font-medium"
+                      >
+                        {campana.urlAterrizaje}
+                      </a>
+                    </div>
                   </div>
                 )}
                 {campana.detalleAterrizaje && (
-                  <div className="mt-4">
-                    <p className="text-xs text-gray-600 mb-1">Detalles del Formulario</p>
-                    <p className="text-sm text-gray-900">{campana.detalleAterrizaje}</p>
+                  <div className="mt-4 flex items-start gap-2">
+                    <FileText className="w-4 h-4 text-gray-500 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Detalles del Formulario</p>
+                      <p className="text-sm text-gray-900 font-medium">{campana.detalleAterrizaje}</p>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Selector de Semana */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  📅 Seleccionar semanas para ver detalles
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 mb-6 shadow-sm">
+                <label className="block text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Calendar className="w-5 h-5" style={{ color: '#ef0000' }} />
+                  Seleccionar semanas para ver detalles
                 </label>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3" ref={selectorRef}>
                   <div className="relative w-full sm:w-auto">
@@ -746,51 +816,60 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
                   )}
 
                   {/* Historial de Tareas Completadas */}
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                    <h3 className="text-lg font-bold text-green-900 mb-4">✅ Historial de Tareas Completadas</h3>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-5 mt-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" style={{ color: '#ef0000' }} />
+                      Historial de Tareas Completadas
+                    </h3>
                     {cargandoTareas ? (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                        <span className="ml-3 text-green-700">Cargando historial...</span>
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Loader2 className="w-8 h-8 animate-spin text-green-600 mb-2" />
+                        <span className="text-sm font-medium text-green-700">Cargando historial...</span>
                       </div>
                     ) : tareasCompletadas.length === 0 ? (
-                      <p className="text-green-700 text-sm">No hay tareas completadas aún para esta campaña.</p>
+                      <p className="text-green-700 text-sm font-medium">No hay tareas completadas aún para esta campaña.</p>
                     ) : (
                       <div className="space-y-3">
                         {tareasCompletadas.map((tarea) => (
                           <div
                             key={tarea.id}
-                            className="bg-white border border-green-200 rounded-lg p-3 hover:shadow-md transition-shadow"
+                            className="bg-white border border-green-200 rounded-xl p-4 hover:shadow-lg transition-all duration-200"
                           >
-                            <div className="flex items-start gap-3">
-                              <span className="text-2xl flex-shrink-0">{getIconoTarea(tarea.tipoTarea)}</span>
+                            <div className="flex items-start gap-4">
+                              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-700 flex-shrink-0">
+                                {getIconoTarea(tarea.tipoTarea)}
+                              </div>
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-semibold text-gray-900">{tarea.tipoTarea}</h4>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="font-bold text-gray-900">{tarea.tipoTarea}</h4>
                                   {tarea.urgente && (
-                                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded">
+                                    <span className="inline-block px-2 py-1 text-xs font-bold bg-red-100 text-red-800 rounded-full">
                                       URGENTE
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-gray-600 mb-2">{tarea.descripcion}</p>
-                                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                                  <span>
-                                    🏷️ {tarea.responsableRol}
+                                <p className="text-sm text-gray-700 mb-3 font-medium">{tarea.descripcion}</p>
+                                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-600">
+                                  <span className="flex items-center gap-1">
+                                    <Flag className="w-3 h-3" />
+                                    {tarea.responsableRol}
                                   </span>
-                                  <span>
-                                    👤 Asignado a: <strong>{tarea.asignadoA}</strong>
+                                  <span className="flex items-center gap-1">
+                                    <Users className="w-3 h-3" />
+                                    Asignado a: <strong>{tarea.asignadoA}</strong>
                                   </span>
-                                  <span>
-                                    📅 Creada: {new Date(tarea.fechaCreacion).toLocaleDateString('es-ES', {
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    Creada: {new Date(tarea.fechaCreacion).toLocaleDateString('es-ES', {
                                       day: '2-digit',
                                       month: '2-digit',
                                       year: 'numeric'
                                     })}
                                   </span>
                                   {tarea.fechaCompletada && (
-                                    <span className="text-green-700 font-medium">
-                                      ✅ Completada: {new Date(tarea.fechaCompletada).toLocaleDateString('es-ES', {
+                                    <span className="flex items-center gap-1 text-green-700 font-bold">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Completada: {new Date(tarea.fechaCompletada).toLocaleDateString('es-ES', {
                                         day: '2-digit',
                                         month: '2-digit',
                                         year: 'numeric',
@@ -814,18 +893,21 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex-shrink-0">
+        <div className="bg-gradient-to-r from-gray-50 to-white px-4 sm:px-6 py-4 border-t border-gray-200 flex-shrink-0">
           <div className="flex justify-end">
             <button
               onClick={onCerrar}
-              className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm sm:text-base"
+              className="px-8 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2"
+              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
+              <X className="w-4 h-4" />
               Cerrar
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
