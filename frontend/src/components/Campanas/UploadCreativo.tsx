@@ -16,7 +16,9 @@ import {
   Loader2,
   CheckCircle,
   XCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ZoomIn,
+  Maximize2
 } from 'lucide-react';
 
 interface UploadCreativoProps {
@@ -42,6 +44,8 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const [subiendo, setSubiendo] = useState(false);
   const [creativosExistentes, setCreativosExistentes] = useState<Creativo[]>([]);
   const [cargandoCreativos, setCargandoCreativos] = useState(true);
+  const [imagenZoom, setImagenZoom] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
   const tamanoMaximo = 10 * 1024 * 1024; // 10MB
@@ -85,13 +89,13 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     }
   };
 
-  const manejarSeleccionArchivos = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const archivos = Array.from(e.target.files || []);
+  const procesarArchivos = (archivos: FileList | File[]) => {
+    const archivosArray = Array.from(archivos);
     
-    if (archivos.length === 0) return;
+    if (archivosArray.length === 0) return;
 
     // Validar cantidad máxima
-    const totalDespues = archivosSeleccionados.length + archivos.length;
+    const totalDespues = archivosSeleccionados.length + archivosArray.length;
     if (totalDespues > maxArchivos) {
       alert(`❌ Máximo ${maxArchivos} archivos permitidos. Ya tienes ${archivosSeleccionados.length} seleccionados.`);
       return;
@@ -100,7 +104,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     // Validar cada archivo
     const archivosValidos: ArchivoConVistaPrevia[] = [];
     
-    for (const archivo of archivos) {
+    for (const archivo of archivosArray) {
       // Validar tipo
       if (!tiposPermitidos.includes(archivo.type)) {
         alert(`❌ "${archivo.name}" no es un tipo permitido. Solo se aceptan imágenes (JPEG, PNG, GIF) y videos (MP4, AVI, MOV)`);
@@ -127,6 +131,37 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
     }
 
     setArchivosSeleccionados([...archivosSeleccionados, ...archivosValidos]);
+  };
+
+  const manejarSeleccionArchivos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      procesarArchivos(e.target.files);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    if (subiendo || activos.length >= maxArchivos) return;
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      procesarArchivos(files);
+    }
   };
 
   const eliminarArchivoSeleccionado = (index: number) => {
@@ -478,11 +513,14 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                         </div>
                         {/* Mostrar imagen desde URL externa o base64 */}
                         {(creativo.urlCreativoExterno || (creativo.archivoCreativo && creativo.archivoCreativo.startsWith('data:image'))) && (
-                          <div className="mt-2 border border-green-300 rounded p-2 bg-white">
+                          <div 
+                            className="mt-2 border border-green-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
+                            onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                          >
                             <img
                               src={creativo.urlCreativoExterno || creativo.archivoCreativo}
                               alt={creativo.nombreArchivoCreativo || "Preview"}
-                              className="max-w-full max-h-48 mx-auto rounded object-contain"
+                              className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
                               onError={(e) => {
                                 // Si falla cargar la imagen, mostrar un placeholder
                                 const target = e.target as HTMLImageElement;
@@ -490,6 +528,12 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                 target.onerror = null; // Prevenir bucle infinito
                               }}
                             />
+                            {/* Overlay con lupa */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                              <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                                <ZoomIn className="w-6 h-6" style={{ color: '#ef0000' }} />
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -557,18 +601,27 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                         </div>
                         {/* Mostrar imagen desde URL externa o base64 */}
                         {(creativo.urlCreativoExterno || (creativo.archivoCreativo && creativo.archivoCreativo.startsWith('data:image'))) && (
-                          <div className="mt-2 border border-gray-300 rounded p-2 bg-white">
+                          <div 
+                            className="mt-2 border border-gray-300 rounded-lg p-2 bg-white relative group cursor-pointer overflow-hidden"
+                            onClick={() => setImagenZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '')}
+                          >
                             <img
                               src={creativo.urlCreativoExterno || creativo.archivoCreativo}
                               alt={creativo.nombreArchivoCreativo || "Preview"}
-                              className="max-w-full max-h-48 mx-auto rounded object-contain"
+                              className="max-w-full max-h-48 mx-auto rounded object-contain transition-transform duration-200 group-hover:scale-105"
                               onError={(e) => {
                                 // Si falla cargar la imagen, mostrar un placeholder
                                 const target = e.target as HTMLImageElement;
-                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZW4gbm8gZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
+                                target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZW4gbm8 ZGlzcG9uaWJsZTwvdGV4dD48L3N2Zz4=';
                                 target.onerror = null; // Prevenir bucle infinito
                               }}
                             />
+                            {/* Overlay con lupa */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center rounded-lg">
+                              <div className="bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg">
+                                <ZoomIn className="w-6 h-6" style={{ color: '#ef0000' }} />
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -587,17 +640,26 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                       Subir Archivos (máximo {maxArchivos - activos.length} disponibles)
                     </label>
                     
-                    <div className="border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-200" 
-                         style={{ borderColor: (subiendo || activos.length >= maxArchivos) ? '#d1d5db' : '#e5e7eb' }}
+                    <div 
+                         className="border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-200" 
+                         style={{ 
+                           borderColor: isDragging ? '#ef0000' : (subiendo || activos.length >= maxArchivos) ? '#d1d5db' : '#e5e7eb',
+                           backgroundColor: isDragging ? '#fef2f2' : 'white'
+                         }}
+                         onDragOver={handleDragOver}
+                         onDragLeave={handleDragLeave}
+                         onDrop={handleDrop}
                          onMouseEnter={(e) => {
-                           if (!subiendo && activos.length < maxArchivos) {
+                           if (!subiendo && activos.length < maxArchivos && !isDragging) {
                              e.currentTarget.style.borderColor = '#ef0000';
                              e.currentTarget.style.backgroundColor = '#fef2f2';
                            }
                          }}
                          onMouseLeave={(e) => {
-                           e.currentTarget.style.borderColor = '#e5e7eb';
-                           e.currentTarget.style.backgroundColor = 'white';
+                           if (!isDragging) {
+                             e.currentTarget.style.borderColor = '#e5e7eb';
+                             e.currentTarget.style.backgroundColor = 'white';
+                           }
                          }}
                     >
                       <input
@@ -620,15 +682,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                         >
                           <Upload className="w-8 h-8 text-white" />
                         </div>
-                        <p className="text-lg font-bold text-gray-900 mb-2">
-                          Haz clic para seleccionar archivos
-                        </p>
-                        <p className="text-sm text-gray-600 font-medium">
-                          Puedes seleccionar hasta {maxArchivos - activos.length} archivo(s) más
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Máximo 10MB por archivo • Formatos: JPG, PNG, GIF, MP4, AVI, MOV
-                        </p>
+                        {isDragging ? (
+                          <>
+                            <p className="text-lg font-bold mb-2" style={{ color: '#ef0000' }}>
+                              ¡Suelta los archivos aquí!
+                            </p>
+                            <p className="text-sm text-gray-600 font-medium">
+                              Los archivos se agregarán automáticamente
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-lg font-bold text-gray-900 mb-2">
+                              Haz clic o arrastra archivos aquí
+                            </p>
+                            <p className="text-sm text-gray-600 font-medium">
+                              Puedes seleccionar hasta {maxArchivos - activos.length} archivo(s) más
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Máximo 10MB por archivo • Formatos: JPG, PNG, GIF, MP4, AVI, MOV
+                            </p>
+                          </>
+                        )}
                       </label>
                     </div>
 
@@ -845,6 +920,49 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
           )}
         </div>
       </div>
+
+      {/* Modal de Zoom de Imagen */}
+      {imagenZoom && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setImagenZoom(null)}
+        >
+          <div className="relative max-w-7xl max-h-[95vh] w-full h-full flex flex-col">
+            {/* Header del modal de zoom */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2 text-white">
+                <Maximize2 className="w-5 h-5" />
+                <span className="font-bold">Vista Ampliada</span>
+              </div>
+              <button
+                onClick={() => setImagenZoom(null)}
+                className="text-white hover:text-gray-300 transition-colors p-2 hover:bg-white/10 rounded-lg"
+                title="Cerrar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            {/* Imagen ampliada */}
+            <div 
+              className="flex-1 flex items-center justify-center overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={imagenZoom}
+                alt="Vista ampliada"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            
+            {/* Indicación */}
+            <p className="text-center text-white/70 mt-4 text-sm font-medium">
+              Haz clic fuera de la imagen para cerrar
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
