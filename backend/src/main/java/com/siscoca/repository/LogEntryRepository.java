@@ -39,21 +39,4 @@ public interface LogEntryRepository extends JpaRepository<LogEntry, Long> {
     
     @Query("SELECT l.entidad, COUNT(l) FROM LogEntry l GROUP BY l.entidad")
     List<Object[]> countLogsByEntidad();
-    
-    @Query("SELECT l FROM LogEntry l WHERE " +
-           "(:usuario IS NULL OR LOWER(l.usuario) LIKE LOWER(CONCAT('%', :usuario, '%'))) AND " +
-           "(:rol IS NULL OR UPPER(l.rol) = UPPER(:rol)) AND " +
-           "(:accion IS NULL OR LOWER(l.accion) LIKE LOWER(CONCAT('%', :accion, '%'))) AND " +
-           "(:entidad IS NULL OR UPPER(l.entidad) = UPPER(:entidad)) AND " +
-           "(:entidadId IS NULL OR l.entidadId = :entidadId) AND " +
-           "(:fechaDesde IS NULL OR l.timestamp >= :fechaDesde) AND " +
-           "(:fechaHasta IS NULL OR l.timestamp <= :fechaHasta)")
-    List<LogEntry> findByFilters(@Param("usuario") String usuario,
-                                 @Param("rol") String rol,
-                                 @Param("accion") String accion,
-                                 @Param("entidad") String entidad,
-                                 @Param("entidadId") String entidadId,
-                                 @Param("fechaDesde") LocalDateTime fechaDesde,
-                                 @Param("fechaHasta") LocalDateTime fechaHasta,
-                                 Sort sort);
 }

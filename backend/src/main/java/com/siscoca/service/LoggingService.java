@@ -2,6 +2,9 @@ package com.siscoca.service;
 
 import com.siscoca.model.LogEntry;
 import com.siscoca.repository.LogEntryRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +26,9 @@ public class LoggingService {
     
     @Autowired
     private LogEntryRepository logEntryRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
     
     public List<LogEntry> obtenerLogs(String usuario, String rol, String accion, String entidad,
                                      String entidadId, String fechaDesde, String fechaHasta) {
@@ -34,16 +41,61 @@ public class LoggingService {
             hasta = temp;
         }
 
-        return logEntryRepository.findByFilters(
-                normalize(usuario),
-                normalize(rol),
-                normalize(accion),
-                normalize(entidad),
-                normalize(entidadId),
-                desde,
-                hasta,
-                Sort.by(Sort.Direction.DESC, "timestamp")
-        );
+        String usuarioNorm = normalize(usuario);
+        String rolNorm = normalize(rol);
+        String accionNorm = normalize(accion);
+        String entidadNorm = normalize(entidad);
+        String entidadIdNorm = normalize(entidadId);
+
+        // Construir consulta SQL dinámicamente
+        StringBuilder sql = new StringBuilder("SELECT * FROM log_entries WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (usuarioNorm != null) {
+            sql.append(" AND CAST(usuario AS TEXT) ILIKE ?");
+            params.add("%" + usuarioNorm + "%");
+        }
+
+        if (rolNorm != null) {
+            sql.append(" AND UPPER(CAST(rol AS TEXT)) = UPPER(?)");
+            params.add(rolNorm);
+        }
+
+        if (accionNorm != null) {
+            sql.append(" AND CAST(accion AS TEXT) ILIKE ?");
+            params.add("%" + accionNorm + "%");
+        }
+
+        if (entidadNorm != null) {
+            sql.append(" AND UPPER(CAST(entidad AS TEXT)) = UPPER(?)");
+            params.add(entidadNorm);
+        }
+
+        if (entidadIdNorm != null) {
+            sql.append(" AND CAST(entidad_id AS TEXT) = ?");
+            params.add(entidadIdNorm);
+        }
+
+        if (desde != null) {
+            sql.append(" AND timestamp >= ?");
+            params.add(desde);
+        }
+
+        if (hasta != null) {
+            sql.append(" AND timestamp <= ?");
+            params.add(hasta);
+        }
+
+        sql.append(" ORDER BY timestamp DESC");
+
+        Query query = entityManager.createNativeQuery(sql.toString(), LogEntry.class);
+        for (int i = 0; i < params.size(); i++) {
+            query.setParameter(i + 1, params.get(i));
+        }
+
+        @SuppressWarnings("unchecked")
+        List<LogEntry> results = query.getResultList();
+        return results;
     }
     
     public List<LogEntry> obtenerLogsPorEntidad(String entidadId) {
