@@ -27,7 +27,10 @@ import {
   Globe,
   Smartphone,
   MapPin,
-  Link2
+  Link2,
+  FileText,
+  Calendar,
+  Plus
 } from 'lucide-react';
 
 export default function ListaCampanasArchivadas() {
@@ -350,99 +353,107 @@ export default function ListaCampanasArchivadas() {
           {campanasArchivadas.map((campana) => (
             <div
               key={campana.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 overflow-hidden"
+              className="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer transform hover:-translate-y-1 flex flex-col"
+              style={{ minHeight: '580px' }}
             >
-              <div className="p-3 lg:p-4">
+              <div className="p-5 lg:p-6 flex flex-col h-full">
                 {/* Header con título y menú de acciones */}
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm lg:text-base font-bold text-gray-900 mb-1 break-words">
+                <div className="mb-4" style={{ minHeight: '110px' }}>
+                  {/* Título con botones alineados */}
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="flex-1 text-base lg:text-lg font-bold text-gray-900 line-clamp-2 pr-3" style={{ height: '56px', lineHeight: '28px' }} title={campana.nombre}>
                       {campana.nombre}
                     </h3>
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold flex items-center gap-1">
-                        <Flag className="w-3 h-3" />
-                        #{campana.id}
+                    
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${obtenerColorEstado(campana.estado)}`}>
+                        {campana.estado}
                       </span>
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        {campana.inicialesDueno}
-                      </span>
-                      {campana.idPlataformaExterna && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold flex items-center gap-1">
-                          <BarChart3 className="w-3 h-3" />
-                          {campana.idPlataformaExterna}
-                        </span>
-                      )}
+                      
+                      {/* Menú de acciones */}
+                      <MenuAccionesCampana
+                        campana={campana}
+                        onEnviarCreativo={() => setCampanaParaUpload(campana)}
+                        onActivarCampana={() => {}}
+                        onSubirMetricasTrafficker={() => {}}
+                        onSubirMetricasDueno={() => {}}
+                        onArchivarCampana={() => {}}
+                        onReactivarCampana={() => manejarReactivacion(campana)}
+                        onDescargarCreativo={() => manejarDescargaCreativo(campana)}
+                        onEditarCampana={() => setCampanaParaEditar(campana)}
+                        onVerMetricasGlobales={() => handleVerMetricasGlobales(campana)}
+                        onVerHistorialCambios={() => handleVerHistorialCambios(campana)}
+                        onEliminarCampana={() => setCampanaParaEliminar(campana)}
+                      />
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${obtenerColorEstado(campana.estado)}`}>
-                      {campana.estado}
+                  {/* Badges debajo del título */}
+                  <div className="flex flex-wrap gap-2 overflow-hidden" style={{ height: '32px' }}>
+                    <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
+                      #{campana.id}
                     </span>
-                    
-                    {/* Menú de acciones */}
-                    <MenuAccionesCampana
-                      campana={campana}
-                      onEnviarCreativo={() => setCampanaParaUpload(campana)}
-                      onActivarCampana={() => {}}
-                      onSubirMetricasTrafficker={() => {}}
-                      onSubirMetricasDueno={() => {}}
-                      onArchivarCampana={() => {}}
-                      onReactivarCampana={() => manejarReactivacion(campana)}
-                      onDescargarCreativo={() => manejarDescargaCreativo(campana)}
-                      onEditarCampana={() => setCampanaParaEditar(campana)}
-                      onVerMetricasGlobales={() => handleVerMetricasGlobales(campana)}
-                      onVerHistorialCambios={() => handleVerHistorialCambios(campana)}
-                      onEliminarCampana={() => setCampanaParaEliminar(campana)}
-                    />
+                    <span className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
+                      <User className="w-3 h-3" />
+                      {campana.inicialesDueno}
+                    </span>
+                    {campana.idPlataformaExterna && (
+                      <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 h-fit">
+                        <Link2 className="w-3 h-3" />
+                        {campana.idPlataformaExterna}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Información básica de la campaña */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 mb-3 border border-gray-200">
-                  <div className="grid grid-cols-3 gap-x-2 gap-y-2 text-xs">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 border border-gray-200" style={{ minHeight: '170px' }}>
+                  <h4 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wide flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
+                    Información Básica
+                  </h4>
+                  
+                  <div className="grid grid-cols-3 gap-3 text-xs">
                     {/* País */}
-                    <div className="flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-900 font-bold truncate">{PAISES_LABELS[campana.pais] || campana.pais}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <Globe className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{PAISES_LABELS[campana.pais] || campana.pais}</span>
                     </div>
                     
                     {/* Segmento */}
-                    <div className="flex items-center gap-1.5">
-                      <Users className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-900 font-bold truncate">{campana.segmento}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <Target className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{campana.segmento}</span>
                     </div>
                     
                     {/* Vertical */}
-                    <div className="flex items-center gap-1.5">
-                      <Target className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-900 font-bold truncate">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <BarChart3 className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{VERTICALES_LABELS[campana.vertical] || campana.vertical}</span>
                     </div>
                     
                     {/* Dueño */}
-                    <div className="flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-900 font-bold truncate">{campana.nombreDueno}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <User className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{campana.nombreDueno}</span>
                     </div>
                     
                     {/* Plataforma */}
-                    <div className="flex items-center gap-1.5">
-                      <Smartphone className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-900 font-bold truncate">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <Smartphone className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{PLATAFORMAS_LABELS[campana.plataforma] || campana.plataforma}</span>
                     </div>
                     
                     {/* Aterrizaje */}
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-gray-600 flex-shrink-0" />
-                      <span className="text-gray-900 font-bold truncate">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
+                    <div className="flex items-center gap-1.5 text-gray-700">
+                      <MapPin className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-900 truncate font-medium">{TIPOS_ATERRIZAJE_LABELS[campana.tipoAterrizaje]}</span>
                       {campana.urlAterrizaje && (
                         <a 
                           href={campana.urlAterrizaje} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 transition-colors"
+                          className="ml-1 text-blue-600 hover:text-blue-800 transition-colors"
                           title="Ver destino de aterrizaje"
                         >
                           <Link2 className="w-3.5 h-3.5" />
@@ -451,39 +462,45 @@ export default function ListaCampanasArchivadas() {
                     </div>
                   </div>
                   
-                  {/* Descripción corta - Ocupa ambas columnas */}
-                  <div className="text-gray-700 pt-1.5 mt-1.5 border-t border-gray-200 col-span-3">
-                    <span className="text-gray-600">📝</span>
-                    <span className="ml-1 text-gray-900 text-xs">{campana.descripcionCorta}</span>
+                  {/* Descripción corta */}
+                  <div className="flex items-start gap-1.5 text-gray-700 pt-3 mt-3 border-t border-gray-300">
+                    <FileText className="w-3.5 h-3.5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-900 text-xs font-medium leading-relaxed">{campana.descripcionCorta}</span>
                   </div>
                 </div>
 
                 {/* Gráficos de evolución en lugar de métricas estáticas */}
-                <div className="mb-2">
-                  {(() => {
-                    try {
-                      return (
-                        <GraficosBarrasAvanzados 
-                          campana={campana} 
-                          historico={historico}
-                          historicoSemanas={obtenerHistoricoSemanalCampana(campana.id)}
-                        />
-                      );
-                    } catch (err) {
-                      console.error('Error renderizando gráficos:', err);
-                      return (
-                        <div className="bg-gray-50 rounded-lg p-4 text-center">
-                          <div className="text-2xl mb-2">📊</div>
-                          <p className="text-sm text-gray-500">Error cargando gráficos</p>
-                        </div>
-                      );
-                    }
-                  })()}
+                <div className="flex-1 flex items-end mb-4">
+                  <div className="w-full">
+                    {(() => {
+                      try {
+                        return (
+                          <GraficosBarrasAvanzados 
+                            campana={campana} 
+                            historico={historico}
+                            historicoSemanas={obtenerHistoricoSemanalCampana(campana.id)}
+                          />
+                        );
+                      } catch (err) {
+                        console.error('Error renderizando gráficos:', err);
+                        return (
+                          <div className="bg-white rounded-lg border border-gray-200 shadow-sm flex items-center justify-center" style={{ minHeight: '280px' }}>
+                            <div className="text-center p-6">
+                              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                              <p className="text-sm text-gray-900 font-bold mb-1">Error cargando gráficos</p>
+                              <p className="text-xs text-gray-500">Intenta recargar la página</p>
+                            </div>
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
                 </div>
 
                 {/* Información de actualización */}
-                <div className="text-xs text-gray-400">
-                  {format(campana.ultimaActualizacion, "dd/MM/yy HH:mm", { locale: es })}
+                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <Calendar className="w-3 h-3" />
+                  <span className="font-medium">{format(campana.ultimaActualizacion, "dd/MM/yy HH:mm", { locale: es })}</span>
                 </div>
               </div>
             </div>
