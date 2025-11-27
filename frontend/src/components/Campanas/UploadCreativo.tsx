@@ -60,6 +60,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const [isDragging, setIsDragging] = useState(false);
   const [creativoAEliminar, setCreativoAEliminar] = useState<Creativo | null>(null);
   const [creativoADescartar, setCreativoADescartar] = useState<Creativo | null>(null);
+  const [creativoAActivar, setCreativoAActivar] = useState<Creativo | null>(null);
 
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
   const tamanoMaximo = 10 * 1024 * 1024; // 10MB
@@ -375,22 +376,26 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       // Descartar - pedir confirmación
       setCreativoADescartar(creativo);
     } else {
-      // Activar - hacerlo directamente
-      activarCreativo(creativo);
+      // Activar - pedir confirmación
+      setCreativoAActivar(creativo);
     }
   };
   
-  const activarCreativo = async (creativo: Creativo) => {
+  const confirmarActivar = async () => {
+    if (!creativoAActivar) return;
+    
     // Verificar límite
     const activos = creativosExistentes.filter(c => c.activo);
     if (activos.length >= maxArchivos) {
       notify.error(`Ya hay ${maxArchivos} creativos activos. Desactiva uno antes de activar otro.`);
+      setCreativoAActivar(null);
       return;
     }
     
     try {
-      await creativoService.marcarComoActivo(creativo.id);
+      await creativoService.marcarComoActivo(creativoAActivar.id);
       notify.success('Creativo activado exitosamente');
+      setCreativoAActivar(null);
       await cargarCreativosExistentes();
       // NOTA: NO llamamos obtenerCampanas() porque:
       // 1. El backend ya sincroniza el estado automáticamente
@@ -1204,6 +1209,79 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                 style={{ background: 'linear-gradient(to right, #eab308, #ca8a04)' }}
               >
                 Descartar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Activar */}
+      {creativoAActivar && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setCreativoAActivar(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-br from-green-500 to-green-600">
+                <RotateCcw className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Activar Creativo</h3>
+            </div>
+            
+            {/* Contenido */}
+            <div className="mb-6">
+              <p className="text-gray-700 mb-3">
+                ¿Estás seguro de que quieres <span className="font-bold text-green-600">activar</span> este creativo?
+              </p>
+              {creativoAActivar.nombreArchivoCreativo && (
+                <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
+                  {esVideo(creativoAActivar.urlCreativoExterno || creativoAActivar.archivoCreativo || '', creativoAActivar.nombreArchivoCreativo) ? (
+                    <Video className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  ) : (
+                    <ImageIcon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  )}
+                  <p className="font-semibold text-gray-900 truncate">
+                    {creativoAActivar.nombreArchivoCreativo}
+                  </p>
+                </div>
+              )}
+              {(() => {
+                const activos = creativosExistentes.filter(c => c.activo);
+                const quedanEspacios = maxArchivos - activos.length;
+                return quedanEspacios > 0 ? (
+                  <p className="text-sm text-blue-600 font-medium mt-3 flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Quedan {quedanEspacios} espacio{quedanEspacios !== 1 ? 's' : ''} disponible{quedanEspacios !== 1 ? 's' : ''} de {maxArchivos}
+                  </p>
+                ) : (
+                  <p className="text-sm text-red-600 font-medium mt-3 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Ya hay {maxArchivos} creativos activos. Debes descartar uno primero.
+                  </p>
+                );
+              })()}
+            </div>
+            
+            {/* Botones */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setCreativoAActivar(null)}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarActivar}
+                disabled={creativosExistentes.filter(c => c.activo).length >= maxArchivos}
+                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: 'linear-gradient(to right, #10b981, #059669)' }}
+              >
+                Activar
               </button>
             </div>
           </div>
