@@ -420,50 +420,83 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
                   {seleccionSimple && datosSemanaPrincipal ? (
                     <>
                       {/* Métricas del Trafficker */}
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h3 className="text-lg font-bold text-blue-900 mb-4">📊 Métricas del Trafficker - Semana {semanaPrincipal}</h3>
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+                        <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5" style={{ color: '#ef0000' }} />
+                          Métricas del Trafficker - Semana {semanaPrincipal}
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          <div>
-                            <p className="text-xs text-blue-700 mb-1">Alcance</p>
-                            <p className="text-xl font-bold text-blue-900">
-                              {(datosSemanaPrincipal.alcance || 0).toLocaleString()}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                              <Users className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600 mb-1 font-medium">Alcance</p>
+                              <p className="text-xl font-extrabold text-gray-900">
+                                {(datosSemanaPrincipal.alcance || 0).toLocaleString()}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-blue-700 mb-1">Clics</p>
-                            <p className="text-xl font-bold text-blue-900">
-                              {(datosSemanaPrincipal.clics || 0).toLocaleString()}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
+                              <MousePointer className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600 mb-1 font-medium">Clics</p>
+                              <p className="text-xl font-extrabold text-gray-900">
+                                {(datosSemanaPrincipal.clics || 0).toLocaleString()}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-blue-700 mb-1">Leads</p>
-                            <p className="text-xl font-bold text-blue-900">
-                              {(datosSemanaPrincipal.leads || 0).toLocaleString()}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+                              <TargetIcon className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600 mb-1 font-medium">Leads</p>
+                              <p className="text-xl font-extrabold text-gray-900">
+                                {(datosSemanaPrincipal.leads || 0).toLocaleString()}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-blue-700 mb-1">Costo Semanal (USD)</p>
-                            <p className="text-xl font-bold text-blue-900">
-                              ${(datosSemanaPrincipal.costoSemanal || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+                              <DollarSign className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600 mb-1 font-medium">Costo Semanal (USD)</p>
+                              <p className="text-xl font-extrabold text-gray-900">
+                                ${(datosSemanaPrincipal.costoSemanal || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-xs text-blue-700 mb-1">Costo por Lead (USD)</p>
-                            <p className="text-xl font-bold text-blue-900">
-                              ${(datosSemanaPrincipal.costoLead || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center">
+                              <DollarSign className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-600 mb-1 font-medium">Costo por Lead (USD)</p>
+                              <p className="text-xl font-extrabold text-gray-900">
+                                ${(datosSemanaPrincipal.costoLead || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </p>
+                            </div>
                           </div>
                           {datosSemanaPrincipal.urlInforme && (
-                            <div className="md:col-span-2 lg:col-span-3">
-                              <p className="text-xs text-blue-700 mb-1">URL del Informe</p>
-                              <a 
-                                href={datosSemanaPrincipal.urlInforme} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:text-blue-800 break-all"
-                              >
-                                {datosSemanaPrincipal.urlInforme}
-                              </a>
+                            <div className="md:col-span-2 lg:col-span-3 flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                <Link2 className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 mb-1 font-medium">URL del Informe</p>
+                                <a 
+                                  href={datosSemanaPrincipal.urlInforme} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:text-blue-800 break-all font-medium"
+                                >
+                                  {datosSemanaPrincipal.urlInforme}
+                                </a>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -471,35 +504,58 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
 
                       {/* Métricas del Dueño */}
                       {(datosSemanaPrincipal.conductoresRegistrados !== undefined || datosSemanaPrincipal.conductoresPrimerViaje !== undefined) && (
-                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                          <h3 className="text-lg font-bold text-orange-900 mb-4">👥 Métricas del Dueño - Semana {semanaPrincipal}</h3>
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-5 shadow-sm">
+                          <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                            <Users className="w-5 h-5" style={{ color: '#ef0000' }} />
+                            Métricas del Dueño - Semana {semanaPrincipal}
+                          </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div>
-                              <p className="text-xs text-orange-700 mb-1">Conductores Registrados</p>
-                              <p className="text-xl font-bold text-orange-900">
-                                {(datosSemanaPrincipal.conductoresRegistrados || 0).toLocaleString()}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+                                <UserPlus className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 mb-1 font-medium">Conductores Registrados</p>
+                                <p className="text-xl font-extrabold text-gray-900">
+                                  {(datosSemanaPrincipal.conductoresRegistrados || 0).toLocaleString()}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-xs text-orange-700 mb-1">Conductores Primer Viaje</p>
-                              <p className="text-xl font-bold text-orange-900">
-                                {(datosSemanaPrincipal.conductoresPrimerViaje || 0).toLocaleString()}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+                                <Car className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 mb-1 font-medium">Conductores Primer Viaje</p>
+                                <p className="text-xl font-extrabold text-gray-900">
+                                  {(datosSemanaPrincipal.conductoresPrimerViaje || 0).toLocaleString()}
+                                </p>
+                              </div>
                             </div>
                             {datosSemanaPrincipal.costoConductorRegistrado !== undefined && (
-                              <div>
-                                <p className="text-xs text-orange-700 mb-1">Costo por Conductor Registrado (USD)</p>
-                                <p className="text-xl font-bold text-orange-900">
-                                  ${(datosSemanaPrincipal.costoConductorRegistrado || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-yellow-500 flex items-center justify-center">
+                                  <DollarSign className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Costo por Conductor Registrado (USD)</p>
+                                  <p className="text-xl font-extrabold text-gray-900">
+                                    ${(datosSemanaPrincipal.costoConductorRegistrado || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
                               </div>
                             )}
                             {datosSemanaPrincipal.costoConductorPrimerViaje !== undefined && (
-                              <div>
-                                <p className="text-xs text-orange-700 mb-1">Costo por Conductor Primer Viaje (USD)</p>
-                                <p className="text-xl font-bold text-orange-900">
-                                  ${(datosSemanaPrincipal.costoConductorPrimerViaje || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center">
+                                  <DollarSign className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Costo por Conductor Primer Viaje (USD)</p>
+                                  <p className="text-xl font-extrabold text-gray-900">
+                                    ${(datosSemanaPrincipal.costoConductorPrimerViaje || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -511,54 +567,87 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
                     <>
                       {/* Métricas del Trafficker */}
                       {(campana.alcance != null || campana.clics != null || campana.leads != null) && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <h3 className="text-lg font-bold text-blue-900 mb-4">📊 Métricas del Trafficker - Semana {semanaPrincipal} (Actual)</h3>
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+                          <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                            <BarChart3 className="w-5 h-5" style={{ color: '#ef0000' }} />
+                            Métricas del Trafficker - Semana {semanaPrincipal} (Actual)
+                          </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {campana.alcance != null && (
-                              <div>
-                                <p className="text-xs text-blue-700 mb-1">Alcance</p>
-                                <p className="text-xl font-bold text-blue-900">{campana.alcance.toLocaleString()}</p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                                  <Users className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Alcance</p>
+                                  <p className="text-xl font-extrabold text-gray-900">{campana.alcance.toLocaleString()}</p>
+                                </div>
                               </div>
                             )}
                             {campana.clics != null && (
-                              <div>
-                                <p className="text-xs text-blue-700 mb-1">Clics</p>
-                                <p className="text-xl font-bold text-blue-900">{campana.clics.toLocaleString()}</p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
+                                  <MousePointer className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Clics</p>
+                                  <p className="text-xl font-extrabold text-gray-900">{campana.clics.toLocaleString()}</p>
+                                </div>
                               </div>
                             )}
                             {campana.leads != null && (
-                              <div>
-                                <p className="text-xs text-blue-700 mb-1">Leads</p>
-                                <p className="text-xl font-bold text-blue-900">{campana.leads.toLocaleString()}</p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+                                  <TargetIcon className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Leads</p>
+                                  <p className="text-xl font-extrabold text-gray-900">{campana.leads.toLocaleString()}</p>
+                                </div>
                               </div>
                             )}
                             {campana.costoSemanal != null && (
-                              <div>
-                                <p className="text-xs text-blue-700 mb-1">Costo Semanal (USD)</p>
-                                <p className="text-xl font-bold text-blue-900">
-                                  ${campana.costoSemanal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+                                  <DollarSign className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Costo Semanal (USD)</p>
+                                  <p className="text-xl font-extrabold text-gray-900">
+                                    ${campana.costoSemanal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
                               </div>
                             )}
                             {campana.costoLead != null && (
-                              <div>
-                                <p className="text-xs text-blue-700 mb-1">Costo por Lead (USD)</p>
-                                <p className="text-xl font-bold text-blue-900">
-                                  ${campana.costoLead.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center">
+                                  <DollarSign className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Costo por Lead (USD)</p>
+                                  <p className="text-xl font-extrabold text-gray-900">
+                                    ${campana.costoLead.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
                               </div>
                             )}
                             {campana.urlInforme && (
-                              <div className="md:col-span-2 lg:col-span-3">
-                                <p className="text-xs text-blue-700 mb-1">URL del Informe</p>
-                                <a 
-                                  href={campana.urlInforme} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-blue-600 hover:text-blue-800 break-all"
-                                >
-                                  {campana.urlInforme}
-                                </a>
+                              <div className="md:col-span-2 lg:col-span-3 flex items-start gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                  <Link2 className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">URL del Informe</p>
+                                  <a 
+                                    href={campana.urlInforme} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-blue-600 hover:text-blue-800 break-all font-medium"
+                                  >
+                                    {campana.urlInforme}
+                                  </a>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -567,35 +656,58 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
 
                       {/* Métricas del Dueño */}
                       {(campana.conductoresRegistrados != null || campana.conductoresPrimerViaje != null) && (
-                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                          <h3 className="text-lg font-bold text-orange-900 mb-4">👥 Métricas del Dueño - Semana {semanaPrincipal} (Actual)</h3>
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-5 shadow-sm">
+                          <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                            <Users className="w-5 h-5" style={{ color: '#ef0000' }} />
+                            Métricas del Dueño - Semana {semanaPrincipal} (Actual)
+                          </h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {campana.conductoresRegistrados != null && (
-                              <div>
-                                <p className="text-xs text-orange-700 mb-1">Conductores Registrados</p>
-                                <p className="text-xl font-bold text-orange-900">{campana.conductoresRegistrados.toLocaleString()}</p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+                                  <UserPlus className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Conductores Registrados</p>
+                                  <p className="text-xl font-extrabold text-gray-900">{campana.conductoresRegistrados.toLocaleString()}</p>
+                                </div>
                               </div>
                             )}
                             {campana.conductoresPrimerViaje != null && (
-                              <div>
-                                <p className="text-xs text-orange-700 mb-1">Conductores Primer Viaje</p>
-                                <p className="text-xl font-bold text-orange-900">{campana.conductoresPrimerViaje.toLocaleString()}</p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-green-500 flex items-center justify-center">
+                                  <Car className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Conductores Primer Viaje</p>
+                                  <p className="text-xl font-extrabold text-gray-900">{campana.conductoresPrimerViaje.toLocaleString()}</p>
+                                </div>
                               </div>
                             )}
                             {campana.costoConductorRegistrado != null && (
-                              <div>
-                                <p className="text-xs text-orange-700 mb-1">Costo por Conductor Registrado (USD)</p>
-                                <p className="text-xl font-bold text-orange-900">
-                                  ${campana.costoConductorRegistrado.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-yellow-500 flex items-center justify-center">
+                                  <DollarSign className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Costo por Conductor Registrado (USD)</p>
+                                  <p className="text-xl font-extrabold text-gray-900">
+                                    ${campana.costoConductorRegistrado.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
                               </div>
                             )}
                             {campana.costoConductorPrimerViaje != null && (
-                              <div>
-                                <p className="text-xs text-orange-700 mb-1">Costo por Conductor Primer Viaje (USD)</p>
-                                <p className="text-xl font-bold text-orange-900">
-                                  ${campana.costoConductorPrimerViaje.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-red-500 flex items-center justify-center">
+                                  <DollarSign className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 mb-1 font-medium">Costo por Conductor Primer Viaje (USD)</p>
+                                  <p className="text-xl font-extrabold text-gray-900">
+                                    ${campana.costoConductorPrimerViaje.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </p>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -603,8 +715,11 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
                       )}
                     </>
                   ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-yellow-800">
+                    <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-5 text-center shadow-sm">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}>
+                        <Info className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-gray-900 font-bold text-lg">
                         No hay métricas disponibles para la semana {semanaPrincipal}
                       </p>
                     </div>
@@ -612,100 +727,107 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
 
                   {!seleccionSimple && (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <h3 className="text-lg font-bold text-blue-900 mb-4">
-                            📊 Resumen Trafficker ({semanasSeleccionadas.length} semanas)
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-5 shadow-sm">
+                          <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                            <BarChart3 className="w-5 h-5" style={{ color: '#ef0000' }} />
+                            Resumen Trafficker ({semanasSeleccionadas.length} semanas)
                           </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs text-blue-700 mb-1">Alcance Total</p>
-                              <p className="text-xl font-bold text-blue-900">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Alcance Total</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 {(resumenTrafficker?.alcance || 0).toLocaleString()}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-blue-700 mb-1">Clics Totales</p>
-                              <p className="text-xl font-bold text-blue-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Clics Totales</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 {(resumenTrafficker?.clics || 0).toLocaleString()}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-blue-700 mb-1">Leads Totales</p>
-                              <p className="text-xl font-bold text-blue-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Leads Totales</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 {(resumenTrafficker?.leads || 0).toLocaleString()}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-blue-700 mb-1">Costo Total (USD)</p>
-                              <p className="text-xl font-bold text-blue-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Costo Total (USD)</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 ${(resumenTrafficker?.costoSemanal || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-blue-700 mb-1">Costo/Lead Promedio (USD)</p>
-                              <p className="text-xl font-bold text-blue-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Costo/Lead Promedio (USD)</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 {resumenTrafficker?.costoLeadPromedio != null
                                   ? `$${resumenTrafficker.costoLeadPromedio.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                   : '—'}
-                              </p>
+                              </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                          <h3 className="text-lg font-bold text-orange-900 mb-4">
-                            👥 Resumen Dueño ({semanasSeleccionadas.length} semanas)
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-5 shadow-sm">
+                          <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                            <Users className="w-5 h-5" style={{ color: '#ef0000' }} />
+                            Resumen Dueño ({semanasSeleccionadas.length} semanas)
                           </h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-xs text-orange-700 mb-1">Conductores Registrados</p>
-                              <p className="text-xl font-bold text-orange-900">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Conductores Registrados</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 {(resumenDueno?.conductoresRegistrados || 0).toLocaleString()}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-orange-700 mb-1">Conductores Primer Viaje</p>
-                              <p className="text-xl font-bold text-orange-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Conductores Primer Viaje</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 {(resumenDueno?.conductoresPrimerViaje || 0).toLocaleString()}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-orange-700 mb-1">Costo Total Registrado (USD)</p>
-                              <p className="text-xl font-bold text-orange-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Costo Total Registrado (USD)</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 ${(resumenDueno?.costoConductorRegistrado || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </p>
+                              </span>
                             </div>
-                            <div>
-                              <p className="text-xs text-orange-700 mb-1">Costo Total Primer Viaje (USD)</p>
-                              <p className="text-xl font-bold text-orange-900">
+                            <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                              <span className="text-sm font-medium text-gray-700">Costo Total Primer Viaje (USD)</span>
+                              <span className="text-xl font-extrabold text-gray-900">
                                 ${(resumenDueno?.costoConductorPrimerViaje || 0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </p>
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {datosSemanasSeleccionadas.map((semana) => (
-                          <div key={semana.semanaISO} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 mb-4">
-                              <h4 className="text-lg font-bold text-gray-900">
+                          <div key={semana.semanaISO} className="bg-white border border-gray-200 rounded-xl p-5 shadow-md">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-5">
+                              <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <Calendar className="w-5 h-5" style={{ color: '#ef0000' }} />
                                 Semana {semana.semanaISO}
                                 {semana.semanaISO === obtenerSemanaActual() ? ' (Actual)' : ''}
                               </h4>
                               <button
                                 type="button"
                                 onClick={() => seleccionarSemana(semana.semanaISO)}
-                                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                className="px-4 py-2 text-xs font-bold text-white rounded-lg transition-all hover:shadow-md"
+                                style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
                               >
                                 Ver solo esta semana
                               </button>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h5 className="text-sm font-semibold text-blue-900 mb-3">📊 Métricas Trafficker</h5>
+                              <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 shadow-sm">
+                                <h5 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                  <BarChart3 className="w-4 h-4" style={{ color: '#ef0000' }} />
+                                  Métricas Trafficker
+                                </h5>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                   <div>
                                     <p className="text-blue-700 text-xs mb-1">Alcance</p>
