@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Campana } from '../../types';
+import { Search, Filter, X, Flag, Globe, Target, BarChart3, Smartphone, User, Clock } from 'lucide-react';
 
 interface FiltrosCampanasProps {
   campanas: Campana[];
@@ -117,13 +118,16 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
   const duenosUnicos = [...new Set(campanas.map(c => c.nombreDueno))];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-2 mb-3">
+    <div className="bg-white rounded-xl shadow border border-gray-200 p-4 lg:p-5">
       {/* Barra de búsqueda principal */}
-      <div className="flex gap-2 mb-2">
-        <div className="flex-1">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="w-5 h-5 text-gray-400" />
+          </div>
           <input
             type="text"
-            placeholder="🔍 Buscar..."
+            placeholder="Buscar campañas por nombre, ID, objetivo..."
             value={filtros.busqueda}
             onChange={(e) => {
               setFiltros({ ...filtros, busqueda: e.target.value });
@@ -133,143 +137,171 @@ export default function FiltrosCampanas({ campanas, onFiltrar }: FiltrosCampanas
                 aplicarFiltros();
               }, 300);
             }}
-            className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-transparent"
+            className="w-full pl-11 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 font-medium"
           />
         </div>
         <button
           onClick={() => setMostrarFiltros(!mostrarFiltros)}
-          className="px-2 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
+          className="px-5 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow hover:shadow-lg"
         >
-          {mostrarFiltros ? 'Ocultar' : 'Filtros'}
+          <Filter className="w-4 h-4" />
+          {mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'}
         </button>
-        <button
-          onClick={limpiarFiltros}
-          className="px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors"
-        >
-          Limpiar
-        </button>
+        {(Object.values(filtros).some(v => v !== '')) && (
+          <button
+            onClick={limpiarFiltros}
+            className="px-5 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow hover:shadow-lg text-white hover:scale-105"
+            style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
+          >
+            <X className="w-4 h-4" />
+            Limpiar
+          </button>
+        )}
       </div>
 
       {/* Filtros avanzados */}
       {mostrarFiltros && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-          {/* Estado */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">Estado</label>
-            <select
-              value={filtros.estado}
-              onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
-            >
-              <option value="">Todos</option>
-              {estadosUnicos.map(estado => (
-                <option key={estado} value={estado}>{estado}</option>
-              ))}
-            </select>
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {/* Estado */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Flag className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Estado
+              </label>
+              <select
+                value={filtros.estado}
+                onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Todos los estados</option>
+                {estadosUnicos.map(estado => (
+                  <option key={estado} value={estado}>{estado}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Segmento */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Target className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Segmento
+              </label>
+              <select
+                value={filtros.segmento}
+                onChange={(e) => setFiltros({ ...filtros, segmento: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Todos los segmentos</option>
+                {segmentosUnicos.map(segmento => (
+                  <option key={segmento} value={segmento}>{segmento}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* País */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Globe className="w-4 h-4" style={{ color: '#ef0000' }} />
+                País
+              </label>
+              <select
+                value={filtros.pais}
+                onChange={(e) => setFiltros({ ...filtros, pais: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Todos los países</option>
+                {paisesUnicos.map(pais => (
+                  <option key={pais} value={pais}>{pais === 'PE' ? 'Perú' : 'Colombia'}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Vertical */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Vertical
+              </label>
+              <select
+                value={filtros.vertical}
+                onChange={(e) => setFiltros({ ...filtros, vertical: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Todas las verticales</option>
+                {verticalesUnicas.map(vertical => (
+                  <option key={vertical} value={vertical}>{vertical}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Plataforma */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Smartphone className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Plataforma
+              </label>
+              <select
+                value={filtros.plataforma}
+                onChange={(e) => setFiltros({ ...filtros, plataforma: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Todas las plataformas</option>
+                {plataformasUnicas.map(plataforma => (
+                  <option key={plataforma} value={plataforma}>{plataforma}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dueño */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <User className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Dueño
+              </label>
+              <select
+                value={filtros.dueno}
+                onChange={(e) => setFiltros({ ...filtros, dueno: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Todos los dueños</option>
+                {duenosUnicos.map(dueno => (
+                  <option key={dueno} value={dueno}>{dueno}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Tiempo activa */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Clock className="w-4 h-4" style={{ color: '#ef0000' }} />
+                Tiempo
+              </label>
+              <select
+                value={filtros.tiempoActiva}
+                onChange={(e) => setFiltros({ ...filtros, tiempoActiva: e.target.value })}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all hover:border-gray-400 bg-white font-medium"
+              >
+                <option value="">Cualquier tiempo</option>
+                <option value="1">Último día</option>
+                <option value="7">Última semana</option>
+                <option value="30">Último mes</option>
+                <option value="90">Últimos 3 meses</option>
+              </select>
+            </div>
           </div>
 
-          {/* Segmento */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">Segmento</label>
-            <select
-              value={filtros.segmento}
-              onChange={(e) => setFiltros({ ...filtros, segmento: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
+          {/* Botón aplicar filtros */}
+          <div className="mt-4 pt-4 border-t border-gray-200 flex gap-3">
+            <button
+              onClick={aplicarFiltros}
+              className="px-6 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2 shadow hover:shadow-lg text-white hover:scale-105"
+              style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
             >
-              <option value="">Todos</option>
-              {segmentosUnicos.map(segmento => (
-                <option key={segmento} value={segmento}>{segmento}</option>
-              ))}
-            </select>
+              <Filter className="w-4 h-4" />
+              Aplicar Filtros
+            </button>
           </div>
-
-          {/* País */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">País</label>
-            <select
-              value={filtros.pais}
-              onChange={(e) => setFiltros({ ...filtros, pais: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
-            >
-              <option value="">Todos</option>
-              {paisesUnicos.map(pais => (
-                <option key={pais} value={pais}>{pais === 'PE' ? 'Perú' : 'Colombia'}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Vertical */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">Vertical</label>
-            <select
-              value={filtros.vertical}
-              onChange={(e) => setFiltros({ ...filtros, vertical: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
-            >
-              <option value="">Todas</option>
-              {verticalesUnicas.map(vertical => (
-                <option key={vertical} value={vertical}>{vertical}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Plataforma */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">Plataforma</label>
-            <select
-              value={filtros.plataforma}
-              onChange={(e) => setFiltros({ ...filtros, plataforma: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
-            >
-              <option value="">Todas</option>
-              {plataformasUnicas.map(plataforma => (
-                <option key={plataforma} value={plataforma}>{plataforma}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Dueño */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">Dueño</label>
-            <select
-              value={filtros.dueno}
-              onChange={(e) => setFiltros({ ...filtros, dueno: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
-            >
-              <option value="">Todos</option>
-              {duenosUnicos.map(dueno => (
-                <option key={dueno} value={dueno}>{dueno}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tiempo activa */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-0.5">Tiempo</label>
-            <select
-              value={filtros.tiempoActiva}
-              onChange={(e) => setFiltros({ ...filtros, tiempoActiva: e.target.value })}
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary-500"
-            >
-              <option value="">Todos</option>
-              <option value="1">Día</option>
-              <option value="7">Semana</option>
-              <option value="30">Mes</option>
-              <option value="90">3 meses</option>
-            </select>
-          </div>
-        </div>
-      )}
-
-      {/* Botón aplicar filtros */}
-      {mostrarFiltros && (
-        <div className="mt-2 pt-2 border-t border-gray-200">
-          <button
-            onClick={aplicarFiltros}
-            className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs font-medium transition-colors"
-          >
-            Aplicar
-          </button>
         </div>
       )}
     </div>

@@ -536,15 +536,15 @@ export default function ListaCampanas({
         </div>
 
         {/* Selector de Ordenamiento */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white rounded-xl shadow border border-gray-200 p-4">
-          <label className="text-sm font-semibold text-gray-900 flex items-center gap-2 whitespace-nowrap">
-            <BarChart3 className="w-4 h-4" style={{ color: '#ef0000' }} />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white rounded-xl shadow border border-gray-200 p-4 lg:p-5">
+          <label className="text-sm font-bold text-gray-900 flex items-center gap-2 whitespace-nowrap">
+            <BarChart3 className="w-5 h-5" style={{ color: '#ef0000' }} />
             Ordenar por:
           </label>
           <select
             value={ordenamiento}
             onChange={(e) => setOrdenamiento(e.target.value as typeof ordenamiento)}
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm font-medium bg-white hover:border-gray-400"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm font-medium bg-white hover:border-gray-400"
           >
             <option value="nueva-antigua">Más nueva a más antigua</option>
             <option value="antigua-nueva">Más antigua a más nueva</option>
