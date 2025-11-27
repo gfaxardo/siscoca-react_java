@@ -503,56 +503,40 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {activos.map((creativo) => (
                       <div key={creativo.id} className="bg-white border border-green-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
-                            {creativo.nombreArchivoCreativo && (
-                              <p className="font-bold text-gray-900 truncate flex items-center gap-2">
-                                {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
-                                  <Video className="w-4 h-4" style={{ color: '#10b981' }} />
-                                ) : (
-                                  <ImageIcon className="w-4 h-4" style={{ color: '#10b981' }} />
-                                )}
-                                {creativo.nombreArchivoCreativo}
-                              </p>
-                            )}
-                            <p className="text-xs text-gray-600 mt-1 font-medium">
-                              Creado: {new Date(creativo.fechaCreacion).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="flex gap-1.5 ml-2">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await creativoService.descargarCreativo(creativo.id);
-                                } catch (error) {
-                                  notify.error(` Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
-                                }
-                              }}
-                              className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
-                              title="Descargar"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                            {!esSoloLectura && (
-                              <>
-                                <button
-                                  onClick={() => manejarActivarDescartar(creativo)}
-                                  className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
-                                  title="Descartar"
-                                >
-                                  <Archive className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => manejarEliminar(creativo)}
-                                  className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
-                                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
-                                  title="Eliminar"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
+                        {/* Botones de acción arriba */}
+                        <div className="flex justify-end gap-1.5 mb-3">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await creativoService.descargarCreativo(creativo.id);
+                              } catch (error) {
+                                notify.error(`Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
+                              }
+                            }}
+                            className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                            title="Descargar"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          {!esSoloLectura && (
+                            <>
+                              <button
+                                onClick={() => manejarActivarDescartar(creativo)}
+                                className="p-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                                title="Descartar"
+                              >
+                                <Archive className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => manejarEliminar(creativo)}
+                                className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                                style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                         {/* Mostrar video o imagen desde URL externa o base64 */}
                         {(creativo.urlCreativoExterno || creativo.archivoCreativo) && (
@@ -607,6 +591,25 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                             )}
                           </>
                         )}
+                        
+                        {/* Información del creativo abajo del preview */}
+                        <div className="mt-3 pt-3 border-t border-green-200">
+                          <div className="flex items-center gap-2 mb-1">
+                            {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
+                              <Video className="w-5 h-5 flex-shrink-0" style={{ color: '#10b981' }} />
+                            ) : (
+                              <ImageIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#10b981' }} />
+                            )}
+                            {creativo.nombreArchivoCreativo && (
+                              <p className="font-bold text-gray-900 truncate" title={creativo.nombreArchivoCreativo}>
+                                {creativo.nombreArchivoCreativo}
+                              </p>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 font-medium ml-7">
+                            Creado: {new Date(creativo.fechaCreacion).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -623,56 +626,40 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {descartados.map((creativo) => (
                       <div key={creativo.id} className="bg-white border border-gray-300 rounded-xl p-4 opacity-75 hover:opacity-100 transition-opacity shadow-sm">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
-                            {creativo.nombreArchivoCreativo && (
-                              <p className="font-bold text-gray-700 truncate flex items-center gap-2">
-                                {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
-                                  <Video className="w-4 h-4 text-gray-500" />
-                                ) : (
-                                  <ImageIcon className="w-4 h-4 text-gray-500" />
-                                )}
-                                {creativo.nombreArchivoCreativo}
-                              </p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1 font-medium">
-                              Creado: {new Date(creativo.fechaCreacion).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="flex gap-1.5 ml-2">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  await creativoService.descargarCreativo(creativo.id);
-                                } catch (error) {
-                                  notify.error(` Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
-                                }
-                              }}
-                              className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
-                              title="Descargar"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                            {!esSoloLectura && (
-                              <>
-                                <button
-                                  onClick={() => manejarActivarDescartar(creativo)}
-                                  className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
-                                  title="Activar"
-                                >
-                                  <RotateCcw className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => manejarEliminar(creativo)}
-                                  className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
-                                  style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
-                                  title="Eliminar"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
+                        {/* Botones de acción arriba */}
+                        <div className="flex justify-end gap-1.5 mb-3">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await creativoService.descargarCreativo(creativo.id);
+                              } catch (error) {
+                                notify.error(`Error al descargar: ${error instanceof Error ? error.message : String(error)}`);
+                              }
+                            }}
+                            className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                            title="Descargar"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                          {!esSoloLectura && (
+                            <>
+                              <button
+                                onClick={() => manejarActivarDescartar(creativo)}
+                                className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                                title="Activar"
+                              >
+                                <RotateCcw className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => manejarEliminar(creativo)}
+                                className="p-2 text-white rounded-lg transition-all duration-200 shadow hover:shadow-md"
+                                style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                         {/* Mostrar video o imagen desde URL externa o base64 */}
                         {(creativo.urlCreativoExterno || creativo.archivoCreativo) && (
@@ -727,6 +714,25 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                             )}
                           </>
                         )}
+                        
+                        {/* Información del creativo abajo del preview */}
+                        <div className="mt-3 pt-3 border-t border-gray-300">
+                          <div className="flex items-center gap-2 mb-1">
+                            {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) ? (
+                              <Video className="w-5 h-5 flex-shrink-0 text-gray-500" />
+                            ) : (
+                              <ImageIcon className="w-5 h-5 flex-shrink-0 text-gray-500" />
+                            )}
+                            {creativo.nombreArchivoCreativo && (
+                              <p className="font-bold text-gray-700 truncate" title={creativo.nombreArchivoCreativo}>
+                                {creativo.nombreArchivoCreativo}
+                              </p>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 font-medium ml-7">
+                            Creado: {new Date(creativo.fechaCreacion).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
