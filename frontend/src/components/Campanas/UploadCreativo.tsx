@@ -559,12 +559,13 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           <>
                             {/* Video */}
                             {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
-                              <div className="mt-2 border border-green-300 rounded-lg p-2 bg-black relative group overflow-hidden">
+                              <div className="mt-2 border border-green-300 rounded-lg p-2 bg-black relative group" style={{ maxHeight: '200px' }}>
                                 <video
                                   src={creativo.urlCreativoExterno || creativo.archivoCreativo}
                                   controls
-                                  className="max-w-full max-h-48 mx-auto rounded object-contain"
+                                  className="w-full h-48 mx-auto rounded object-contain"
                                   preload="metadata"
+                                  style={{ maxHeight: '192px' }}
                                 >
                                   Tu navegador no soporta el elemento de video.
                                 </video>
@@ -574,7 +575,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                     e.stopPropagation();
                                     setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '');
                                   }}
-                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-10"
                                   title="Ver en pantalla completa"
                                 >
                                   <Maximize2 className="w-5 h-5" />
@@ -681,12 +682,13 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                           <>
                             {/* Video */}
                             {esVideo(creativo.urlCreativoExterno || creativo.archivoCreativo || '', creativo.nombreArchivoCreativo) && (
-                              <div className="mt-2 border border-gray-300 rounded-lg p-2 bg-black relative group overflow-hidden">
+                              <div className="mt-2 border border-gray-300 rounded-lg p-2 bg-black relative group" style={{ maxHeight: '200px' }}>
                                 <video
                                   src={creativo.urlCreativoExterno || creativo.archivoCreativo}
                                   controls
-                                  className="max-w-full max-h-48 mx-auto rounded object-contain"
+                                  className="w-full h-48 mx-auto rounded object-contain"
                                   preload="metadata"
+                                  style={{ maxHeight: '192px' }}
                                 >
                                   Tu navegador no soporta el elemento de video.
                                 </video>
@@ -696,7 +698,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
                                     e.stopPropagation();
                                     setVideoZoom(creativo.urlCreativoExterno || creativo.archivoCreativo || '');
                                   }}
-                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                                  className="absolute top-4 right-4 p-2 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 z-10"
                                   title="Ver en pantalla completa"
                                 >
                                   <Maximize2 className="w-5 h-5" />
