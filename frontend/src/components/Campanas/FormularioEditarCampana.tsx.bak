@@ -224,10 +224,10 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
     const resultado = await actualizarCampana(campana.id, datos);
     
     if (resultado.exito) {
-      notify.success(` ${resultado.mensaje}`);
+      alert(`✅ ${resultado.mensaje}`);
       onCerrar();
     } else {
-      notify.error(` ${resultado.mensaje}`);
+      alert(`❌ ${resultado.mensaje}`);
     }
   };
 

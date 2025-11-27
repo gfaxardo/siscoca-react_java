@@ -90,7 +90,7 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
     if (!archivoSeleccionado) return;
 
     if (!archivoSeleccionado.name.match(/\.(csv|xlsx|xls)$/i)) {
-      notify.error(' Solo se permiten archivos CSV, XLSX o XLS');
+      alert('❌ Solo se permiten archivos CSV, XLSX o XLS');
       return;
     }
 
@@ -120,7 +120,7 @@ export default function ImportarCampanas({ onCerrar }: ImportarCampanasProps) {
       
       setPaso('preview');
     } catch (error) {
-      notify.error(` Error procesando archivo: ${error}`);
+      alert(`❌ Error procesando archivo: ${error}`);
     }
   };
 

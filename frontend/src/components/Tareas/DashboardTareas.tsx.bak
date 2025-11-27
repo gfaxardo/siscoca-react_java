@@ -71,10 +71,10 @@ export default function DashboardTareas({ }: DashboardTareasProps) {
     try {
       await tareaService.completarTarea(tarea.id);
       cargarTareas(); // Recargar lista
-      notify.success(' Tarea completada exitosamente');
+      alert('✅ Tarea completada exitosamente');
     } catch (err) {
       console.error('Error completando tarea:', err);
-      notify.error(' Error al completar la tarea');
+      alert('❌ Error al completar la tarea');
     }
   };
 
@@ -85,10 +85,10 @@ export default function DashboardTareas({ }: DashboardTareasProps) {
     try {
       await tareaService.completarTarea(tarea.id);
       cargarTareas();
-      notify.success(' Tarea cerrada exitosamente');
+      alert('✅ Tarea cerrada exitosamente');
     } catch (err) {
       console.error('Error cerrando tarea:', err);
-      notify.error(' Error al cerrar la tarea');
+      alert('❌ Error al cerrar la tarea');
     }
   };
 
@@ -104,7 +104,7 @@ export default function DashboardTareas({ }: DashboardTareasProps) {
       setUsuarios(usuariosData);
     } catch (err) {
       console.error('Error cargando usuarios:', err);
-      notify.error(' Error al cargar usuarios disponibles');
+      alert('❌ Error al cargar usuarios disponibles');
     } finally {
       setCargandoUsuarios(false);
     }
@@ -112,20 +112,20 @@ export default function DashboardTareas({ }: DashboardTareasProps) {
 
   const handleDerivarTarea = async () => {
     if (!tareaParaDerivar || !usuarioSeleccionado) {
-      notify.error(' Selecciona un usuario para derivar la tarea');
+      alert('❌ Selecciona un usuario para derivar la tarea');
       return;
     }
 
     try {
       await tareaService.derivarTarea(tareaParaDerivar.id, usuarioSeleccionado);
-      notify.success(' Tarea derivada exitosamente');
+      alert('✅ Tarea derivada exitosamente');
       setMostrarModalDerivar(false);
       setTareaParaDerivar(null);
       setUsuarioSeleccionado('');
       cargarTareas();
     } catch (err) {
       console.error('Error derivando tarea:', err);
-      notify.error(` Error al derivar la tarea: ${err instanceof Error ? err.message : String(err)}`);
+      alert(`❌ Error al derivar la tarea: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

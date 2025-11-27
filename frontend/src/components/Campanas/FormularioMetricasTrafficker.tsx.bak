@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
-import { useNotification } from '../../hooks/useNotification';
 import { Campana, MetricasTrafficker } from '../../types';
 import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -58,12 +57,9 @@ interface FormularioMetricasTraffickerProps {
 }
 
 export default function FormularioMetricasTraffickerComponent({ campana, onCerrar }: FormularioMetricasTraffickerProps) {
-  // Hooks
-  const notify = useNotification();
   const subirMetricasTrafficker = useCampanaStore((state) => state.subirMetricasTrafficker);
   const guardarHistoricoSemanal = useCampanaStore((state) => state.guardarHistoricoSemanal);
   const historicoSemanasCampanas = useCampanaStore((state) => state.historicoSemanasCampanas);
-  const obtenerCampanas = useCampanaStore((state) => state.obtenerCampanas);
   
   // Inicializar con la semana actual por defecto
   const obtenerSemanaActual = (): number => {
@@ -158,12 +154,12 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
     const leads = Number(datos.leads);
     
     if (clics > alcance) {
-      notify.warning(' Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)');
+      alert('⚠️ Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)');
       return;
     }
     
     if (leads > clics) {
-      notify.warning(' Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)');
+      alert('⚠️ Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)');
       return;
     }
     
@@ -199,11 +195,10 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
       });
       
       if (resultado.exito) {
-        notify.success(resultado.mensaje);
-        await obtenerCampanas(); // Auto-refresh
+        alert(`✅ ${resultado.mensaje}`);
         onCerrar();
       } else {
-        notify.error(` ${resultado.mensaje}`);
+        alert(`❌ ${resultado.mensaje}`);
       }
     } else {
       // Guardar como histórico semanal
@@ -235,11 +230,10 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
       
       if (resultadoHistorico.exito) {
         const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
-        notify.success(`Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
-        await obtenerCampanas(); // Auto-refresh
+        alert(`✅ Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
         onCerrar();
       } else {
-        notify.error(resultadoHistorico.mensaje);
+        alert(`❌ ${resultadoHistorico.mensaje}`);
       }
     }
   };

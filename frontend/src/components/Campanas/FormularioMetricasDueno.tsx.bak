@@ -136,7 +136,7 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
     const conductores = Number(datos.conductoresPrimerViaje);
     
     if (conductores > registros) {
-      notify.warning(' Los conductores de primer viaje no pueden ser mayores que los registros (es un funnel: Registros → Conductores)');
+      alert('⚠️ Los conductores de primer viaje no pueden ser mayores que los registros (es un funnel: Registros → Conductores)');
       return;
     }
     
@@ -167,10 +167,10 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
       });
       
       if (resultado.exito) {
-        notify.success(` ${resultado.mensaje}`);
+        alert(`✅ ${resultado.mensaje}`);
         onCerrar();
       } else {
-        notify.error(` ${resultado.mensaje}`);
+        alert(`❌ ${resultado.mensaje}`);
       }
     } else {
       // Guardar como histórico semanal
@@ -198,10 +198,10 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
       
       if (resultadoHistorico.exito) {
         const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
-        notify.success(` Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
+        alert(`✅ Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
         onCerrar();
       } else {
-        notify.error(` ${resultadoHistorico.mensaje}`);
+        alert(`❌ ${resultadoHistorico.mensaje}`);
       }
     }
   };

@@ -117,9 +117,9 @@ export default function GestionUsuarios() {
     try {
       await usuarioService.deleteUsuario(id);
       await cargarUsuarios();
-      notify.success(' Usuario desactivado correctamente');
+      alert('✅ Usuario desactivado correctamente');
     } catch (err) {
-      notify.error(` Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+      alert(`❌ Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     }
   };
 
@@ -143,11 +143,11 @@ export default function GestionUsuarios() {
         }
 
         await usuarioService.updateUsuario(usuarioEditando.id, updateData);
-        notify.success(' Usuario actualizado correctamente');
+        alert('✅ Usuario actualizado correctamente');
       } else {
         // Crear nuevo usuario
         if (!formData.password || formData.password.trim() === '') {
-          notify.error(' La contraseña es requerida para nuevos usuarios');
+          alert('❌ La contraseña es requerida para nuevos usuarios');
           return;
         }
 
@@ -161,14 +161,14 @@ export default function GestionUsuarios() {
         };
 
         await usuarioService.createUsuario(createData);
-        notify.success(' Usuario creado correctamente');
+        alert('✅ Usuario creado correctamente');
       }
 
       setMostrarFormulario(false);
       await cargarUsuarios();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error guardando usuario');
-      notify.error(` Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+      alert(`❌ Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
     }
   };
 

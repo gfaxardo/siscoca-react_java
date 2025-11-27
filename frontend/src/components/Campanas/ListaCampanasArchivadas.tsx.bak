@@ -162,10 +162,10 @@ export default function ListaCampanasArchivadas() {
       // Descargar archivo
       XLSX.writeFile(wb, nombreArchivo);
       
-      notify.success(` Métricas exportadas exitosamente: ${nombreArchivo}`);
+      alert(`✅ Métricas exportadas exitosamente: ${nombreArchivo}`);
     } catch (error) {
       console.error('Error exportando a Excel:', error);
-      notify.error(' Error al exportar métricas a Excel');
+      alert('❌ Error al exportar métricas a Excel');
     }
   };
 
@@ -241,9 +241,9 @@ export default function ListaCampanasArchivadas() {
       if (confirmar) {
         const resultado = await reactivarCampana(campana);
         if (resultado.exito) {
-          notify.success(` ${resultado.mensaje}\n\n📌 La campaña ahora está activa.\nPuedes verla en el menú "Campañas" → "Campañas Activas"`);
+          alert(`✅ ${resultado.mensaje}\n\n📌 La campaña ahora está activa.\nPuedes verla en el menú "Campañas" → "Campañas Activas"`);
         } else {
-          notify.error(` ${resultado.mensaje}`);
+          alert(`❌ ${resultado.mensaje}`);
         }
       }
     } catch (err) {

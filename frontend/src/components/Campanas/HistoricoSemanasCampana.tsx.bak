@@ -169,7 +169,7 @@ export default function HistoricoSemanasCampana({
     const tieneMetricasDueno = Object.values(metricasDueno).some(v => v.trim() !== '');
     
     if (!tieneMetricasTrafficker && !tieneMetricasDueno) {
-      notify.error(' Debes ingresar al menos una métrica (trafficker o dueño)');
+      alert('❌ Debes ingresar al menos una métrica (trafficker o dueño)');
       return;
     }
 
@@ -180,12 +180,12 @@ export default function HistoricoSemanasCampana({
       const leads = parseInt(metricasTrafficker.leads) || 0;
       
       if (clics > alcance) {
-        notify.warning(' Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)');
+        alert('⚠️ Los clics no pueden ser mayores que el alcance (es un funnel: Alcance → Clics → Leads)');
         return;
       }
       
       if (leads > clics) {
-        notify.warning(' Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)');
+        alert('⚠️ Los leads no pueden ser mayores que los clics (es un funnel: Alcance → Clics → Leads)');
         return;
       }
     }
@@ -196,7 +196,7 @@ export default function HistoricoSemanasCampana({
       const conductores = parseInt(metricasDueno.conductoresPrimerViaje) || 0;
       
       if (conductores > registros) {
-        notify.warning(' Los conductores de primer viaje no pueden ser mayores que los registros (es un funnel: Registros → Conductores)');
+        alert('⚠️ Los conductores de primer viaje no pueden ser mayores que los registros (es un funnel: Registros → Conductores)');
         return;
       }
     }
@@ -237,7 +237,7 @@ export default function HistoricoSemanasCampana({
       
       if (resultado.exito) {
         const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
-        notify.success(` Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
+        alert(`✅ Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
         setMostrarFormulario(false);
         setSemanaSeleccionada(0);
         
@@ -257,10 +257,10 @@ export default function HistoricoSemanasCampana({
         // Recargar datos actualizados
         window.location.reload();
       } else {
-        notify.error(` ${resultado.mensaje}`);
+        alert(`❌ ${resultado.mensaje}`);
       }
     } catch (error) {
-      notify.error(` Error: ${error}`);
+      alert(`❌ Error: ${error}`);
     } finally {
       setGuardando(false);
     }
@@ -270,7 +270,7 @@ export default function HistoricoSemanasCampana({
     const datosExistentes = obtenerDatosSemana(semanaISO);
     
     if (!datosExistentes) {
-      notify.error(' No hay datos para eliminar para esta semana');
+      alert('❌ No hay datos para eliminar para esta semana');
       return;
     }
     
@@ -290,7 +290,7 @@ export default function HistoricoSemanasCampana({
       const resultado = await eliminarHistoricoSemanal(datosExistentes.id);
       
       if (resultado.exito) {
-        notify.success(` Métricas de la semana ${semanaISO} eliminadas exitosamente`);
+        alert(`✅ Métricas de la semana ${semanaISO} eliminadas exitosamente`);
         
         // Si estaba en el formulario de esta semana, cerrarlo
         if (semanaSeleccionada === semanaISO) {
@@ -312,10 +312,10 @@ export default function HistoricoSemanasCampana({
         // Recargar datos actualizados
         window.location.reload();
       } else {
-        notify.error(` ${resultado.mensaje}`);
+        alert(`❌ ${resultado.mensaje}`);
       }
     } catch (error) {
-      notify.error(` Error eliminando métricas: ${error}`);
+      alert(`❌ Error eliminando métricas: ${error}`);
     } finally {
       setEliminando(null);
     }

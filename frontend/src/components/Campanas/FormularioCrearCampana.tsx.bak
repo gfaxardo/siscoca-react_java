@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCampanaStore } from '../../store/useCampanaStore';
-import { useNotification } from '../../hooks/useNotification';
 import { FormularioCrearCampana, VERTICALES_LABELS, PLATAFORMAS_LABELS, PAISES_LABELS, DUENOS, TIPOS_ATERRIZAJE_LABELS } from '../../types';
 import { useState, useEffect } from 'react';
 import { X, Target, Globe, BarChart3, Smartphone, User, FileText, MapPin, Edit3, Check, Link2, Mail, Phone, MessageSquare } from 'lucide-react';
@@ -52,11 +51,7 @@ const SEGMENTOS_ABREV: Record<string, string> = {
 };
 
 export default function FormularioCrearCampanaComponent({ onCerrar }: FormularioCrearCampanaProps) {
-  // Hooks
-  const notify = useNotification();
   const { crearCampana, campanas, obtenerCampanas } = useCampanaStore();
-  
-  // Estados
   const [nombreGenerado, setNombreGenerado] = useState<string>('');
   const [nombreEditando, setNombreEditando] = useState<string>('');
   const [esEditable, setEsEditable] = useState(false);
@@ -137,18 +132,18 @@ export default function FormularioCrearCampanaComponent({ onCerrar }: Formulario
     const nombreFinal = esEditable && nombreEditando.trim() ? nombreEditando : nombreGenerado;
     
     if (!nombreFinal || nombreFinal === 'Completa los campos para generar el nombre...') {
-      notify.error(' Por favor completa todos los campos requeridos para generar el nombre de la campaña');
+      alert('❌ Por favor completa todos los campos requeridos para generar el nombre de la campaña');
       return;
     }
     
     const resultado = await crearCampana(datos, nombreFinal);
     
     if (resultado.exito) {
-      notify.success(` ${resultado.mensaje}`);
+      alert(`✅ ${resultado.mensaje}`);
       await obtenerCampanas();
       onCerrar();
     } else {
-      notify.error(` ${resultado.mensaje}`);
+      alert(`❌ ${resultado.mensaje}`);
     }
   };
 
