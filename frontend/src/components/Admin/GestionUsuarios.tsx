@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usuarioService, CreateUsuarioRequest, UpdateUsuarioRequest, RolOption } from '../../services/usuarioService';
 import { Usuario, RolUsuario } from '../../types/campana';
 import { 
@@ -422,7 +423,7 @@ export default function GestionUsuarios() {
       </div>
 
       {/* Modal de formulario */}
-      {mostrarFormulario && (
+      {mostrarFormulario && createPortal(
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] flex flex-col overflow-hidden">
             {/* Header del modal */}
@@ -570,7 +571,8 @@ export default function GestionUsuarios() {
               </form>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
