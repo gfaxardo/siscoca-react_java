@@ -61,6 +61,9 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   const [creativoAEliminar, setCreativoAEliminar] = useState<Creativo | null>(null);
   const [creativoADescartar, setCreativoADescartar] = useState<Creativo | null>(null);
   const [creativoAActivar, setCreativoAActivar] = useState<Creativo | null>(null);
+  const [procesandoActivar, setProcesandoActivar] = useState(false);
+  const [procesandoDescartar, setProcesandoDescartar] = useState(false);
+  const [procesandoEliminar, setProcesandoEliminar] = useState(false);
 
   const tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/avi', 'video/mov'];
   const tamanoMaximo = 10 * 1024 * 1024; // 10MB
@@ -382,7 +385,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   };
   
   const confirmarActivar = async () => {
-    if (!creativoAActivar) return;
+    if (!creativoAActivar || procesandoActivar) return;
     
     // Verificar límite
     const activos = creativosExistentes.filter(c => c.activo);
@@ -392,6 +395,7 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       return;
     }
     
+    setProcesandoActivar(true);
     try {
       await creativoService.marcarComoActivo(creativoAActivar.id);
       notify.success('Creativo activado exitosamente');
@@ -414,12 +418,15 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       } else {
         notify.error(`Error: ${mensajeError}`);
       }
+    } finally {
+      setProcesandoActivar(false);
     }
   };
   
   const confirmarDescartar = async () => {
-    if (!creativoADescartar) return;
+    if (!creativoADescartar || procesandoDescartar) return;
     
+    setProcesandoDescartar(true);
     try {
       await creativoService.marcarComoDescartado(creativoADescartar.id);
       notify.success('Creativo descartado exitosamente');
@@ -440,6 +447,8 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       } else {
         notify.error(`Error: ${mensajeError}`);
       }
+    } finally {
+      setProcesandoDescartar(false);
     }
   };
 
@@ -454,8 +463,9 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
   };
   
   const confirmarEliminar = async () => {
-    if (!creativoAEliminar) return;
+    if (!creativoAEliminar || procesandoEliminar) return;
     
+    setProcesandoEliminar(true);
     try {
       await creativoService.eliminarCreativo(creativoAEliminar.id);
       notify.success('Creativo eliminado exitosamente');
@@ -465,6 +475,8 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       console.error('Error al eliminar:', error);
       const mensajeError = error instanceof Error ? error.message : String(error);
       notify.error(`Error: ${mensajeError}`);
+    } finally {
+      setProcesandoEliminar(false);
     }
   };
 
@@ -1158,18 +1170,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       {creativoADescartar && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setCreativoADescartar(null)}
+          onClick={() => !procesandoDescartar && setCreativoADescartar(null)}
         >
           <div 
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600">
-                <Archive className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-600">
+                  <Archive className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Descartar Creativo</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Descartar Creativo</h3>
+              {!procesandoDescartar && (
+                <button
+                  onClick={() => setCreativoADescartar(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
             
             {/* Contenido */}
@@ -1199,16 +1221,25 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             <div className="flex gap-3">
               <button
                 onClick={() => setCreativoADescartar(null)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200"
+                disabled={procesandoDescartar}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmarDescartar}
-                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 hover:shadow-lg"
+                disabled={procesandoDescartar}
+                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(to right, #eab308, #ca8a04)' }}
               >
-                Descartar
+                {procesandoDescartar ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Descartar'
+                )}
               </button>
             </div>
           </div>
@@ -1219,18 +1250,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       {creativoAActivar && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setCreativoAActivar(null)}
+          onClick={() => !procesandoActivar && setCreativoAActivar(null)}
         >
           <div 
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-br from-green-500 to-green-600">
-                <RotateCcw className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-gradient-to-br from-green-500 to-green-600">
+                  <RotateCcw className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Activar Creativo</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Activar Creativo</h3>
+              {!procesandoActivar && (
+                <button
+                  onClick={() => setCreativoAActivar(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
             
             {/* Contenido */}
@@ -1271,17 +1312,25 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             <div className="flex gap-3">
               <button
                 onClick={() => setCreativoAActivar(null)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200"
+                disabled={procesandoActivar}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmarActivar}
-                disabled={creativosExistentes.filter(c => c.activo).length >= maxArchivos}
-                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={procesandoActivar || creativosExistentes.filter(c => c.activo).length >= maxArchivos}
+                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(to right, #10b981, #059669)' }}
               >
-                Activar
+                {procesandoActivar ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  'Activar'
+                )}
               </button>
             </div>
           </div>
@@ -1292,18 +1341,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
       {creativoAEliminar && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setCreativoAEliminar(null)}
+          onClick={() => !procesandoEliminar && setCreativoAEliminar(null)}
         >
           <div 
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-br from-red-500 to-red-600">
-                <Trash2 className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-gradient-to-br from-red-500 to-red-600">
+                  <Trash2 className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Eliminar Creativo</h3>
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Eliminar Creativo</h3>
+              {!procesandoEliminar && (
+                <button
+                  onClick={() => setCreativoAEliminar(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
             </div>
             
             {/* Contenido */}
@@ -1333,17 +1392,28 @@ export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProp
             <div className="flex gap-3">
               <button
                 onClick={() => setCreativoAEliminar(null)}
-                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200"
+                disabled={procesandoEliminar}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmarEliminar}
-                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+                disabled={procesandoEliminar}
+                className="flex-1 px-4 py-3 text-white rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
               >
-                <Trash2 className="w-4 h-4" />
-                Eliminar
+                {procesandoEliminar ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
+                  </>
+                )}
               </button>
             </div>
           </div>
