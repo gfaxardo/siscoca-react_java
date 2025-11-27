@@ -434,7 +434,85 @@ export default function Dashboard() {
             <Flag className="w-5 h-5" style={{ color: '#ef0000' }} />
             Top 5 Campañas por Rendimiento
           </h2>
-          <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+
+          {/* Vista de Cards para Móvil */}
+          <div className="lg:hidden space-y-4">
+            {campanasFiltradas
+              .filter(c => c.leads && c.leads > 0)
+              .sort((a, b) => (b.leads || 0) - (a.leads || 0))
+              .slice(0, 5)
+              .map((campana, index) => (
+                <div 
+                  key={campana.id}
+                  className="bg-white rounded-xl shadow-md border border-gray-200 p-5 hover:shadow-lg transition-all duration-200"
+                >
+                  {/* Header de la Card */}
+                  <div className="flex items-start gap-4 mb-4 pb-4 border-b border-gray-100">
+                    <div 
+                      className="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-2xl text-white shadow-lg flex-shrink-0"
+                      style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+                    >
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-2">
+                        {campana.nombre}
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-2">{campana.id}</p>
+                      <span className="inline-block px-3 py-1 text-xs font-semibold rounded-lg bg-blue-500 text-white">
+                        {campana.segmento}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Métricas en Grid */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <FileText className="w-4 h-4 text-blue-700" />
+                      </div>
+                      <p className="text-xs font-semibold text-blue-900 uppercase mb-1">Leads</p>
+                      <p className="text-lg font-bold text-blue-700">
+                        {campana.leads?.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <DollarSign className="w-4 h-4 text-green-700" />
+                      </div>
+                      <p className="text-xs font-semibold text-green-900 uppercase mb-1">Costo/Lead</p>
+                      <p className="text-base font-bold text-green-700">
+                        ${campana.costoLead?.toFixed(2)}
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <Car className="w-4 h-4 text-orange-700" />
+                      </div>
+                      <p className="text-xs font-semibold text-orange-900 uppercase mb-1">Conductores</p>
+                      <p className="text-lg font-bold text-orange-700">
+                        {campana.conductoresRegistrados || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+            {campanasFiltradas.filter(c => c.leads && c.leads > 0).length === 0 && (
+              <div className="bg-white rounded-xl shadow border border-gray-200 p-8 text-center">
+                <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                  <BarChart3 className="w-10 h-10 text-gray-400" />
+                </div>
+                <p className="text-lg font-bold text-gray-700 mb-1">No hay campañas con métricas</p>
+                <p className="text-sm text-gray-500">Las campañas aparecerán cuando tengan datos de rendimiento</p>
+              </div>
+            )}
+          </div>
+
+          {/* Vista de Tabla para Desktop */}
+          <div className="hidden lg:block bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
