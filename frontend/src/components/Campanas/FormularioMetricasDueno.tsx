@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { Campana, MetricasDueno } from '../../types';
 import { subWeeks, startOfWeek, endOfWeek, format, getYear, getISOWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -50,7 +51,9 @@ interface FormularioMetricasDuenoProps {
 }
 
 export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: FormularioMetricasDuenoProps) {
-  const { completarMetricasDueno, guardarHistoricoSemanal, obtenerHistoricoSemanalCampana } = useCampanaStore();
+  // Hooks
+  const notify = useNotification();
+  const { completarMetricasDueno, guardarHistoricoSemanal, obtenerHistoricoSemanalCampana, obtenerCampanas } = useCampanaStore();
   
   // Inicializar con la semana actual por defecto
   const obtenerSemanaActual = (): number => {
@@ -167,10 +170,11 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
       });
       
       if (resultado.exito) {
-        notify.success(` ${resultado.mensaje}`);
+        notify.success(resultado.mensaje);
+        await obtenerCampanas(); // Auto-refresh
         onCerrar();
       } else {
-        notify.error(` ${resultado.mensaje}`);
+        notify.error(resultado.mensaje);
       }
     } else {
       // Guardar como histórico semanal
@@ -198,10 +202,11 @@ export default function FormularioMetricasDuenoComponent({ campana, onCerrar }: 
       
       if (resultadoHistorico.exito) {
         const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
-        notify.success(` Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
+        notify.success(`Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
+        await obtenerCampanas(); // Auto-refresh
         onCerrar();
       } else {
-        notify.error(` ${resultadoHistorico.mensaje}`);
+        notify.error(resultadoHistorico.mensaje);
       }
     }
   };
