@@ -13,6 +13,7 @@ import GraficosBarrasAvanzados from './GraficosBarrasAvanzados';
 import MetricasGlobalesComponent from './MetricasGlobales';
 import HistorialCambios from './HistorialCambios';
 import FormularioEditarCampana from './FormularioEditarCampana';
+import ModalEliminarCampana from './ModalEliminarCampana';
 import ChatCampana from '../Chat/ChatCampana';
 import { chatService } from '../../services/chatService';
 import { useMenuActions } from '../../store/useMenuActions';
@@ -56,6 +57,8 @@ export default function ListaCampanas({
   const [ordenamiento, setOrdenamiento] = useState<'nueva-antigua' | 'antigua-nueva' | 'costosa-menos' | 'menos-costosa' | 'eficiente-menos' | 'menos-eficiente'>('nueva-antigua');
   const [campanaParaDetalle, setCampanaParaDetalle] = useState<Campana | null>(null);
   const [mostrarVistaDetallada, setMostrarVistaDetallada] = useState(false);
+  const [campanaParaEliminar, setCampanaParaEliminar] = useState<Campana | null>(null);
+  const [eliminandoCampana, setEliminandoCampana] = useState(false);
   type EstadoFiltro = 'Todas' | Campana['estado'];
   const [estadoSeleccionado, setEstadoSeleccionado] = useState<EstadoFiltro>('Todas');
 
@@ -429,6 +432,26 @@ export default function ListaCampanas({
     }
   };
 
+  const handleEliminarCampana = async () => {
+    if (!campanaParaEliminar) return;
+    
+    setEliminandoCampana(true);
+    try {
+      const resultado = await eliminarCampana(campanaParaEliminar.id);
+      if (resultado.exito) {
+        setCampanaParaEliminar(null);
+        // Opcional: mostrar mensaje de éxito
+      } else {
+        setError(resultado.mensaje);
+      }
+    } catch (err) {
+      console.error('Error eliminando campaña:', err);
+      setError('Error eliminando campaña');
+    } finally {
+      setEliminandoCampana(false);
+    }
+  };
+
   // Actualizar campañas filtradas cuando cambien las originales
   useEffect(() => {
     try {
@@ -687,19 +710,7 @@ export default function ListaCampanas({
                       }}
                       onVerMetricasGlobales={() => handleVerMetricasGlobales(campana)}
                       onVerHistorialCambios={() => handleVerHistorialCambios(campana)}
-                      onEliminarCampana={async () => {
-                        try {
-                          if (confirm(`¿Eliminar campaña ${campana.nombre}?\n\nEsta acción no se puede deshacer.`)) {
-                            const resultado = await eliminarCampana(campana.id);
-                            if (!resultado.exito) {
-                              setError(resultado.mensaje);
-                            }
-                          }
-                        } catch (err) {
-                          console.error('Error eliminando campaña:', err);
-                          setError('Error eliminando campaña');
-                        }
-                      }}
+                      onEliminarCampana={() => setCampanaParaEliminar(campana)}
                     />
                   </div>
                   </div>
@@ -882,6 +893,16 @@ export default function ListaCampanas({
             setMostrarVistaDetallada(false);
             setCampanaParaDetalle(null);
           }}
+        />
+      )}
+
+      {/* Modal de Eliminar Campaña */}
+      {campanaParaEliminar && (
+        <ModalEliminarCampana
+          campana={campanaParaEliminar}
+          onConfirmar={handleEliminarCampana}
+          onCancelar={() => setCampanaParaEliminar(null)}
+          isLoading={eliminandoCampana}
         />
       )}
 

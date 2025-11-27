@@ -742,7 +742,7 @@ export default function FormularioEditarCampanaComponent({ campana, onCerrar, mo
                   Proporciona detalles sobre cómo funciona el método de aterrizaje
                 </p>
               </div>
-            )
+            )}
           </div>
 
           {/* Botones */}

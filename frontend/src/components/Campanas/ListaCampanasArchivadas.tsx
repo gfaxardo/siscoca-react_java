@@ -11,6 +11,7 @@ import GraficosBarrasAvanzados from './GraficosBarrasAvanzados';
 import MetricasGlobalesComponent from './MetricasGlobales';
 import HistorialCambios from './HistorialCambios';
 import FormularioEditarCampana from './FormularioEditarCampana';
+import ModalEliminarCampana from './ModalEliminarCampana';
 import { useMenuActions } from '../../store/useMenuActions';
 import { AlertTriangle } from 'lucide-react';
 
@@ -39,6 +40,8 @@ export default function ListaCampanasArchivadas() {
   const [mostrarMetricasGlobales, setMostrarMetricasGlobales] = useState(false);
   const [campanaParaHistorial, setCampanaParaHistorial] = useState<Campana | null>(null);
   const [mostrarHistorialCambios, setMostrarHistorialCambios] = useState(false);
+  const [campanaParaEliminar, setCampanaParaEliminar] = useState<Campana | null>(null);
+  const [eliminandoCampana, setEliminandoCampana] = useState(false);
   const { setAcciones } = useMenuActions();
 
   // Funciones para manejar métricas globales
@@ -61,6 +64,26 @@ export default function ListaCampanasArchivadas() {
   const handleCerrarHistorialCambios = () => {
     setMostrarHistorialCambios(false);
     setCampanaParaHistorial(null);
+  };
+
+  const handleEliminarCampana = async () => {
+    if (!campanaParaEliminar) return;
+    
+    setEliminandoCampana(true);
+    try {
+      const resultado = await eliminarCampana(campanaParaEliminar.id);
+      if (resultado.exito) {
+        setCampanaParaEliminar(null);
+        // Opcional: mostrar mensaje de éxito
+      } else {
+        setError(resultado.mensaje);
+      }
+    } catch (err) {
+      console.error('Error eliminando campaña:', err);
+      setError('Error eliminando campaña');
+    } finally {
+      setEliminandoCampana(false);
+    }
   };
 
   // Función para exportar métricas a Excel
@@ -333,19 +356,7 @@ export default function ListaCampanasArchivadas() {
                       onEditarCampana={() => setCampanaParaEditar(campana)}
                       onVerMetricasGlobales={() => handleVerMetricasGlobales(campana)}
                       onVerHistorialCambios={() => handleVerHistorialCambios(campana)}
-                      onEliminarCampana={async () => {
-                        try {
-                          if (confirm(`¿Eliminar campaña ${campana.nombre}?\n\nEsta acción no se puede deshacer.`)) {
-                            const resultado = await eliminarCampana(campana.id);
-                            if (!resultado.exito) {
-                              setError(resultado.mensaje);
-                            }
-                          }
-                        } catch (err) {
-                          console.error('Error eliminando campaña:', err);
-                          setError('Error eliminando campaña');
-                        }
-                      }}
+                      onEliminarCampana={() => setCampanaParaEliminar(campana)}
                     />
                   </div>
                 </div>
@@ -472,6 +483,16 @@ export default function ListaCampanasArchivadas() {
         <HistorialCambios
           campana={campanaParaHistorial}
           onCerrar={handleCerrarHistorialCambios}
+        />
+      )}
+
+      {/* Modal de Eliminar Campaña */}
+      {campanaParaEliminar && (
+        <ModalEliminarCampana
+          campana={campanaParaEliminar}
+          onConfirmar={handleEliminarCampana}
+          onCancelar={() => setCampanaParaEliminar(null)}
+          isLoading={eliminandoCampana}
         />
       )}
 
