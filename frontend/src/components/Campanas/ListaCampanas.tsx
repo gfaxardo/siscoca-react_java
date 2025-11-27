@@ -633,12 +633,12 @@ export default function ListaCampanas({
             >
               <div className="p-5 lg:p-6 flex flex-col h-full">
                 {/* Header con título y menú de acciones */}
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-4" style={{ minHeight: '100px' }}>
                   <div className="flex-1 min-w-0 pr-3">
-                    <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2 break-words">
+                    <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-2 line-clamp-2" style={{ minHeight: '48px' }} title={campana.nombre}>
                       {campana.nombre}
                     </h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2" style={{ minHeight: '28px' }}>
                       <span className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold inline-flex items-center gap-1">
                         #{campana.id}
                       </span>
@@ -655,7 +655,7 @@ export default function ListaCampanas({
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2 flex-shrink-0">
+                  <div className="flex items-start space-x-2 flex-shrink-0">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${obtenerColorEstado(campana.estado)}`}>
                       {campana.estado === 'Creativo Enviado' ? 'Creativo Enviado!' : campana.estado}
                     </span>
@@ -719,7 +719,7 @@ export default function ListaCampanas({
                 </div>
 
                 {/* Información básica de la campaña */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 border border-gray-200">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 mb-4 border border-gray-200" style={{ minHeight: '170px' }}>
                   <h4 className="text-xs font-bold text-gray-900 mb-3 uppercase tracking-wide flex items-center gap-1.5">
                     <FileText className="w-4 h-4" style={{ color: '#ef0000' }} />
                     Información Básica
