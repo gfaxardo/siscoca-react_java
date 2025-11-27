@@ -71,12 +71,27 @@ public class CreativoService {
         
         // Si hay creativos activos pero está en PENDIENTE → cambiar a CREATIVO_ENVIADO
         if (activosCount > 0 && estadoActual == EstadoCampana.PENDIENTE) {
+            EstadoCampana estadoAnterior = estadoActual;
             campana.setEstado(EstadoCampana.CREATIVO_ENVIADO);
             campana.setFechaActualizacion(LocalDateTime.now());
             campanaRepository.save(campana);
             cambioRealizado = true;
             logger.info("Campaña {} sincronizada: PENDIENTE → CREATIVO_ENVIADO ({} creativos activos)", 
                 campanaId, activosCount);
+            
+            // Registrar log de auditoría
+            Map<String, Object> detalles = new LinkedHashMap<>();
+            detalles.put("estadoAnterior", estadoAnterior.getDisplayName());
+            detalles.put("estadoNuevo", EstadoCampana.CREATIVO_ENVIADO.getDisplayName());
+            detalles.put("motivo", "Sincronización automática por creativos activos");
+            detalles.put("creativosActivos", activosCount);
+            auditLogger.log(
+                    AuditEntity.CAMPANAS,
+                    "Cambiar estado",
+                    String.valueOf(campanaId),
+                    "Estado cambiado automáticamente: " + estadoAnterior.getDisplayName() + " → " + EstadoCampana.CREATIVO_ENVIADO.getDisplayName(),
+                    detalles
+            );
             
             // Generar tarea de activar campaña
             try {
@@ -89,12 +104,27 @@ public class CreativoService {
         else if (activosCount == 0 && 
                  (estadoActual == EstadoCampana.ACTIVA || 
                   estadoActual == EstadoCampana.CREATIVO_ENVIADO)) {
+            EstadoCampana estadoAnterior = estadoActual;
             campana.setEstado(EstadoCampana.PENDIENTE);
             campana.setFechaActualizacion(LocalDateTime.now());
             campanaRepository.save(campana);
             cambioRealizado = true;
             logger.info("Campaña {} sincronizada: {} → PENDIENTE (sin creativos activos)", 
                 campanaId, estadoActual.getDisplayName());
+            
+            // Registrar log de auditoría
+            Map<String, Object> detalles = new LinkedHashMap<>();
+            detalles.put("estadoAnterior", estadoAnterior.getDisplayName());
+            detalles.put("estadoNuevo", EstadoCampana.PENDIENTE.getDisplayName());
+            detalles.put("motivo", "Sincronización automática: sin creativos activos");
+            detalles.put("creativosActivos", 0);
+            auditLogger.log(
+                    AuditEntity.CAMPANAS,
+                    "Cambiar estado",
+                    String.valueOf(campanaId),
+                    "Estado cambiado automáticamente: " + estadoAnterior.getDisplayName() + " → " + EstadoCampana.PENDIENTE.getDisplayName(),
+                    detalles
+            );
         }
         
         if (!cambioRealizado) {

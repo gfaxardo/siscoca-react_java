@@ -132,6 +132,8 @@ public class CampanaService {
         return campanaRepository.findById(id)
                 .map(existingCampana -> {
                     Map<String, Object> datosAntes = resumenCampana(existingCampana);
+                    EstadoCampana estadoAnterior = existingCampana.getEstado();
+                    
                     // Detectar si se están actualizando métricas (trafficker o dueño)
                     // Nota: verificar explícitamente si los campos están presentes (incluyendo 0)
                     boolean actualizandoMetricasTrafficker = campanaDto.getAlcance() != null || 
@@ -149,6 +151,21 @@ public class CampanaService {
                     updateCampanaFromDto(existingCampana, campanaDto);
                     existingCampana.setFechaActualizacion(LocalDateTime.now());
                     Campana campanaGuardada = campanaRepository.save(existingCampana);
+                    
+                    // Si cambió el estado, registrar log específico de cambio de estado
+                    if (campanaDto.getEstado() != null && campanaGuardada.getEstado() != estadoAnterior) {
+                        Map<String, Object> detallesEstado = new LinkedHashMap<>();
+                        detallesEstado.put("estadoAnterior", estadoAnterior.getDisplayName());
+                        detallesEstado.put("estadoNuevo", campanaGuardada.getEstado().getDisplayName());
+                        detallesEstado.put("motivo", "Cambio manual de estado");
+                        auditLogger.log(
+                                AuditEntity.CAMPANAS,
+                                "Cambiar estado",
+                                String.valueOf(campanaGuardada.getId()),
+                                "Estado cambiado: " + estadoAnterior.getDisplayName() + " → " + campanaGuardada.getEstado().getDisplayName(),
+                                detallesEstado
+                        );
+                    }
                     
                     // Si se actualizaron métricas, guardar automáticamente en histórico semanal de la semana anterior
                     if (actualizandoMetricasTrafficker || actualizandoMetricasDueno) {
