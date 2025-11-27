@@ -259,8 +259,79 @@ export default function GestionUsuarios() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
+          <>
+            {/* Vista de Cards para móviles */}
+            <div className="grid grid-cols-1 gap-4 p-4 lg:hidden">
+              {usuarios.map((usuario) => (
+                <div key={usuario.id} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200">
+                  {/* Header del card con avatar y usuario */}
+                  <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                    <div
+                      className="w-14 h-14 rounded-full flex items-center justify-center shadow-md flex-shrink-0"
+                      style={{ background: 'linear-gradient(to bottom right, #ef0000, #dc0000)' }}
+                    >
+                      <span className="text-lg font-bold text-white">
+                        {usuario.username.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold text-gray-900 truncate">
+                        {usuario.username}
+                      </h3>
+                      <p className="text-sm text-gray-600 font-medium truncate">
+                        {usuario.nombre}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Información del usuario */}
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 font-medium flex items-center gap-2">
+                        <Type className="w-4 h-4" style={{ color: '#ef0000' }} />
+                        Iniciales
+                      </span>
+                      <span className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-bold">
+                        {usuario.iniciales}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 font-medium flex items-center gap-2">
+                        <Shield className="w-4 h-4" style={{ color: '#ef0000' }} />
+                        Rol
+                      </span>
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${getRoleBadgeColor(usuario.rol)}`}>
+                        <Shield className="w-3.5 h-3.5" />
+                        {usuario.rol}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex gap-2 pt-3 border-t border-gray-200">
+                    <button
+                      onClick={() => handleEditarUsuario(usuario)}
+                      className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-all duration-200 shadow hover:shadow-md flex items-center justify-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleEliminarUsuario(usuario.id)}
+                      className="flex-1 px-4 py-2.5 text-white rounded-lg font-bold transition-all duration-200 shadow hover:shadow-md flex items-center justify-center gap-2"
+                      style={{ background: 'linear-gradient(to right, #ef0000, #dc0000)' }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Desactivar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Vista de Tabla para desktop */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="min-w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-900 uppercase tracking-wider">
@@ -346,6 +417,7 @@ export default function GestionUsuarios() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
