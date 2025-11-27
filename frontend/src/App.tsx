@@ -17,6 +17,7 @@ import HistorialCambios from './components/Audit/HistorialCambios';
 import GestionUsuarios from './components/Admin/GestionUsuarios';
 import { useCampanaStore } from './store/useCampanaStore';
 import { Campana } from './types';
+import { Toaster } from 'react-hot-toast';
 // import { cargarDatosEjemplo } from './utils/datosEjemplo';
 
 type Vista = 'dashboard' | 'campanas' | 'historico' | 'auditoria' | 'administracion';
@@ -134,6 +135,9 @@ function AppContent() {
 
   return (
     <>
+      {/* Sistema de notificaciones moderno */}
+      <Toaster />
+      
       {error && (
         <div className="fixed top-4 right-4 z-50 max-w-md">
           <ApiErrorAlert error={error} onClose={clearError} />

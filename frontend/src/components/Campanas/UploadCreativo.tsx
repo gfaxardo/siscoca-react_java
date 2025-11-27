@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { Campana, Creativo } from '../../types';
 import { creativoService } from '../../services/creativoService';
 import { campanaService } from '../../services/campanaService';
+import { useCampanaStore } from '../../store/useCampanaStore';
+import { useNotification } from '../../hooks/useNotification';
 import { 
   FileText, 
   X, 
@@ -39,6 +41,11 @@ interface UrlExterna {
 }
 
 export default function UploadCreativo({ campana, onCerrar }: UploadCreativoProps) {
+  // Hooks
+  const notify = useNotification();
+  const { obtenerCampanas } = useCampanaStore();
+  
+  // Estados
   const [archivosSeleccionados, setArchivosSeleccionados] = useState<ArchivoConVistaPrevia[]>([]);
   const [urlsExternas, setUrlsExternas] = useState<UrlExterna[]>([]);
   const [urlInputTemporal, setUrlInputTemporal] = useState<string>('');
