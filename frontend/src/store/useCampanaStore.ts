@@ -780,10 +780,11 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
           
           // Convertir también a formato historicoSemanasCampanas
           const historicoSemanasCampanas = historicoBackend.map((h: any) => {
-            const campanaId = h.campana?.id || h.campanaId || '0';
+            // Asegurar que campanaId sea siempre string para consistencia
+            const campanaId = h.campana?.id ? h.campana.id.toString() : (h.campanaId ? h.campanaId.toString() : '0');
             return {
               id: h.id?.toString() || `${campanaId}-${h.semanaISO}-${Date.now()}`,
-              idCampana: campanaId.toString(),
+              idCampana: campanaId,
               semanaISO: h.semanaISO || 0,
               fechaSemana: h.fechaSemana ? new Date(h.fechaSemana) : (h.fechaRegistro ? new Date(h.fechaRegistro) : new Date()),
               fechaRegistro: h.fechaRegistro ? new Date(h.fechaRegistro) : new Date(),
@@ -799,6 +800,8 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
               costoConductorPrimerViaje: h.costoConductorPrimerViaje
             };
           });
+          
+          console.log('Histórico semanal cargado desde backend:', historicoSemanasCampanas);
           
           set({ historico, historicoSemanasCampanas, isLoadingHistorico: false });
           localStorage.setItem('historico', JSON.stringify(historico));
@@ -936,7 +939,11 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
 
   obtenerHistoricoSemanalCampana: (idCampana: string) => {
     const historicoSemanasCampanas = get().historicoSemanasCampanas;
-    return historicoSemanasCampanas.filter(h => h.idCampana === idCampana);
+    // Asegurar que ambos sean strings para comparación correcta
+    const idCampanaStr = idCampana.toString();
+    const resultado = historicoSemanasCampanas.filter(h => h.idCampana.toString() === idCampanaStr);
+    console.log(`Buscando histórico para campaña ${idCampanaStr}, encontrados ${resultado.length} registros de ${historicoSemanasCampanas.length} totales`);
+    return resultado;
   },
 
   eliminarHistoricoSemanal: async (id: string) => {
