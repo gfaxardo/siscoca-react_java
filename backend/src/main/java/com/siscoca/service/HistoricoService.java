@@ -118,6 +118,10 @@ public class HistoricoService {
                     if (historico.getCostoConductorPrimerViaje() != null) {
                         existing.setCostoConductorPrimerViaje(historico.getCostoConductorPrimerViaje());
                     }
+                    // Actualizar registradoPor si se proporciona
+                    if (historico.getRegistradoPor() != null) {
+                        existing.setRegistradoPor(historico.getRegistradoPor());
+                    }
                     return historicoRepository.save(existing);
                 })
                 .orElse(null);

@@ -5,6 +5,8 @@ import com.siscoca.model.*;
 import com.siscoca.model.AuditEntity;
 import com.siscoca.repository.CampanaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -200,6 +202,7 @@ public class CampanaService {
     
     /**
      * Guarda las métricas de la campaña en el histórico semanal de la semana anterior
+     * Ejecuta las operaciones realmente, guardando en la base de datos como si fuera el dueño
      */
     private void guardarMetricasEnHistoricoSemanal(Campana campana, boolean actualizandoTrafficker, boolean actualizandoDueno) {
         try {
@@ -225,6 +228,11 @@ public class CampanaService {
                 historico.setFechaSemana(LocalDateTime.now());
             }
             
+            // Establecer quién registró la actualización
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String usuarioActual = authentication != null ? authentication.getName() : "Sistema";
+            historico.setRegistradoPor(usuarioActual);
+            
             // Actualizar métricas según lo que se esté actualizando
             if (actualizandoTrafficker) {
                 if (campana.getAlcance() != null) historico.setAlcance(campana.getAlcance());
@@ -249,7 +257,7 @@ public class CampanaService {
                 }
             }
             
-            // Guardar o actualizar
+            // Guardar o actualizar realmente en la base de datos
             if (historicoExistente != null) {
                 historicoService.actualizarRegistroHistorico(historicoExistente.getId(), historico);
             } else {
