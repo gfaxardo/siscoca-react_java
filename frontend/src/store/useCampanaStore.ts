@@ -734,7 +734,7 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
         if (response.ok) {
           const historicoBackend = await response.json();
           
-          // Convertir el formato del backend al formato del frontend
+          // Convertir el formato del backend al formato del frontend para histórico general
           const historico = historicoBackend.map((h: any) => {
             // Extraer datos de la campaña o del histórico mismo
             const campanaId = h.campana?.id || h.id || '0';
@@ -778,8 +778,31 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
             };
           });
           
-          set({ historico, isLoadingHistorico: false });
+          // Convertir también a formato historicoSemanasCampanas
+          const historicoSemanasCampanas = historicoBackend.map((h: any) => {
+            const campanaId = h.campana?.id || h.campanaId || '0';
+            return {
+              id: h.id?.toString() || `${campanaId}-${h.semanaISO}-${Date.now()}`,
+              idCampana: campanaId.toString(),
+              semanaISO: h.semanaISO || 0,
+              fechaSemana: h.fechaSemana ? new Date(h.fechaSemana) : (h.fechaRegistro ? new Date(h.fechaRegistro) : new Date()),
+              fechaRegistro: h.fechaRegistro ? new Date(h.fechaRegistro) : new Date(),
+              registradoPor: h.registradoPor || 'Usuario',
+              alcance: h.alcance,
+              clics: h.clics,
+              leads: h.leads,
+              costoSemanal: h.costoSemanal,
+              costoLead: h.costoLead,
+              conductoresRegistrados: h.conductoresRegistrados,
+              conductoresPrimerViaje: h.conductoresPrimerViaje,
+              costoConductorRegistrado: h.costoConductorRegistrado,
+              costoConductorPrimerViaje: h.costoConductorPrimerViaje
+            };
+          });
+          
+          set({ historico, historicoSemanasCampanas, isLoadingHistorico: false });
           localStorage.setItem('historico', JSON.stringify(historico));
+          localStorage.setItem('historicoSemanasCampanas', JSON.stringify(historicoSemanasCampanas));
           return;
         } else {
           console.error('Error obteniendo histórico del backend:', response.status, response.statusText);
@@ -849,50 +872,57 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
       // Primero guardar en el backend
       const historicoGuardado = await historicoService.guardarHistoricoSemanal(datos);
       
-      // Si el backend guardó correctamente, actualizar el estado local
-      const historicoSemanasCampanas = get().historicoSemanasCampanas;
-      const ahora = new Date();
-      
-      // Convertir el objeto del backend al formato del frontend
-      const historicoFrontend: HistoricoSemanalCampana = {
-        id: historicoGuardado.id?.toString() || `${datos.idCampana}-${datos.semanaISO}-${ahora.getTime()}`,
-        idCampana: datos.idCampana,
-        semanaISO: datos.semanaISO,
-        fechaSemana: historicoGuardado.fechaSemana ? new Date(historicoGuardado.fechaSemana) : (datos.fechaSemana ? (typeof datos.fechaSemana === 'string' ? new Date(datos.fechaSemana) : datos.fechaSemana) : ahora),
-        fechaRegistro: historicoGuardado.fechaRegistro ? new Date(historicoGuardado.fechaRegistro) : ahora,
-        registradoPor: historicoGuardado.registradoPor || 'Usuario',
-        alcance: historicoGuardado.alcance,
-        clics: historicoGuardado.clics,
-        leads: historicoGuardado.leads,
-        costoSemanal: historicoGuardado.costoSemanal,
-        costoLead: historicoGuardado.costoLead,
-        conductoresRegistrados: historicoGuardado.conductoresRegistrados,
-        conductoresPrimerViaje: historicoGuardado.conductoresPrimerViaje,
-        costoConductorRegistrado: historicoGuardado.costoConductorRegistrado,
-        costoConductorPrimerViaje: historicoGuardado.costoConductorPrimerViaje
-      };
-      
-      // Verificar si ya existe un registro para esta campaña y semana
-      const indiceExistente = historicoSemanasCampanas.findIndex(
-        h => h.idCampana === datos.idCampana && h.semanaISO === datos.semanaISO
-      );
-      
-      let historicoActualizado;
-      if (indiceExistente >= 0) {
-        // Actualizar registro existente haciendo merge
-        historicoActualizado = [...historicoSemanasCampanas];
-        historicoActualizado[indiceExistente] = {
-          ...historicoSemanasCampanas[indiceExistente], // Preservar campos existentes
-          ...historicoFrontend, // Actualizar con datos del backend
-          id: historicoSemanasCampanas[indiceExistente].id, // Mantener ID del frontend si existe
+      // Después de guardar, recargar el histórico completo desde el backend para asegurar sincronización
+      // Esto garantiza que los datos persistan después de recargar la página
+      try {
+        await get().obtenerHistorico();
+      } catch (reloadError) {
+        console.warn('Error recargando histórico después de guardar:', reloadError);
+        // Si falla la recarga, actualizar manualmente el estado local
+        const historicoSemanasCampanas = get().historicoSemanasCampanas;
+        const ahora = new Date();
+        
+        // Convertir el objeto del backend al formato del frontend
+        const historicoFrontend: HistoricoSemanalCampana = {
+          id: historicoGuardado.id?.toString() || `${datos.idCampana}-${datos.semanaISO}-${ahora.getTime()}`,
+          idCampana: datos.idCampana,
+          semanaISO: datos.semanaISO,
+          fechaSemana: historicoGuardado.fechaSemana ? new Date(historicoGuardado.fechaSemana) : (datos.fechaSemana ? (typeof datos.fechaSemana === 'string' ? new Date(datos.fechaSemana) : datos.fechaSemana) : ahora),
+          fechaRegistro: historicoGuardado.fechaRegistro ? new Date(historicoGuardado.fechaRegistro) : ahora,
+          registradoPor: historicoGuardado.registradoPor || 'Usuario',
+          alcance: historicoGuardado.alcance,
+          clics: historicoGuardado.clics,
+          leads: historicoGuardado.leads,
+          costoSemanal: historicoGuardado.costoSemanal,
+          costoLead: historicoGuardado.costoLead,
+          conductoresRegistrados: historicoGuardado.conductoresRegistrados,
+          conductoresPrimerViaje: historicoGuardado.conductoresPrimerViaje,
+          costoConductorRegistrado: historicoGuardado.costoConductorRegistrado,
+          costoConductorPrimerViaje: historicoGuardado.costoConductorPrimerViaje
         };
-      } else {
-        // Agregar nuevo registro
-        historicoActualizado = [...historicoSemanasCampanas, historicoFrontend];
+        
+        // Verificar si ya existe un registro para esta campaña y semana
+        const indiceExistente = historicoSemanasCampanas.findIndex(
+          h => h.idCampana === datos.idCampana && h.semanaISO === datos.semanaISO
+        );
+        
+        let historicoActualizado;
+        if (indiceExistente >= 0) {
+          // Actualizar registro existente haciendo merge
+          historicoActualizado = [...historicoSemanasCampanas];
+          historicoActualizado[indiceExistente] = {
+            ...historicoSemanasCampanas[indiceExistente], // Preservar campos existentes
+            ...historicoFrontend, // Actualizar con datos del backend
+            id: historicoSemanasCampanas[indiceExistente].id, // Mantener ID del frontend si existe
+          };
+        } else {
+          // Agregar nuevo registro
+          historicoActualizado = [...historicoSemanasCampanas, historicoFrontend];
+        }
+        
+        set({ historicoSemanasCampanas: historicoActualizado });
+        localStorage.setItem('historicoSemanasCampanas', JSON.stringify(historicoActualizado));
       }
-      
-      set({ historicoSemanasCampanas: historicoActualizado });
-      localStorage.setItem('historicoSemanasCampanas', JSON.stringify(historicoActualizado));
       
       return { 
         exito: true, 
