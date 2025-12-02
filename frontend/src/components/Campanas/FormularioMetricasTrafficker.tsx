@@ -237,6 +237,9 @@ export default function FormularioMetricasTraffickerComponent({ campana, onCerra
         const accion = datosExistentes ? 'reemplazadas' : 'guardadas';
         notify.success(`Métricas ${accion} exitosamente para la semana ${semanaSeleccionada}`);
         await obtenerCampanas(); // Auto-refresh
+        // Recargar histórico para asegurar que los datos se muestren después de recargar la página
+        const { obtenerHistorico } = useCampanaStore.getState();
+        await obtenerHistorico();
         onCerrar();
       } else {
         notify.error(resultadoHistorico.mensaje);

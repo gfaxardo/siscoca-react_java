@@ -35,7 +35,7 @@ interface VistaDetalladaCampanaProps {
 }
 
 export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetalladaCampanaProps) {
-  const { obtenerHistoricoSemanalCampana } = useCampanaStore();
+  const { obtenerHistoricoSemanalCampana, obtenerHistorico } = useCampanaStore();
   const [historico, setHistorico] = useState<HistoricoSemanalCampana[]>([]);
   const [semanasSeleccionadas, setSemanasSeleccionadas] = useState<number[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -49,8 +49,12 @@ export default function VistaDetalladaCampana({ campana, onCerrar }: VistaDetall
     cargarTareasCompletadas();
   }, [campana.id]);
 
-  const cargarHistorico = () => {
+  const cargarHistorico = async () => {
     try {
+      // Primero asegurarse de que los datos estén cargados desde el backend
+      await obtenerHistorico();
+      
+      // Luego obtener los datos del store
       const historicoData = obtenerHistoricoSemanalCampana(campana.id);
       setHistorico(historicoData);
       
