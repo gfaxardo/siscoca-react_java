@@ -66,8 +66,9 @@ function AppContent() {
         obtenerCampanas();
         obtenerHistorico();
       } else if (vistaActiva === 'campanas') {
-        // Campanas solo necesita campanas activas
+        // Campanas necesita campanas activas Y histórico para mostrar gráficos
         obtenerCampanas();
+        obtenerHistorico();
       } else if (vistaActiva === 'historico') {
         // Histórico solo necesita histórico
         obtenerHistorico();
@@ -102,8 +103,9 @@ function AppContent() {
       obtenerCampanas();
       obtenerHistorico();
     } else if (nuevaVista === 'campanas') {
-      // Campanas solo necesita campanas activas
+      // Campanas necesita campanas activas Y histórico para mostrar gráficos
       obtenerCampanas();
+      obtenerHistorico();
     } else if (nuevaVista === 'historico') {
       // Histórico solo necesita histórico
       obtenerHistorico();
