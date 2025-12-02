@@ -65,6 +65,16 @@ public class HistoricoService {
     }
     
     public HistoricoSemanal crearRegistroHistorico(HistoricoSemanal historico) {
+        // Si solo se envía el id de la campaña, cargar la campaña desde la BD
+        if (historico.getCampana() != null && historico.getCampana().getId() != null) {
+            Campana campana = historico.getCampana();
+            // Si la campaña solo tiene id (referencia lazy), cargarla explícitamente
+            if (campana.getNombre() == null) {
+                campanaRepository.findById(campana.getId())
+                        .ifPresent(historico::setCampana);
+            }
+        }
+        
         // Si no se especifica semanaISO, usar la semana anterior por defecto
         if (historico.getSemanaISO() == null) {
             historico.setSemanaISO(getPreviousWeekISO());
@@ -82,12 +92,24 @@ public class HistoricoService {
         return historicoRepository.findById(id)
                 .map(existing -> {
                     // Actualizar la campaña si es necesario
+                    // Si solo se envía el id de la campaña, cargar la campaña desde la BD
                     if (historico.getCampana() != null) {
-                        existing.setCampana(historico.getCampana());
+                        Campana campana = historico.getCampana();
+                        // Si la campaña solo tiene id (referencia lazy), cargarla explícitamente
+                        if (campana.getId() != null && campana.getNombre() == null) {
+                            campanaRepository.findById(campana.getId())
+                                    .ifPresent(existing::setCampana);
+                        } else {
+                            existing.setCampana(campana);
+                        }
                     }
                     // Solo actualizar semanaISO si se proporciona
                     if (historico.getSemanaISO() != null) {
                         existing.setSemanaISO(historico.getSemanaISO());
+                    }
+                    // Actualizar fechaSemana si se proporciona
+                    if (historico.getFechaSemana() != null) {
+                        existing.setFechaSemana(historico.getFechaSemana());
                     }
                     // Solo actualizar métricas del trafficker si se proporcionan (merge, no reemplazo)
                     if (historico.getAlcance() != null) {

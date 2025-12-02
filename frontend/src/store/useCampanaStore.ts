@@ -846,39 +846,49 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
 
   guardarHistoricoSemanal: async (datos) => {
     try {
+      // Primero guardar en el backend
+      const historicoGuardado = await historicoService.guardarHistoricoSemanal(datos);
+      
+      // Si el backend guardó correctamente, actualizar el estado local
       const historicoSemanasCampanas = get().historicoSemanasCampanas;
       const ahora = new Date();
       
-      // Generar ID único
-      const id = `${datos.idCampana}-${datos.semanaISO}-${ahora.getTime()}`;
+      // Convertir el objeto del backend al formato del frontend
+      const historicoFrontend: HistoricoSemanalCampana = {
+        id: historicoGuardado.id?.toString() || `${datos.idCampana}-${datos.semanaISO}-${ahora.getTime()}`,
+        idCampana: datos.idCampana,
+        semanaISO: datos.semanaISO,
+        fechaSemana: historicoGuardado.fechaSemana ? new Date(historicoGuardado.fechaSemana) : (datos.fechaSemana ? (typeof datos.fechaSemana === 'string' ? new Date(datos.fechaSemana) : datos.fechaSemana) : ahora),
+        fechaRegistro: historicoGuardado.fechaRegistro ? new Date(historicoGuardado.fechaRegistro) : ahora,
+        registradoPor: historicoGuardado.registradoPor || 'Usuario',
+        alcance: historicoGuardado.alcance,
+        clics: historicoGuardado.clics,
+        leads: historicoGuardado.leads,
+        costoSemanal: historicoGuardado.costoSemanal,
+        costoLead: historicoGuardado.costoLead,
+        conductoresRegistrados: historicoGuardado.conductoresRegistrados,
+        conductoresPrimerViaje: historicoGuardado.conductoresPrimerViaje,
+        costoConductorRegistrado: historicoGuardado.costoConductorRegistrado,
+        costoConductorPrimerViaje: historicoGuardado.costoConductorPrimerViaje
+      };
       
       // Verificar si ya existe un registro para esta campaña y semana
       const indiceExistente = historicoSemanasCampanas.findIndex(
         h => h.idCampana === datos.idCampana && h.semanaISO === datos.semanaISO
       );
       
-      const nuevoRegistro: HistoricoSemanalCampana = {
-        id,
-        ...datos,
-        fechaRegistro: ahora,
-        registradoPor: 'Usuario' // En una app real, obtendrías esto del contexto de usuario
-      };
-      
       let historicoActualizado;
       if (indiceExistente >= 0) {
-        // Actualizar registro existente haciendo merge (preservar campos existentes que no se envían)
-        const registroExistente = historicoSemanasCampanas[indiceExistente];
+        // Actualizar registro existente haciendo merge
         historicoActualizado = [...historicoSemanasCampanas];
         historicoActualizado[indiceExistente] = {
-          ...registroExistente, // Preservar campos existentes
-          ...datos, // Sobrescribir solo con los campos enviados
-          id: registroExistente.id, // Mantener el ID original
-          fechaRegistro: registroExistente.fechaRegistro, // Mantener fecha de registro original
-          registradoPor: registroExistente.registradoPor || nuevoRegistro.registradoPor // Mantener registradoPor original si existe
+          ...historicoSemanasCampanas[indiceExistente], // Preservar campos existentes
+          ...historicoFrontend, // Actualizar con datos del backend
+          id: historicoSemanasCampanas[indiceExistente].id, // Mantener ID del frontend si existe
         };
       } else {
         // Agregar nuevo registro
-        historicoActualizado = [...historicoSemanasCampanas, nuevoRegistro];
+        historicoActualizado = [...historicoSemanasCampanas, historicoFrontend];
       }
       
       set({ historicoSemanasCampanas: historicoActualizado });
@@ -886,10 +896,11 @@ export const useCampanaStore = create<CampanaStore>((set, get) => ({
       
       return { 
         exito: true, 
-        mensaje: `Métricas de la semana ${datos.semanaISO} guardadas exitosamente` 
+        mensaje: `Métricas de la semana ${datos.semanaISO} guardadas exitosamente en la base de datos` 
       };
     } catch (error) {
-      return { exito: false, mensaje: `Error: ${error}` };
+      console.error('Error guardando histórico semanal:', error);
+      return { exito: false, mensaje: `Error guardando en el servidor: ${error}` };
     }
   },
 
